@@ -4,7 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { SECTIONS, isSlotVisible } from '../data/sections.js'
 import { EMMA_CLASSES, MODES } from '../data/schema.js'
-import { evaluateRules, summarize } from '../data/emmaRules.js'
+import { evaluateRules, summarize, toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { assessProject } from '../data/assessment.js'
 import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
@@ -35,8 +35,8 @@ const headMeta = computed(() => {
 })
 
 /** Leere Zahlenfelder kommen als '' oder null zurück – beides darf nicht als „ cm“ im Druck landen. */
-const num = (value) => (value === null || value === undefined || value === '' ? null : Number(value))
-const hasNum = (value) => Number.isFinite(num(value))
+const num = toNumber
+const hasNum = (value) => toNumber(value) !== null
 
 /** Der interne Modus-Schlüssel („SQMasterclass“) gehört nicht auf das Deckblatt. */
 const modeLabel = computed(() => {

@@ -1,5 +1,5 @@
 import { CRITERIA, criteriaForColumn, BONUS_POINTS_PER_REQUEST } from './matrix.js'
-import { evaluateRules } from './emmaRules.js'
+import { evaluateRules, toNumber, MAX_FUSE_DISTANCE_CM } from './emmaRules.js'
 import { translate } from '../i18n/index.js'
 
 const d = (key, params) => translate(`assessment.${key}`, params)
@@ -68,7 +68,10 @@ function deriveAuto(criterion, project, column, findings) {
 
     case 'mainFuse': {
       const p = project.power || {}
-      const distanceOk = p.mainFuseDistanceCm !== null && Number(p.mainFuseDistanceCm) <= 40
+      // Ein leeres Feld ist keine Angabe: Sonst zählte es wie „0 cm“ und
+      // schenkte diesem Alles-oder-nichts-Kriterium die vollen Punkte.
+      const distance = toNumber(p.mainFuseDistanceCm)
+      const distanceOk = distance !== null && distance >= 0 && distance <= MAX_FUSE_DISTANCE_CM
       const panelOk = p.fuseBeforeMetalPanel === true
       const placed = distanceOk || panelOk
       if (!p.mainFuseAmps) return ok(0, d('mainFuseNoValue'))

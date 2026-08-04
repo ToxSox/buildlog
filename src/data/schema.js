@@ -7,6 +7,8 @@
  * hier steht nur die Metadaten-Referenz (id, caption, width, height, ...).
  */
 
+import { toNumber } from './emmaRules.js'
+
 export const SCHEMA_VERSION = 5
 
 export const MODES = {
@@ -181,6 +183,14 @@ const LEGACY_CLASS_MAP = {
  * bewusst geleert statt stillschweigend umgerechnet – ein falsch übernommener
  * Sicherheitswert wäre gefährlicher als eine erneute Eingabe.
  */
+const NUMERIC_POWER_FIELDS = [
+  'mainFuseAmps',
+  'mainFuseDistanceCm',
+  'groundLengthCm',
+  'secondBatteryFuseAmps',
+  'secondBatteryDistanceCm',
+]
+
 function sanitizeSection(value) {
   if (value === null || value === undefined || value === '') return null
   return CABLE_SECTIONS.includes(Number(value)) ? Number(value) : null
@@ -218,6 +228,15 @@ export function migrateProject(raw) {
   merged.power.distributionFuses = (merged.power.distributionFuses || []).map((b) => ({
     ...b,
     section: sanitizeSection(b.section),
+    amps: toNumber(b.amps),
+  }))
+
+  // Ein geleertes Formularfeld hinterlässt einen leeren String. Der soll weder
+  // in der gespeicherten Mappe noch im ZIP-Export stehen.
+  for (const key of NUMERIC_POWER_FIELDS) merged.power[key] = toNumber(merged.power[key])
+  merged.system.powerLinks = (merged.system.powerLinks || []).map((link) => ({
+    ...link,
+    section: sanitizeSection(link.section),
   }))
 
   // 'rotation' wurde durch physisches Drehen abgelöst und wird nicht mehr geführt.

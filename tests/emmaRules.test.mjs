@@ -1,5 +1,6 @@
-import { FUSE_LIMITS, maxAmpsFor, minSectionFor, evaluateRules } from '../src/data/emmaRules.js'
+import { FUSE_LIMITS, maxAmpsFor, minSectionFor, evaluateRules, toNumber } from '../src/data/emmaRules.js'
 import { createEmptyProject } from '../src/data/schema.js'
+import { assessProject } from '../src/data/assessment.js'
 
 // Offizielle Fuse Size Matrix, abgetippt aus dem Rulebook 2026 (Seite 25/28)
 const OFFICIAL = [
@@ -102,6 +103,38 @@ check(
   'alle Befunde haben eine Quelle',
   f.every((x) => x.source === 'rulebook' || x.source === 'praxis'),
 )
+
+// Fall 7: Ein geleertes Zahlenfeld ist keine Angabe
+// Das Formular schreibt beim Leeren einen leeren String zurück. Wurde der wie
+// eine 0 behandelt, galt die Hauptsicherung als "innerhalb von 0 cm montiert"
+// und das Alles-oder-nichts-Kriterium gab die vollen Punkte.
+check('toNumber("") ist keine Zahl', toNumber('') === null)
+check('toNumber("abc") ist keine Zahl', toNumber('abc') === null)
+check('toNumber("40") ist 40', toNumber('40') === 40)
+check('toNumber(0) bleibt 0', toNumber(0) === 0)
+
+p = createEmptyProject()
+p.meta.emmaClass = 'sq-m'
+p.power.mainFuseAmps = 100
+p.power.fuseBeforeMetalPanel = null
+// Alles andere erfüllt, damit wirklich nur der Abstand über die Punkte entscheidet.
+p.system.components = [
+  { id: 'a', type: 'battery' },
+  { id: 'b', type: 'amp' },
+]
+p.system.powerLinks = [{ id: 'l', from: 'a', to: 'b' }]
+const mainFuseFor = (value) => {
+  p.power.mainFuseDistanceCm = value
+  return assessProject(p, 'M').criteria.find((c) => c.id === 'mainFuse')
+}
+const withDistance = mainFuseFor(30)
+check('30 cm gibt die vollen Punkte', withDistance && withDistance.earned === withDistance.max)
+const emptyDistance = mainFuseFor('')
+check('leeres Abstandsfeld gibt keine Punkte', emptyDistance && emptyDistance.earned === 0)
+const nullDistance = mainFuseFor(null)
+check('fehlender Abstand gibt keine Punkte', nullDistance && nullDistance.earned === 0)
+const farDistance = mainFuseFor(80)
+check('80 cm gibt keine Punkte', farDistance && farDistance.earned === 0)
 
 console.log(fail === 0 ? `\nAlle Checks bestanden.` : `\n${fail} Check(s) fehlgeschlagen.`)
 process.exit(fail ? 1 : 0)

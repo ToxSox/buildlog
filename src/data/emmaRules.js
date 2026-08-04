@@ -74,7 +74,18 @@ export function isListedSection(mm2) {
   return FUSE_LIMITS.some((e) => e.mm2 === Number(mm2))
 }
 
-const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v))
+/**
+ * Zahlenfelder kommen aus dem Formular als Zahl, als null – oder als leerer
+ * String, sobald der Nutzer das Feld wieder leert. Nur eine echte Zahl darf
+ * als Angabe zählen, sonst würde ein geleertes Feld wie „0“ gewertet.
+ */
+export function toNumber(value) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const num = toNumber
 
 /**
  * @returns {Array<{id,severity,source,step,key,params,fixKey}>}
