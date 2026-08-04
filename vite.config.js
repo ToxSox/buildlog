@@ -1,10 +1,48 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: './',
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue(),
+    tailwindcss(),
+    /**
+     * Auf dem Showplatz gibt es oft kein Netz – genau dort wird die App
+     * gebraucht. Der Service Worker legt alle Build-Assets im Precache ab,
+     * inklusive der nachgeladenen mermaid-Chunks.
+     */
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // mermaid + Abhängigkeiten sind groß, sollen aber offline verfügbar sein.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
+      },
+      manifest: {
+        name: 'EMMA Build Log Creator',
+        short_name: 'Build Log',
+        description:
+          'Geführter Assistent für EMMA-konforme Car-HiFi-Einbaudokumentationen. Läuft komplett offline im Browser.',
+        lang: 'de',
+        start_url: './',
+        scope: './',
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#f1f5f9',
+        theme_color: '#0f172a',
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+    }),
+  ],
   build: {
     chunkSizeWarningLimit: 1200,
   },

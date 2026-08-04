@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { uid } from '../data/schema.js'
 import { compressImage, readDimensions, isImage } from '../utils/image.js'
+import { isQuotaError, quotaMessage, storageEstimate } from '../utils/storage.js'
 
 const props = defineProps({
   slotKey: { type: String, required: true },
@@ -50,6 +51,10 @@ async function handleFiles(fileList) {
       })
     } catch (err) {
       console.error('[emma] Bild konnte nicht verarbeitet werden', err)
+      if (isQuotaError(err)) {
+        error.value = quotaMessage(await storageEstimate())
+        break
+      }
       error.value = `„${file.name || 'Bild'}“ konnte nicht verarbeitet werden.`
     } finally {
       progress.value.done += 1

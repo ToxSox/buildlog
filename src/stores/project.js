@@ -3,6 +3,7 @@ import { ref, computed, watch, toRaw } from 'vue'
 import localforage from 'localforage'
 import { createEmptyProject, migrateProject, uid, MODES } from '../data/schema.js'
 import { columnForClass } from '../data/matrix.js'
+import { isQuotaError } from '../utils/storage.js'
 import { useMediaStore } from './media.js'
 
 const stateDb = localforage.createInstance({
@@ -12,12 +13,15 @@ const stateDb = localforage.createInstance({
 })
 
 const STATE_KEY = 'project'
+const INDEX_KEY = 'index'
 
 export const useProjectStore = defineStore('project', () => {
   const project = ref(createEmptyProject())
   const ready = ref(false)
   const saving = ref(false)
   const lastSavedAt = ref(null)
+  /** Gesetzt, wenn der Autosave am vollen Browser-Speicher gescheitert ist. */
+  const storageError = ref('')
 
   // ---------------------------------------------------------------- Getter
   const mode = computed(() => project.value.mode)
@@ -131,34 +135,173 @@ export const useProjectStore = defineStore('project', () => {
     return path.split('.').reduce((acc, key) => (acc ? acc[key] : undefined), project.value)
   }
 
+  // ------------------------------------------------------- Mehrere Mappen
+  /** Kurzinfos aller gespeicherten Mappen für die Auswahl auf der Startseite. */
+  const projects = ref([])
+  const activeId = ref(null)
+
+  const plain = (value) => JSON.parse(JSON.stringify(toRaw(value)))
+  const projectKey = (id) => `project:${id}`
+
+  function summarize(id, data) {
+    const m = data.meta || {}
+    return {
+      id,
+      title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || 'Neue Mappe',
+      participant: m.participantName || '',
+      emmaClass: m.emmaClass || '',
+      mode: data.mode || '',
+      updatedAt: data.updatedAt || new Date().toISOString(),
+      photos: Object.values(data.media || {}).reduce((n, list) => n + (list?.length || 0), 0),
+    }
+  }
+
+  async function persistIndex() {
+    await stateDb.setItem(INDEX_KEY, { activeId: activeId.value, projects: plain(projects.value) })
+  }
+
+  function touchIndexEntry() {
+    const entry = summarize(activeId.value, project.value)
+    const idx = projects.value.findIndex((p) => p.id === activeId.value)
+    if (idx >= 0) projects.value[idx] = entry
+    else projects.value.push(entry)
+  }
+
+  /** Bild-IDs, die von einer anderen als der aktiven Mappe belegt werden. */
+  async function mediaIdsExcept(excludeId) {
+    const ids = new Set()
+    for (const entry of projects.value) {
+      if (entry.id === excludeId) continue
+      const data = entry.id === activeId.value ? project.value : await stateDb.getItem(projectKey(entry.id))
+      Object.values(data?.media || {}).forEach((list) =>
+        (list || []).forEach((item) => ids.add(item.id)),
+      )
+    }
+    return ids
+  }
+
   // ------------------------------------------------------------- Lifecycle
-  function startProject(newMode) {
+  async function startProject(newMode) {
     const fresh = createEmptyProject()
     fresh.mode = newMode
+    activeId.value = uid('prj')
     project.value = fresh
+    touchIndexEntry()
+    await save()
   }
 
   function setMode(newMode) {
     project.value.mode = newMode
   }
 
-  async function resetProject() {
-    project.value = createEmptyProject()
-    await useMediaStore().clearAll()
-    await stateDb.removeItem(STATE_KEY)
+  async function switchTo(id) {
+    if (id === activeId.value) return
+    const data = await stateDb.getItem(projectKey(id))
+    if (!data) return
+    activeId.value = id
+    project.value = migrateProject(data)
+    await useMediaStore().hydrate(allMediaIds.value)
+    await persistIndex()
   }
 
-  /** Ersetzt den kompletten State (Import aus ZIP). */
-  function replaceProject(raw) {
+  /** Kopiert die aktive Mappe inklusive eigener Bildkopien. */
+  async function duplicateActive(suffix = '(Kopie)') {
+    const media = useMediaStore()
+    const copy = migrateProject(plain(project.value))
+    copy.createdAt = new Date().toISOString()
+    copy.meta.notes = copy.meta.notes || ''
+    copy.meta.vehicleModel = `${copy.meta.vehicleModel} ${suffix}`.trim()
+
+    // Bilder physisch kopieren, damit das Löschen der einen Mappe die andere nicht trifft.
+    for (const [slot, list] of Object.entries(copy.media)) {
+      copy.media[slot] = []
+      for (const item of list || []) {
+        const blob = await media.get(item.id)
+        if (!blob) continue
+        const newId = uid('img')
+        await media.put(newId, blob)
+        copy.media[slot].push({ ...item, id: newId })
+      }
+    }
+
+    const newId = uid('prj')
+    await stateDb.setItem(projectKey(newId), plain(copy))
+    projects.value.push(summarize(newId, copy))
+    await persistIndex()
+    return newId
+  }
+
+  async function deleteProject(id) {
+    const media = useMediaStore()
+    const data = id === activeId.value ? plain(project.value) : await stateDb.getItem(projectKey(id))
+    const stillUsed = await mediaIdsExcept(id)
+
+    for (const list of Object.values(data?.media || {})) {
+      for (const item of list || []) {
+        if (!stillUsed.has(item.id)) await media.remove(item.id)
+      }
+    }
+
+    await stateDb.removeItem(projectKey(id))
+    projects.value = projects.value.filter((p) => p.id !== id)
+
+    if (id === activeId.value) {
+      const next = projects.value[0]
+      if (next) {
+        activeId.value = null
+        await switchTo(next.id)
+      } else {
+        activeId.value = null
+        project.value = createEmptyProject()
+      }
+    }
+    await persistIndex()
+  }
+
+  async function resetProject() {
+    for (const entry of [...projects.value]) await deleteProject(entry.id)
+    project.value = createEmptyProject()
+    activeId.value = null
+    projects.value = []
+    await useMediaStore().clearAll()
+    await stateDb.removeItem(INDEX_KEY)
+  }
+
+  /** Legt eine importierte Mappe als eigenes Projekt an, statt die aktuelle zu überschreiben. */
+  async function replaceProject(raw) {
+    activeId.value = uid('prj')
     project.value = migrateProject(raw)
+    touchIndexEntry()
+    await save()
   }
 
   async function load() {
     try {
-      const raw = await stateDb.getItem(STATE_KEY)
-      if (raw) {
-        project.value = migrateProject(raw)
-        await useMediaStore().hydrate(allMediaIds.value)
+      const index = await stateDb.getItem(INDEX_KEY)
+
+      if (index?.projects?.length) {
+        projects.value = index.projects
+        const wanted = index.activeId && index.projects.some((p) => p.id === index.activeId)
+          ? index.activeId
+          : index.projects[0].id
+        const data = await stateDb.getItem(projectKey(wanted))
+        if (data) {
+          activeId.value = wanted
+          project.value = migrateProject(data)
+          await useMediaStore().hydrate(allMediaIds.value)
+        }
+      } else {
+        // Migration: Einzelprojekt aus Schema <= 5 in die Mappenliste überführen.
+        const legacy = await stateDb.getItem(STATE_KEY)
+        if (legacy) {
+          activeId.value = uid('prj')
+          project.value = migrateProject(legacy)
+          projects.value = [summarize(activeId.value, project.value)]
+          await stateDb.setItem(projectKey(activeId.value), plain(project.value))
+          await stateDb.removeItem(STATE_KEY)
+          await persistIndex()
+          await useMediaStore().hydrate(allMediaIds.value)
+        }
       }
     } catch (err) {
       console.error('[emma] Autosave konnte nicht geladen werden', err)
@@ -168,13 +311,20 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   async function save() {
+    if (!activeId.value) return
     saving.value = true
     try {
       project.value.updatedAt = new Date().toISOString()
-      await stateDb.setItem(STATE_KEY, JSON.parse(JSON.stringify(toRaw(project.value))))
+      await stateDb.setItem(projectKey(activeId.value), plain(project.value))
+      touchIndexEntry()
+      await persistIndex()
       lastSavedAt.value = new Date()
+      storageError.value = ''
     } catch (err) {
       console.error('[emma] Autosave fehlgeschlagen', err)
+      storageError.value = isQuotaError(err)
+        ? 'Browser-Speicher voll – Änderungen konnten nicht gesichert werden.'
+        : 'Autosave fehlgeschlagen.'
     } finally {
       saving.value = false
     }
@@ -194,9 +344,12 @@ export const useProjectStore = defineStore('project', () => {
 
   return {
     project,
+    projects,
+    activeId,
     ready,
     saving,
     lastSavedAt,
+    storageError,
     mode,
     isMasterclass,
     isQuick,
@@ -220,6 +373,9 @@ export const useProjectStore = defineStore('project', () => {
     removeItem,
     startProject,
     setMode,
+    switchTo,
+    duplicateActive,
+    deleteProject,
     resetProject,
     replaceProject,
     load,

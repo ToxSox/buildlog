@@ -7,6 +7,7 @@ import { useScore } from '../composables/useScore.js'
 import WizardShell from '../components/WizardShell.vue'
 import RuleReport from '../components/RuleReport.vue'
 import ArchiveTools from '../components/ArchiveTools.vue'
+import StorageStatus from '../components/StorageStatus.vue'
 
 const store = useProjectStore()
 const { percent, level, missingRequired, assessment, column, columnLabel } = useScore()
@@ -80,6 +81,7 @@ const grouped = computed(() => {
       <div class="card-body space-y-4">
         <router-link to="/druck" class="btn-primary">🖨️ Druckansicht öffnen</router-link>
         <ArchiveTools />
+        <StorageStatus />
       </div>
     </div>
 

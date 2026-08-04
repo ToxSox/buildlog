@@ -2,13 +2,18 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
-import { MODES } from '../data/schema.js'
+import { MODES, EMMA_CLASSES } from '../data/schema.js'
 import ArchiveTools from '../components/ArchiveTools.vue'
 
 const router = useRouter()
 const store = useProjectStore()
 
-const hasSaved = computed(() => store.hasProject)
+const savedProjects = computed(() =>
+  [...store.projects].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)),
+)
+
+const className = (id) => EMMA_CLASSES.find((c) => c.id === id)?.label || '–'
+const formatDate = (iso) => new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
 
 const modes = [
   {
@@ -37,19 +42,28 @@ const modes = [
   },
 ]
 
-function start(mode) {
-  if (hasSaved.value) {
-    const ok = window.confirm(
-      'Es liegt bereits ein gespeichertes Projekt vor. Ein neues Projekt zu starten löscht die aktuelle Mappe. Fortfahren?',
-    )
-    if (!ok) return
-  }
-  store.startProject(mode)
+async function start(mode) {
+  await store.startProject(mode)
   router.push('/wizard/fahrzeug')
 }
 
-function resume() {
+async function open(id) {
+  await store.switchTo(id)
   router.push('/wizard/fahrzeug')
+}
+
+async function duplicate(id) {
+  await store.switchTo(id)
+  const newId = await store.duplicateActive()
+  if (newId) await store.switchTo(newId)
+  router.push('/wizard/fahrzeug')
+}
+
+async function remove(entry) {
+  const ok = window.confirm(
+    `Mappe „${entry.title}“ mit ${entry.photos} Foto(s) endgültig löschen? Das lässt sich nicht rückgängig machen.`,
+  )
+  if (ok) await store.deleteProject(entry.id)
 }
 </script>
 
@@ -74,20 +88,39 @@ function resume() {
       </div>
     </section>
 
-    <div v-if="hasSaved" class="card card-body flex flex-wrap items-center justify-between gap-3 border-sky-200 bg-sky-50">
-      <div>
-        <p class="text-sm font-bold text-sky-900">Gespeicherte Mappe gefunden</p>
-        <p class="text-xs text-sky-800">
-          {{ store.title }} · {{ store.mode }} ·
-          zuletzt geändert
-          {{ new Date(store.project.updatedAt).toLocaleString('de-DE') }}
-        </p>
-      </div>
-      <button type="button" class="btn-primary" @click="resume">Weiterarbeiten →</button>
-    </div>
+    <section v-if="savedProjects.length">
+      <h2 class="section-title mb-3">Deine Mappen</h2>
+      <ul class="space-y-2">
+        <li
+          v-for="entry in savedProjects"
+          :key="entry.id"
+          class="card card-body flex flex-wrap items-center gap-3"
+          :class="entry.id === store.activeId ? 'border-sky-300 bg-sky-50' : ''"
+        >
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-bold text-slate-900">
+              {{ entry.title }}
+              <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">aktiv</span>
+            </p>
+            <p class="truncate text-xs text-slate-500">
+              {{ className(entry.emmaClass) }} · {{ entry.photos }} Foto(s) · geändert
+              {{ formatDate(entry.updatedAt) }}
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">Öffnen</button>
+            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">Duplizieren</button>
+            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">Löschen</button>
+          </div>
+        </li>
+      </ul>
+      <p class="mt-2 text-xs text-slate-500">
+        Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.
+      </p>
+    </section>
 
     <section>
-      <h2 class="section-title mb-3">Womit möchtest du starten?</h2>
+      <h2 class="section-title mb-3">{{ savedProjects.length ? 'Neue Mappe anlegen' : 'Womit möchtest du starten?' }}</h2>
       <div class="grid gap-4 md:grid-cols-2">
         <button
           v-for="m in modes"
@@ -122,7 +155,7 @@ function resume() {
     </section>
 
     <section>
-      <h2 class="section-title mb-3">Angefangene Mappe fortsetzen</h2>
+      <h2 class="section-title mb-3">Mappe aus einer ZIP laden</h2>
       <ArchiveTools variant="import" />
       <p class="mt-2 text-xs text-slate-500">
         So kannst du am Handy fotografieren, die ZIP sichern und am PC in Ruhe weiterschreiben.

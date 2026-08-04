@@ -26,8 +26,10 @@ export const useMediaStore = defineStore('media', () => {
   }
 
   async function put(id, blob) {
-    attach(id, blob)
+    // Erst in die IndexedDB – schlägt das wegen Quota fehl, landet kein
+    // verwaister Object-URL im State und der Aufrufer kann reagieren.
     await mediaDb.setItem(id, blob)
+    attach(id, blob)
   }
 
   async function get(id) {

@@ -92,8 +92,6 @@ export async function importArchive(file) {
   const raw = JSON.parse(await entry.async('string'))
   const project = migrateProject(raw)
 
-  await media.clearAll()
-
   let restored = 0
   for (const items of Object.values(project.media || {})) {
     for (const item of items || []) {
@@ -110,7 +108,6 @@ export async function importArchive(file) {
     }
   }
 
-  store.replaceProject(project)
-  await store.save()
+  await store.replaceProject(project)
   return { restored }
 }
