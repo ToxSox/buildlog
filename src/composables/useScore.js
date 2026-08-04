@@ -1,0 +1,71 @@
+import { computed } from 'vue'
+import { useProjectStore } from '../stores/project.js'
+import { allSlots, requiredSlots } from '../data/sections.js'
+import { assessProject } from '../data/assessment.js'
+import { COLUMN_LABELS } from '../data/matrix.js'
+
+/**
+ * Fortschritt und Selbsteinschätzung.
+ *
+ * Statt einer erfundenen 100-Punkte-Skala rechnet die App jetzt gegen die
+ * echte Installation Matrix der gewählten Kategorie (E 69 … X Unlimited 325).
+ * Solange keine Kategorie gewählt ist, bleibt nur der Foto-Fortschritt übrig.
+ */
+export function useScore() {
+  const store = useProjectStore()
+
+  const column = computed(() => store.column)
+  const columnLabel = computed(() => (column.value ? COLUMN_LABELS[column.value] : ''))
+
+  const assessment = computed(() => assessProject(store.project, column.value))
+
+  /** Reiner Foto-Fortschritt – funktioniert auch ohne gewählte Kategorie. */
+  const photos = computed(() => {
+    const required = requiredSlots(column.value)
+    const done = required.filter((s) => store.mediaFor(s.key).length > 0)
+    return {
+      done: done.length,
+      total: required.length,
+      percent: required.length ? Math.round((done.length / required.length) * 100) : 0,
+    }
+  })
+
+  /** Balken im Header: Matrix-Prozent, solange eine Kategorie gewählt ist. */
+  const percent = computed(() => (column.value ? assessment.value.percent : photos.value.percent))
+  const score = computed(() => (column.value ? assessment.value.earned : photos.value.done))
+  const maxScore = computed(() => (column.value ? assessment.value.max : photos.value.total))
+
+  const level = computed(() => {
+    if (!column.value) return 'Kategorie wählen, um gegen die Matrix zu rechnen'
+    if (assessment.value.unrated) return `${assessment.value.unrated} Kriterien noch nicht eingeschätzt`
+    if (percent.value >= 90) return 'Vorzeigemappe'
+    if (percent.value >= 75) return 'Richtertauglich'
+    if (percent.value >= 50) return 'Solide Mappe'
+    if (percent.value >= 25) return 'Grundgerüst steht'
+    return 'Rohbau'
+  })
+
+  const missingRequired = computed(() =>
+    requiredSlots(column.value).filter((s) => store.mediaFor(s.key).length === 0),
+  )
+
+  function missingForStep(step) {
+    return missingRequired.value.filter((s) => s.section.step === step)
+  }
+
+  const visibleSlots = computed(() => allSlots(column.value, store.mode))
+
+  return {
+    column,
+    columnLabel,
+    assessment,
+    photos,
+    score,
+    maxScore,
+    percent,
+    level,
+    missingRequired,
+    missingForStep,
+    visibleSlots,
+  }
+}
