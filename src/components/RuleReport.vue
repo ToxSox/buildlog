@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { evaluateRules, RULEBOOK_EDITION } from '../data/emmaRules.js'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   step: { type: String, default: '' },
@@ -17,6 +20,14 @@ const findings = computed(() => {
 })
 
 const order = { error: 0, warn: 1, info: 2, ok: 3 }
+
+/** fix/ref sind optional – ohne Eintrag im Katalog wird nichts gerendert. */
+function optional(key, params) {
+  const value = t(key, params)
+  return value === key ? '' : value
+}
+const fixText = (f) => optional(f.fixKey || `${f.key}.fix`, f.params)
+const refText = (f) => optional(`${f.key}.ref`, f.params)
 const sorted = computed(() => [...findings.value].sort((a, b) => order[a.severity] - order[b.severity]))
 
 const styles = {
@@ -38,25 +49,27 @@ const styles = {
       <span class="text-lg leading-none">{{ styles[f.severity].icon }}</span>
       <div class="min-w-0">
         <p class="flex flex-wrap items-center gap-2 text-sm font-bold" :class="styles[f.severity].title">
-          <span>{{ f.title }}</span>
+          <span>{{ t(`${f.key}.title`, f.params) }}</span>
           <span
             class="badge"
             :class="f.source === 'praxis' ? 'bg-slate-200 text-slate-600' : 'bg-slate-900 text-white'"
             :title="
               f.source === 'praxis'
-                ? 'Gute Einbaupraxis – steht so nicht im Regelwerk, kostet also keine Punkte'
-                : `Steht im ${RULEBOOK_EDITION}`
+                ? t('rules.badgePraxisTitle')
+                : t('rules.badgeRulebookTitle', { edition: RULEBOOK_EDITION })
             "
           >
-            {{ f.source === 'praxis' ? 'Praxis-Tipp' : 'Regelwerk' }}
+            {{ f.source === 'praxis' ? t('rules.badgePraxis') : t('rules.badgeRulebook') }}
           </span>
         </p>
-        <p class="text-xs leading-relaxed" :class="styles[f.severity].text">{{ f.message }}</p>
-        <p v-if="f.fix" class="mt-1 text-xs font-semibold" :class="styles[f.severity].text">
-          → {{ f.fix }}
+        <p class="text-xs leading-relaxed" :class="styles[f.severity].text">
+          {{ t(`${f.key}.message`, f.params) }}
         </p>
-        <p v-if="f.ref" class="mt-1 text-[11px] italic opacity-75" :class="styles[f.severity].text">
-          {{ f.ref }}
+        <p v-if="fixText(f)" class="mt-1 text-xs font-semibold" :class="styles[f.severity].text">
+          → {{ fixText(f) }}
+        </p>
+        <p v-if="refText(f)" class="mt-1 text-[11px] italic opacity-75" :class="styles[f.severity].text">
+          {{ refText(f) }}
         </p>
       </div>
     </div>

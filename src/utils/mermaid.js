@@ -1,4 +1,5 @@
 import { COMPONENT_TYPES } from '../data/schema.js'
+import { translateInline, translate } from '../i18n/index.js'
 
 /** Mermaid-Labels vertragen keine Anführungszeichen und keine spitzen Klammern. */
 function clean(text) {
@@ -13,14 +14,15 @@ function nodeId(id) {
 }
 
 function typeMeta(type) {
-  return COMPONENT_TYPES.find((t) => t.id === type) || { label: type, icon: '•' }
+  const found = COMPONENT_TYPES.find((t) => t.id === type)
+  return found ? { label: translateInline(found.label), icon: found.icon } : { label: type, icon: '•' }
 }
 
 function labelFor(component) {
   const meta = typeMeta(component.type)
   const lines = [clean(component.name) || clean(meta.label)]
   if (component.detail) lines.push(clean(component.detail))
-  if (component.channels) lines.push(`${clean(component.channels)} Kanäle`)
+  if (component.channels) lines.push(clean(translate('diagram.channelsSuffix', { n: component.channels })))
   return `${meta.icon} ${lines.join('<br/>')}`
 }
 

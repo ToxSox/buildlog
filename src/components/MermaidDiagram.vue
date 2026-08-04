@@ -1,5 +1,8 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   definition: { type: String, default: '' },
@@ -42,7 +45,7 @@ async function render() {
     svg.value = out
   } catch (err) {
     console.error('[emma] Diagramm konnte nicht gerendert werden', err)
-    error.value = 'Diagramm konnte nicht gezeichnet werden. Prüfe die Bezeichnungen der Komponenten.'
+    error.value = t('diagram.renderError')
     svg.value = ''
   }
 }
@@ -56,7 +59,7 @@ watch(() => props.definition, render)
     <div v-if="svg" class="mermaid-host overflow-x-auto" v-html="svg" />
     <p v-else-if="error" class="text-sm text-rose-600">{{ error }}</p>
     <p v-else class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400">
-      Lege Komponenten an und verbinde sie – das Diagramm entsteht automatisch.
+      {{ t('diagram.empty2') }}
     </p>
   </div>
 </template>

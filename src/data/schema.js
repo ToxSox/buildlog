@@ -41,13 +41,13 @@ export const EMMA_CLASSES = [
 ]
 
 export const COMPONENT_TYPES = [
-  { id: 'source', label: 'Signalquelle / Headunit', icon: '🎛️' },
-  { id: 'dsp', label: 'DSP / Prozessor', icon: '🧠' },
-  { id: 'amp', label: 'Endstufe', icon: '⚡' },
-  { id: 'speaker', label: 'Lautsprecher', icon: '🔊' },
-  { id: 'sub', label: 'Subwoofer', icon: '🥁' },
-  { id: 'battery', label: 'Batterie / Stromquelle', icon: '🔋' },
-  { id: 'fuse', label: 'Sicherung / Verteiler', icon: '🛡️' },
+  { id: 'source', label: { de: 'Signalquelle / Headunit', en: 'Source / head unit' }, icon: '🎛️' },
+  { id: 'dsp', label: { de: 'DSP / Prozessor', en: 'DSP / processor' }, icon: '🧠' },
+  { id: 'amp', label: { de: 'Endstufe', en: 'Amplifier' }, icon: '⚡' },
+  { id: 'speaker', label: { de: 'Lautsprecher', en: 'Speaker' }, icon: '🔊' },
+  { id: 'sub', label: { de: 'Subwoofer', en: 'Subwoofer' }, icon: '🥁' },
+  { id: 'battery', label: { de: 'Batterie / Stromquelle', en: 'Battery / power source' }, icon: '🔋' },
+  { id: 'fuse', label: { de: 'Sicherung / Verteiler', en: 'Fuse / distribution' }, icon: '🛡️' },
 ]
 
 /**

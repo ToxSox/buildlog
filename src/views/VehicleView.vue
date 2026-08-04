@@ -4,6 +4,9 @@ import { useProjectStore } from '../stores/project.js'
 import { EMMA_CLASSES, MODES } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
 import SlotGrid from '../components/SlotGrid.vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const store = useProjectStore()
 const meta = computed(() => store.project.meta)
@@ -25,56 +28,56 @@ function switchMode(mode) {
 <template>
   <WizardShell
     step-key="vehicle"
-    title="Fahrzeug & Klasse"
-    subtitle="Stammdaten der Mappe. Diese Angaben erscheinen später in der Kopfzeile jeder gedruckten Seite."
+    :title="t('steps.vehicle')"
+    :subtitle="t('vehicle.subtitle')"
   >
     <div class="card">
       <div class="card-header">
-        <h2 class="section-title">Teilnehmer & Fahrzeug</h2>
+        <h2 class="section-title">{{ t('vehicle.participantSection') }}</h2>
       </div>
       <div class="card-body grid gap-4 sm:grid-cols-2">
         <div>
-          <label class="field" for="participant">Name des Teilnehmers *</label>
+          <label class="field" for="participant">{{ t('vehicle.participantName') }} *</label>
           <input id="participant" v-model="meta.participantName" class="input" placeholder="Max Mustermann" />
         </div>
         <div>
-          <label class="field" for="team">Team / Club</label>
+          <label class="field" for="team">{{ t('vehicle.team') }}</label>
           <input id="team" v-model="meta.teamName" class="input" placeholder="optional" />
         </div>
         <div>
-          <label class="field" for="make">Marke *</label>
+          <label class="field" for="make">{{ t('vehicle.make') }} *</label>
           <input id="make" v-model="meta.vehicleMake" class="input" placeholder="Audi" />
         </div>
         <div>
-          <label class="field" for="model">Modell *</label>
+          <label class="field" for="model">{{ t('vehicle.model') }} *</label>
           <input id="model" v-model="meta.vehicleModel" class="input" placeholder="A3 8P Sportback" />
         </div>
         <div>
-          <label class="field" for="year">Baujahr</label>
+          <label class="field" for="year">{{ t('vehicle.year') }}</label>
           <input id="year" v-model="meta.vehicleYear" class="input" inputmode="numeric" placeholder="2011" />
         </div>
         <div>
-          <label class="field" for="plate">Kennzeichen</label>
+          <label class="field" for="plate">{{ t('vehicle.plate') }}</label>
           <input id="plate" v-model="meta.plate" class="input" placeholder="M-AB 1234" />
-          <p class="hint">Erscheint in der Kopfzeile jeder A4-Seite.</p>
+          <p class="hint">{{ t('vehicle.plateHint') }}</p>
         </div>
         <div>
-          <label class="field" for="event">Event / Veranstaltung</label>
+          <label class="field" for="event">{{ t('vehicle.event') }}</label>
           <input id="event" v-model="meta.eventName" class="input" placeholder="EMMA Sommerfinale" />
         </div>
         <div>
-          <label class="field" for="installer">Einbau durch</label>
+          <label class="field" for="installer">{{ t('vehicle.installer') }}</label>
           <input id="installer" v-model="meta.installerName" class="input" placeholder="Eigenbau / Fachbetrieb" />
         </div>
         <div class="sm:col-span-2">
-          <label class="field" for="notes">Kurzbeschreibung des Projekts</label>
+          <label class="field" for="notes">{{ t('vehicle.notes') }}</label>
           <textarea
             id="notes"
             v-model="meta.notes"
             class="textarea"
-            placeholder="Worum geht es bei diesem Ausbau? Ziel, Besonderheiten, Bauzeit …"
+            :placeholder="t('vehicle.notesPlaceholder')"
           />
-          <p class="hint">Landet als Einleitungstext auf der ersten Seite des Ausdrucks.</p>
+          <p class="hint">{{ t('vehicle.notesHint') }}</p>
         </div>
       </div>
     </div>
@@ -82,11 +85,8 @@ function switchMode(mode) {
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="section-title">EMMA-Klasse</h2>
-          <p class="mt-0.5 text-sm text-slate-600">
-            Bestimmt, welche Kriterien bei dir bewertet werden, welche Fotos Pflicht sind und wie viele
-            Punkte insgesamt zu holen sind.
-          </p>
+          <h2 class="section-title">{{ t('vehicle.classSection') }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">{{ t('vehicle.classHint') }}</p>
         </div>
       </div>
       <div class="card-body space-y-4">
@@ -115,11 +115,8 @@ function switchMode(mode) {
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="section-title">Dokumentations-Modus</h2>
-          <p class="mt-0.5 text-sm text-slate-600">
-            Nur ein Umfangsfilter: Quick Rescue blendet alles aus, was in deiner Kategorie nicht Pflicht
-            ist. Ein Wechsel löscht keine Daten.
-          </p>
+          <h2 class="section-title">{{ t('vehicle.modeSection') }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">{{ t('vehicle.modeHint') }}</p>
         </div>
       </div>
       <div class="card-body grid gap-3 sm:grid-cols-2">
@@ -133,8 +130,8 @@ function switchMode(mode) {
           "
           @click="switchMode(MODES.QUICK)"
         >
-          <p class="text-sm font-bold text-slate-900">🚑 Quick Rescue</p>
-          <p class="text-xs text-slate-600">Nur Pflichtfelder deiner Kategorie – schnellstmöglich abgabefertig.</p>
+          <p class="text-sm font-bold text-slate-900">🚑 {{ t('start.quick.title') }}</p>
+          <p class="text-xs text-slate-600">{{ t('vehicle.quickDesc') }}</p>
         </button>
         <button
           type="button"
@@ -146,8 +143,8 @@ function switchMode(mode) {
           "
           @click="switchMode(MODES.MASTER)"
         >
-          <p class="text-sm font-bold text-slate-900">🏆 SQ Masterclass</p>
-          <p class="text-xs text-slate-600">Alle Felder inkl. optionaler Detailfotos, Dämmung und Custom-Parts.</p>
+          <p class="text-sm font-bold text-slate-900">🏆 {{ t('start.master.title') }}</p>
+          <p class="text-xs text-slate-600">{{ t('vehicle.masterDesc') }}</p>
         </button>
       </div>
     </div>

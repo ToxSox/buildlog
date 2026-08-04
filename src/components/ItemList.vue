@@ -2,14 +2,17 @@
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import PhotoSlot from './PhotoSlot.vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t, tx } = useI18n()
 
 const props = defineProps({
   /** Pfad im Store, z. B. 'hardware.amps' */
   path: { type: String, required: true },
   title: { type: String, required: true },
   intro: { type: String, default: '' },
-  addLabel: { type: String, default: '+ Eintrag' },
-  emptyLabel: { type: String, default: 'Noch nichts erfasst.' },
+  addLabel: { type: String, default: '' },
+  emptyLabel: { type: String, default: '' },
   /** [{ key, label, placeholder, type, options, span }] */
   fields: { type: Array, required: true },
   /**
@@ -17,7 +20,7 @@ const props = defineProps({
    * (z. B. 'craft.customParts' -> 'craft.customParts.<id>').
    */
   photoSlotPrefix: { type: String, default: '' },
-  photoLabel: { type: String, default: 'Fotos zu diesem Eintrag' },
+  photoLabel: { type: String, default: '' },
   photoExample: { type: String, default: '' },
 })
 
@@ -31,14 +34,17 @@ const items = computed(() => {
 function slotDefFor(item, index) {
   return {
     key: `${props.photoSlotPrefix}.${item.id}`,
-    label: `${props.photoLabel} #${index + 1}${item[props.fields[0].key] ? ` – ${item[props.fields[0].key]}` : ''}`,
+    label: {
+      de: `${props.photoLabel} #${index + 1}${item[props.fields[0].key] ? ` – ${item[props.fields[0].key]}` : ''}`,
+      en: `${props.photoLabel} #${index + 1}${item[props.fields[0].key] ? ` – ${item[props.fields[0].key]}` : ''}`,
+    },
     shown: ['E', 'S', 'M', 'X', 'XUNL'],
     required: [],
     criterion: '',
     multiple: true,
     example: props.photoExample,
-    hint: '',
-    tip: '',
+    hint: { de: '', en: '' },
+    tip: { de: '', en: '' },
   }
 }
 
@@ -53,13 +59,13 @@ function add() {
   <div class="card">
     <div class="card-header">
       <div>
-        <h2 class="section-title">{{ title }}</h2>
-        <p v-if="intro" class="mt-0.5 text-sm text-slate-600">{{ intro }}</p>
+        <h2 class="section-title">{{ tx(title) }}</h2>
+        <p v-if="tx(intro)" class="mt-0.5 text-sm text-slate-600">{{ tx(intro) }}</p>
       </div>
-      <button type="button" class="btn-soft btn-xs" @click="add">{{ addLabel }}</button>
+      <button type="button" class="btn-soft btn-xs" @click="add">{{ addLabel || `+ ${t('common.add')}` }}</button>
     </div>
     <div class="card-body space-y-3">
-      <p v-if="!items.length" class="text-sm text-slate-500">{{ emptyLabel }}</p>
+      <p v-if="!items.length" class="text-sm text-slate-500">{{ tx(emptyLabel) }}</p>
 
       <div
         v-for="(item, i) in items"
@@ -69,12 +75,12 @@ function add() {
         <div class="mb-2 flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-slate-400">#{{ i + 1 }}</span>
           <button type="button" class="btn-ghost btn-xs" @click="store.removeItem(path, item.id)">
-            Entfernen
+            {{ t('common.remove') }}
           </button>
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div v-for="f in fields" :key="f.key" :class="f.span === 2 ? 'sm:col-span-2' : ''">
-            <label class="field">{{ f.label }}</label>
+            <label class="field">{{ tx(f.label) }}</label>
             <select v-if="f.type === 'select'" v-model="item[f.key]" class="select">
               <option value="">–</option>
               <option v-for="o in f.options" :key="o" :value="o">{{ o }}</option>
@@ -83,14 +89,14 @@ function add() {
               v-else-if="f.type === 'textarea'"
               v-model="item[f.key]"
               class="textarea"
-              :placeholder="f.placeholder"
+              :placeholder="tx(f.placeholder)"
             />
             <input
               v-else
               v-model="item[f.key]"
               class="input"
               :type="f.type === 'number' ? 'number' : 'text'"
-              :placeholder="f.placeholder"
+              :placeholder="tx(f.placeholder)"
             />
           </div>
         </div>

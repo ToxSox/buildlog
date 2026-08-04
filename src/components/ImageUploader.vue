@@ -5,6 +5,9 @@ import { useMediaStore } from '../stores/media.js'
 import { uid } from '../data/schema.js'
 import { compressImage, readDimensions, isImage } from '../utils/image.js'
 import { isQuotaError, quotaMessage, storageEstimate } from '../utils/storage.js'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   slotKey: { type: String, required: true },
@@ -29,7 +32,7 @@ const hasCamera = computed(
 async function handleFiles(fileList) {
   const files = [...(fileList || [])].filter(isImage)
   if (!files.length) {
-    error.value = 'Bitte Bilddateien auswählen (JPG, PNG, HEIC …).'
+    error.value = t('uploader.notAnImage')
     return
   }
   error.value = ''
@@ -55,7 +58,7 @@ async function handleFiles(fileList) {
         error.value = quotaMessage(await storageEstimate())
         break
       }
-      error.value = `„${file.name || 'Bild'}“ konnte nicht verarbeitet werden.`
+      error.value = t('uploader.failed', { name: file.name || 'Bild' })
     } finally {
       progress.value.done += 1
     }
@@ -90,7 +93,7 @@ function onPick(event) {
     >
       <div v-if="busy" class="text-center">
         <p class="text-sm font-semibold text-sky-700">
-          Bild {{ progress.done + 1 }} von {{ progress.total }} wird verkleinert …
+          {{ t('uploader.processing', { current: progress.done + 1, total: progress.total }) }}
         </p>
         <div class="mx-auto mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-slate-200">
           <div
@@ -101,19 +104,19 @@ function onPick(event) {
       </div>
 
       <div v-else class="flex flex-col items-center gap-2 text-center">
-        <p class="hidden text-xs text-slate-500 sm:block">Bilder hierher ziehen oder</p>
+        <p class="hidden text-xs text-slate-500 sm:block">{{ t('uploader.dropHint') }}</p>
         <div class="flex flex-wrap justify-center gap-2">
-          <button type="button" class="btn-soft btn-xs" @click="fileInput?.click()">📁 Datei wählen</button>
+          <button type="button" class="btn-soft btn-xs" @click="fileInput?.click()">{{ t('uploader.pickFile') }}</button>
           <button
             type="button"
             class="btn-primary btn-xs"
             :class="hasCamera ? '' : 'hidden sm:inline-flex'"
             @click="cameraInput?.click()"
           >
-            📷 Foto aufnehmen
+            {{ t('uploader.takePhoto') }}
           </button>
         </div>
-        <p class="text-[11px] text-slate-400">wird lokal auf max. 1920 px verkleinert</p>
+        <p class="text-[11px] text-slate-400">{{ t('uploader.resizeHint') }}</p>
       </div>
 
       <input

@@ -1,27 +1,29 @@
 <script setup>
+import { useI18n } from '../i18n/index.js'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
 import { stepsForColumn } from '../data/steps.js'
 import { useScore } from '../composables/useScore.js'
 import ProgressBar from './ProgressBar.vue'
+import LanguageSwitch from './LanguageSwitch.vue'
 
 const route = useRoute()
 const router = useRouter()
 const store = useProjectStore()
-const { score, maxScore, percent, level, columnLabel } = useScore()
+const { score, maxScore, percent, level, columnLabel, column } = useScore()
+const { t, locale } = useI18n()
 
 const steps = computed(() => stepsForColumn(store.column))
 const currentKey = computed(() => route.meta.step)
 const showWizard = computed(() => store.hasProject && Boolean(route.meta.step))
 
 const savedLabel = computed(() => {
-  if (store.saving) return 'speichert …'
-  if (!store.lastSavedAt) return 'Autosave aktiv'
-  return `gespeichert ${store.lastSavedAt.toLocaleTimeString('de-DE', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`
+  if (store.saving) return t('app.saving')
+  if (!store.lastSavedAt) return t('app.autosave')
+  return t('app.savedAt', {
+    time: store.lastSavedAt.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' }),
+  })
 })
 
 function go(step) {
@@ -35,8 +37,8 @@ function go(step) {
       <router-link to="/" class="flex items-center gap-2 shrink-0">
         <span class="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-white text-lg">🔊</span>
         <span class="hidden sm:block leading-tight">
-          <span class="block text-sm font-extrabold tracking-tight text-slate-900">EMMA Build Log</span>
-          <span class="block text-[11px] text-slate-500">Creator</span>
+          <span class="block text-sm font-extrabold tracking-tight text-slate-900">{{ t('app.name') }}</span>
+          <span class="block text-[11px] text-slate-500">{{ t('app.sub') }}</span>
         </span>
       </router-link>
 
@@ -50,8 +52,16 @@ function go(step) {
       <div v-else class="flex-1"></div>
 
       <div class="hidden md:block w-56">
-        <ProgressBar :percent="percent" :score="score" :max="maxScore" :level="level" />
+        <ProgressBar
+          :percent="percent"
+          :score="score"
+          :max="maxScore"
+          :level="level"
+          :caption="column ? t('app.progress') : t('app.photoProgress')"
+        />
       </div>
+
+      <LanguageSwitch class="shrink-0" />
 
       <span class="hidden lg:inline text-[11px] text-slate-400 whitespace-nowrap">{{ savedLabel }}</span>
     </div>
@@ -73,15 +83,21 @@ function go(step) {
               :class="step.key === currentKey ? 'bg-white/25' : 'bg-slate-200 text-slate-700'">
               {{ i + 1 }}
             </span>
-            <span class="hidden sm:inline">{{ step.label }}</span>
-            <span class="sm:hidden">{{ step.short }}</span>
+            <span class="hidden sm:inline">{{ t(step.labelKey) }}</span>
+            <span class="sm:hidden">{{ t(step.shortKey) }}</span>
           </button>
         </li>
       </ol>
     </nav>
 
     <div v-if="store.hasProject" class="md:hidden border-t border-slate-100 px-4 py-2">
-      <ProgressBar :percent="percent" :score="score" :max="maxScore" :level="level" />
+      <ProgressBar
+          :percent="percent"
+          :score="score"
+          :max="maxScore"
+          :level="level"
+          :caption="column ? t('app.progress') : t('app.photoProgress')"
+        />
     </div>
   </header>
 </template>

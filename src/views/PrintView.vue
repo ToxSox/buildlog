@@ -10,6 +10,9 @@ import { assessProject } from '../data/assessment.js'
 import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
 import PrintPage from '../components/PrintPage.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t, tx, locale } = useI18n()
 
 const store = useProjectStore()
 const media = useMediaStore()
@@ -42,21 +45,21 @@ const powerDef = computed(() => powerDefinition(p.value.system) || '')
 const powerRows = computed(() => {
   const pw = p.value.power
   const rows = [
-    ['Batterie', [pw.batteryType, pw.batteryLocation].filter(Boolean).join(', ')],
-    ['Befestigung der Batterie', pw.batterySecured],
-    ['Querschnitt Pluskabel', pw.mainCableSection ? `${pw.mainCableSection} mm²` : ''],
-    ['Hauptsicherung', pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : ''],
-    ['Abstand Sicherung ↔ Batterie', pw.mainFuseDistanceCm !== null ? `${pw.mainFuseDistanceCm} cm` : ''],
-    ['Masse', [pw.groundCableSection ? `${pw.groundCableSection} mm²` : '', pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '', pw.groundPoint].filter(Boolean).join(', ')],
-    ['Kabelschutz', (pw.cableProtection || []).join(', ')],
+    [t('print.battery'), [pw.batteryType, pw.batteryLocation].filter(Boolean).join(', ')],
+    [t('print.batteryMount'), pw.batterySecured],
+    [t('print.cableSection'), pw.mainCableSection ? `${pw.mainCableSection} mm²` : ''],
+    [t('print.mainFuse'), pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : ''],
+    [t('print.fuseDistance'), pw.mainFuseDistanceCm !== null ? `${pw.mainFuseDistanceCm} cm` : ''],
+    [t('print.ground'), [pw.groundCableSection ? `${pw.groundCableSection} mm²` : '', pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '', pw.groundPoint].filter(Boolean).join(', ')],
+    [t('print.cableProtection'), (pw.cableProtection || []).join(', ')],
   ]
   if (pw.secondBattery) {
     rows.push([
-      'Zweitbatterie',
+      t('print.secondBattery'),
       [
         pw.secondBatteryFuseAmps ? `${pw.secondBatteryFuseAmps} A` : '',
-        pw.secondBatteryDistanceCm !== null ? `${pw.secondBatteryDistanceCm} cm zum Pol` : '',
-        pw.chargingCableSection ? `Ladekabel ${pw.chargingCableSection} mm²` : '',
+        pw.secondBatteryDistanceCm !== null ? t('print.cmToPost', { cm: pw.secondBatteryDistanceCm }) : '',
+        pw.chargingCableSection ? t('print.chargingCable', { section: pw.chargingCableSection }) : '',
       ]
         .filter(Boolean)
         .join(', '),
@@ -76,7 +79,7 @@ const photoPages = computed(() => {
         store.mediaFor(slot.key).forEach((item, i) => {
           figures.push({
             id: item.id,
-            title: i === 0 ? slot.label : `${slot.label} (Detail ${i + 1})`,
+            title: i === 0 ? tx(slot.label) : t('print.detailSuffix', { label: tx(slot.label), n: i + 1 }),
             caption: item.caption || '',
           })
         })
@@ -85,8 +88,8 @@ const photoPages = computed(() => {
       const chunk = figures.slice(i, i + 6)
       pages.push({
         kind: 'photos',
-        title: section.title + (figures.length > 6 ? ` (${Math.floor(i / 6) + 1})` : ''),
-        intro: i === 0 ? section.intro : '',
+        title: tx(section.title) + (figures.length > 6 ? ` (${Math.floor(i / 6) + 1})` : ''),
+        intro: i === 0 ? tx(section.intro) : '',
         figures: chunk,
         cols: chunk.length === 1 ? 1 : chunk.length <= 4 ? 2 : 3,
       })
@@ -95,8 +98,8 @@ const photoPages = computed(() => {
 
   // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen)
   const perItem = [
-    { list: p.value.craft.customParts, prefix: 'craft.customParts', title: 'Eigenbau-Teile im Detail', nameKey: 'name' },
-    { list: p.value.craft.measurements, prefix: 'craft.measurements', title: 'Messungen im Detail', nameKey: 'name' },
+    { list: p.value.craft.customParts, prefix: 'craft.customParts', title: t('print.customPartsPhotos'), nameKey: 'name' },
+    { list: p.value.craft.measurements, prefix: 'craft.measurements', title: t('print.measurementPhotos'), nameKey: 'name' },
   ]
   perItem.forEach(({ list, prefix, title, nameKey }) => {
     const figures = []
@@ -104,7 +107,7 @@ const photoPages = computed(() => {
       store.mediaFor(`${prefix}.${item.id}`).forEach((media, i) => {
         figures.push({
           id: media.id,
-          title: `${item[nameKey] || 'Ohne Bezeichnung'}${i > 0 ? ` (${i + 1})` : ''}`,
+          title: `${item[nameKey] || t('print.unnamed')}${i > 0 ? ` (${i + 1})` : ''}`,
           caption: media.caption || '',
         })
       })
@@ -125,32 +128,32 @@ const photoPages = computed(() => {
 })
 
 const pages = computed(() => {
-  const list = [{ kind: 'cover', title: 'Deckblatt' }]
+  const list = [{ kind: 'cover', title: t('print.cover') }]
 
-  if (signalDef.value) list.push({ kind: 'signal', title: 'Signalweg' })
-  if (powerDef.value) list.push({ kind: 'powerDiagram', title: 'Stromlaufplan' })
-  list.push({ kind: 'powerData', title: 'Strom & Sicherheit' })
+  if (signalDef.value) list.push({ kind: 'signal', title: t('print.signal') })
+  if (powerDef.value) list.push({ kind: 'powerDiagram', title: t('print.powerDiagram') })
+  list.push({ kind: 'powerData', title: t('print.powerData') })
 
   const hw = p.value.hardware
   if (hw.amps.length || hw.dsp.length || hw.speakers.length || hw.subs.length) {
-    list.push({ kind: 'hardware', title: 'Verbaute Komponenten' })
+    list.push({ kind: 'hardware', title: t('print.components') })
   }
 
   const c = p.value.craft
   if (c.dampingDoors || c.dampingFloor || c.dampingTrunk || c.customParts.length || c.measurements.length || c.tuningNotes) {
-    list.push({ kind: 'craft', title: 'Handwerk, Akustik & Abstimmung' })
+    list.push({ kind: 'craft', title: t('print.craft') })
   }
 
   const pr = p.value.presentation
   if (column.value && ['M', 'X', 'XUNL'].includes(column.value) && (pr.goal || pr.challenge || pr.highlights.length)) {
-    list.push({ kind: 'presentation', title: 'Leitfaden für die Erklärung an die Richter' })
+    list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
   if (bonusRequests.value.length) {
     for (let i = 0; i < bonusRequests.value.length; i += 8) {
       list.push({
         kind: 'bonus',
-        title: 'Bonuspunkte-Anträge',
+        title: t('print.bonusTitle'),
         items: bonusRequests.value.slice(i, i + 8),
         offset: i,
       })
@@ -158,7 +161,7 @@ const pages = computed(() => {
   }
 
   if (column.value && assessment.value.max) {
-    list.push({ kind: 'matrix', title: 'Selbsteinschätzung Installation' })
+    list.push({ kind: 'matrix', title: t('print.matrixTitle') })
   }
 
   return [...list, ...photoPages.value]
@@ -176,14 +179,14 @@ function print() {
     <div class="no-print sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div>
-          <p class="text-sm font-bold text-slate-900">Druckvorschau · DIN A4 quer</p>
+          <p class="text-sm font-bold text-slate-900">{{ t('print.previewTitle') }}</p>
           <p class="text-xs text-slate-500">
-            {{ total }} Seite(n) · im Druckdialog „Hintergrundgrafiken“ aktivieren, Ränder auf „Standard“
+            {{ t('print.previewHint', { pages: total }) }}
           </p>
         </div>
         <div class="flex gap-2">
-          <router-link to="/wizard/pruefen" class="btn-ghost btn-xs">← zurück zum Assistenten</router-link>
-          <button type="button" class="btn-primary" @click="print">🖨️ PDF generieren / Drucken</button>
+          <router-link to="/wizard/pruefen" class="btn-ghost btn-xs">{{ t('print.backToWizard') }}</router-link>
+          <button type="button" class="btn-primary" @click="print">🖨️ {{ t('common.print') }}</button>
         </div>
       </div>
     </div>
@@ -205,41 +208,40 @@ function print() {
                 EMMA Build Log
               </p>
               <h1 class="print-h1" style="margin-top: 2mm">
-                {{ headMeta.vehicle || 'Einbaudokumentation' }}
+                {{ headMeta.vehicle || t('print.documentation') }}
               </h1>
               <p class="print-lead" style="margin-top: 2mm">
-                {{ headMeta.className ? `Klasse ${headMeta.className}` : '' }}
+                {{ headMeta.className ? t('print.classPrefix', { name: headMeta.className }) : '' }}
                 <span v-if="p.meta.eventName"> · {{ p.meta.eventName }}</span>
               </p>
             </div>
 
             <div class="print-kv">
-              <div><span class="print-kv__key">Teilnehmer:</span> {{ p.meta.participantName || '—' }}</div>
-              <div><span class="print-kv__key">Team / Club:</span> {{ p.meta.teamName || '—' }}</div>
-              <div><span class="print-kv__key">Fahrzeug:</span> {{ headMeta.vehicle || '—' }}</div>
-              <div><span class="print-kv__key">Kennzeichen:</span> {{ p.meta.plate || '—' }}</div>
-              <div><span class="print-kv__key">Einbau durch:</span> {{ p.meta.installerName || '—' }}</div>
-              <div><span class="print-kv__key">Dokumentation:</span> {{ p.mode }}</div>
+              <div><span class="print-kv__key">{{ t('print.participant') }}:</span> {{ p.meta.participantName || '—' }}</div>
+              <div><span class="print-kv__key">{{ t('print.team') }}:</span> {{ p.meta.teamName || '—' }}</div>
+              <div><span class="print-kv__key">{{ t('print.vehicle') }}:</span> {{ headMeta.vehicle || '—' }}</div>
+              <div><span class="print-kv__key">{{ t('print.plate') }}:</span> {{ p.meta.plate || '—' }}</div>
+              <div><span class="print-kv__key">{{ t('print.installer') }}:</span> {{ p.meta.installerName || '—' }}</div>
+              <div><span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ p.mode }}</div>
             </div>
 
             <div v-if="p.meta.notes">
-              <h2 class="print-h2">Über dieses Projekt</h2>
+              <h2 class="print-h2">{{ t('print.aboutProject') }}</h2>
               <p style="font-size: 9pt; white-space: pre-line">{{ p.meta.notes }}</p>
             </div>
 
             <div v-if="findings.errors.length" class="print-note print-note--error">
-              <strong>Offene Sicherheitshinweise ({{ findings.errors.length }}):</strong>
+              <strong>{{ t('print.openFindings', { n: findings.errors.length }) }}</strong>
               <ul style="margin: 1mm 0 0 4mm; list-style: disc">
-                <li v-for="f in findings.errors" :key="f.id">{{ f.title }}</li>
+                <li v-for="f in findings.errors" :key="f.id">{{ t(`${f.key}.title`, f.params) }}</li>
               </ul>
             </div>
             <div v-else class="print-note">
-              Alle geprüften Sicherheitsregeln (Absicherung, Querschnitt, Abstände) sind eingehalten.
+              {{ t('print.allClear') }}
             </div>
 
             <p style="margin-top: auto; font-size: 7.5pt; color: #64748b">
-              Erstellt mit dem EMMA Build Log Creator ·
-              {{ new Date(p.updatedAt).toLocaleDateString('de-DE') }}
+              {{ t('print.createdWith', { date: new Date(p.updatedAt).toLocaleDateString(locale) }) }}
             </p>
           </div>
         </template>
@@ -247,7 +249,7 @@ function print() {
         <!-- ------------------------------------------------------ Diagramme -->
         <template v-else-if="page.kind === 'signal'">
           <p class="print-lead" style="margin-bottom: 3mm">
-            Quelle → Verarbeitung → Verstärkung → Wandler. Automatisch aus der Komponentenliste erzeugt.
+            {{ t('print.signalLead') }}
           </p>
           <div class="print-diagram">
             <MermaidDiagram :definition="signalDef" id-prefix="print-signal" />
@@ -256,7 +258,7 @@ function print() {
 
         <template v-else-if="page.kind === 'powerDiagram'">
           <p class="print-lead" style="margin-bottom: 3mm">
-            Batterie → Hauptsicherung → Verteiler → Verbraucher, mit Querschnitt je Leitung.
+            {{ t('print.powerLead') }}
           </p>
           <div class="print-diagram">
             <MermaidDiagram :definition="powerDef" id-prefix="print-power" />
@@ -265,7 +267,7 @@ function print() {
 
         <!-- --------------------------------------------------- Strom & Daten -->
         <template v-else-if="page.kind === 'powerData'">
-          <h2 class="print-h2">Stromversorgung & Absicherung</h2>
+          <h2 class="print-h2">{{ t('print.powerSupply') }}</h2>
           <table class="print-table">
             <tbody>
               <tr v-for="([key, value], i) in powerRows" :key="i">
@@ -276,10 +278,10 @@ function print() {
           </table>
 
           <template v-if="p.power.distributionFuses.length">
-            <h2 class="print-h2" style="margin-top: 5mm">Verteiler & Abgänge</h2>
+            <h2 class="print-h2" style="margin-top: 5mm">{{ t('print.distribution') }}</h2>
             <table class="print-table">
               <thead>
-                <tr><th>Abgang</th><th>Querschnitt</th><th>Absicherung</th></tr>
+                <tr><th>{{ t('print.branch') }}</th><th>{{ t('print.section') }}</th><th>{{ t('print.fuse') }}</th></tr>
               </thead>
               <tbody>
                 <tr v-for="b in p.power.distributionFuses" :key="b.id">
@@ -295,7 +297,7 @@ function print() {
             <div v-for="f in [...findings.errors, ...findings.warnings]" :key="f.id"
                  class="print-note" :class="f.severity === 'error' ? 'print-note--error' : 'print-note--warn'"
                  style="margin-bottom: 2mm">
-              <strong>{{ f.title }}</strong> – {{ f.message }}
+              <strong>{{ t(`${f.key}.title`, f.params) }}</strong> – {{ t(`${f.key}.message`, f.params) }}
             </div>
           </div>
         </template>
@@ -303,10 +305,10 @@ function print() {
         <!-- ------------------------------------------------------- Hardware -->
         <template v-else-if="page.kind === 'hardware'">
           <template v-if="p.hardware.amps.length">
-            <h2 class="print-h2">Endstufen</h2>
+            <h2 class="print-h2">{{ t('print.amps') }}</h2>
             <table class="print-table">
               <thead>
-                <tr><th>Modell</th><th>Kanäle</th><th>Leistung</th><th>Einbauort</th><th>Befestigung</th><th>Sicherung</th></tr>
+                <tr><th>{{ t('print.model') }}</th><th>{{ t('print.channels') }}</th><th>{{ t('print.powerRms') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.mounting') }}</th><th>{{ t('print.fuse') }}</th></tr>
               </thead>
               <tbody>
                 <tr v-for="a in p.hardware.amps" :key="a.id">
@@ -318,9 +320,9 @@ function print() {
           </template>
 
           <template v-if="p.hardware.dsp.length">
-            <h2 class="print-h2" style="margin-top: 4mm">DSP / Prozessor</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.dsp') }}</h2>
             <table class="print-table">
-              <thead><tr><th>Modell</th><th>Ein-/Ausgänge</th><th>Einbauort</th><th>Befestigung</th><th>Signalquelle</th></tr></thead>
+              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.io') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.mounting') }}</th><th>{{ t('print.signalSource') }}</th></tr></thead>
               <tbody>
                 <tr v-for="d in p.hardware.dsp" :key="d.id">
                   <td>{{ d.brand || '—' }}</td><td>{{ d.channels }}</td><td>{{ d.location }}</td>
@@ -331,9 +333,9 @@ function print() {
           </template>
 
           <template v-if="p.hardware.speakers.length">
-            <h2 class="print-h2" style="margin-top: 4mm">Lautsprecher</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.speakers') }}</h2>
             <table class="print-table">
-              <thead><tr><th>Modell</th><th>Position</th><th>Größe</th><th>Montage</th><th>Kabel</th></tr></thead>
+              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.position') }}</th><th>{{ t('print.size') }}</th><th>{{ t('print.mountingAdapter') }}</th><th>{{ t('print.cable') }}</th></tr></thead>
               <tbody>
                 <tr v-for="s in p.hardware.speakers" :key="s.id">
                   <td>{{ s.brand || '—' }}</td><td>{{ s.position }}</td><td>{{ s.size }}</td>
@@ -344,9 +346,9 @@ function print() {
           </template>
 
           <template v-if="p.hardware.subs.length">
-            <h2 class="print-h2" style="margin-top: 4mm">Subwoofer</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.subs') }}</h2>
             <table class="print-table">
-              <thead><tr><th>Modell</th><th>Gehäuse</th><th>Volumen</th><th>Einbauort</th><th>Sicherung gegen Verrutschen</th></tr></thead>
+              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.enclosure') }}</th><th>{{ t('print.volume') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.securing') }}</th></tr></thead>
               <tbody>
                 <tr v-for="s in p.hardware.subs" :key="s.id">
                   <td>{{ s.brand || '—' }}</td><td>{{ s.enclosure }}</td><td>{{ s.volume }}</td>
@@ -363,19 +365,19 @@ function print() {
 
         <!-- -------------------------------------------------------- Handwerk -->
         <template v-else-if="page.kind === 'craft'">
-          <h2 class="print-h2">Dämmung</h2>
+          <h2 class="print-h2">{{ t('print.damping') }}</h2>
           <table class="print-table">
             <tbody>
-              <tr v-if="p.craft.dampingDoors"><th style="width: 40mm">Türen</th><td>{{ p.craft.dampingDoors }}</td></tr>
-              <tr v-if="p.craft.dampingFloor"><th>Boden</th><td>{{ p.craft.dampingFloor }}</td></tr>
-              <tr v-if="p.craft.dampingTrunk"><th>Kofferraum</th><td>{{ p.craft.dampingTrunk }}</td></tr>
+              <tr v-if="p.craft.dampingDoors"><th style="width: 40mm">{{ t('print.doors') }}</th><td>{{ p.craft.dampingDoors }}</td></tr>
+              <tr v-if="p.craft.dampingFloor"><th>{{ t('print.floor') }}</th><td>{{ p.craft.dampingFloor }}</td></tr>
+              <tr v-if="p.craft.dampingTrunk"><th>{{ t('print.trunk') }}</th><td>{{ p.craft.dampingTrunk }}</td></tr>
             </tbody>
           </table>
 
           <template v-if="p.craft.customParts.length">
-            <h2 class="print-h2" style="margin-top: 4mm">Eigenbau-Teile</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.customParts') }}</h2>
             <table class="print-table">
-              <thead><tr><th>Bauteil</th><th>Fertigung</th><th>Material</th><th>Zweck / Beschreibung</th></tr></thead>
+              <thead><tr><th>{{ t('print.part') }}</th><th>{{ t('print.technique') }}</th><th>{{ t('print.material') }}</th><th>{{ t('print.purpose') }}</th></tr></thead>
               <tbody>
                 <tr v-for="c in p.craft.customParts" :key="c.id">
                   <td>{{ c.name || '—' }}</td><td>{{ c.technique }}</td><td>{{ c.material }}</td>
@@ -386,9 +388,9 @@ function print() {
           </template>
 
           <template v-if="p.craft.measurements.length">
-            <h2 class="print-h2" style="margin-top: 4mm">Messungen</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.measurements') }}</h2>
             <table class="print-table">
-              <thead><tr><th>Messung</th><th>System</th><th>Position</th><th>Ergebnis</th></tr></thead>
+              <thead><tr><th>{{ t('print.measurement') }}</th><th>{{ t('print.system') }}</th><th>{{ t('print.position') }}</th><th>{{ t('print.result') }}</th></tr></thead>
               <tbody>
                 <tr v-for="m in p.craft.measurements" :key="m.id">
                   <td>{{ m.name || '—' }}</td><td>{{ m.tool }}</td><td>{{ m.position }}</td><td>{{ m.result }}</td>
@@ -398,7 +400,7 @@ function print() {
           </template>
 
           <template v-if="p.craft.tuningNotes">
-            <h2 class="print-h2" style="margin-top: 4mm">Abstimmung</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.tuning') }}</h2>
             <p style="font-size: 9pt; white-space: pre-line">{{ p.craft.tuningNotes }}</p>
           </template>
         </template>
@@ -406,22 +408,22 @@ function print() {
         <!-- --------------------------------------------- Vortragsleitfaden -->
         <template v-else-if="page.kind === 'presentation'">
           <p class="print-lead" style="margin-bottom: 3mm">
-            Persönlicher Spickzettel – nicht Teil der Bewertungsunterlagen.
+            {{ t('print.presentationLead') }}
           </p>
           <div class="print-kv" style="margin-bottom: 4mm">
             <div v-if="p.presentation.goal">
-              <span class="print-kv__key">Ziel:</span> {{ p.presentation.goal }}
+              <span class="print-kv__key">{{ t('print.presentationGoal') }}:</span> {{ p.presentation.goal }}
             </div>
             <div v-if="p.presentation.story">
-              <span class="print-kv__key">Schluss:</span> {{ p.presentation.story }}
+              <span class="print-kv__key">{{ t('print.presentationEnd') }}:</span> {{ p.presentation.story }}
             </div>
           </div>
           <template v-if="p.presentation.challenge">
-            <h2 class="print-h2">Größte Herausforderung</h2>
+            <h2 class="print-h2">{{ t('print.presentationChallenge') }}</h2>
             <p style="font-size: 9pt; white-space: pre-line">{{ p.presentation.challenge }}</p>
           </template>
           <template v-if="p.presentation.highlights.filter((h) => h.text).length">
-            <h2 class="print-h2" style="margin-top: 4mm">Nicht vergessen zu zeigen</h2>
+            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.presentationShow') }}</h2>
             <ul style="margin-left: 5mm; list-style: disc; font-size: 9pt">
               <li v-for="h in p.presentation.highlights.filter((x) => x.text)" :key="h.id">{{ h.text }}</li>
             </ul>
@@ -431,11 +433,11 @@ function print() {
         <!-- --------------------------------------------------- Bonuspunkte -->
         <template v-else-if="page.kind === 'bonus'">
           <p class="print-lead" style="margin-bottom: 3mm">
-            Anträge auf Bonuspunkte gemäß Regelwerk – eingereicht zusammen mit der Erklärung an die Richter.
+            {{ t('print.bonusLead') }}
           </p>
           <table class="print-table">
             <thead>
-              <tr><th style="width: 10mm">#</th><th style="width: 55mm">Element</th><th style="width: 30mm">Bereich</th><th>Begründung</th></tr>
+              <tr><th style="width: 10mm">#</th><th style="width: 55mm">{{ t('print.bonusElement') }}</th><th style="width: 30mm">{{ t('print.bonusArea') }}</th><th>{{ t('print.bonusReason') }}</th></tr>
             </thead>
             <tbody>
               <tr v-for="(req, i) in page.items" :key="req.id">
@@ -451,22 +453,21 @@ function print() {
         <!-- ------------------------------------------- Selbsteinschätzung -->
         <template v-else-if="page.kind === 'matrix'">
           <p class="print-lead" style="margin-bottom: 3mm">
-            Selbsteinschätzung gegen die Installation Matrix der Kategorie
-            <strong>{{ COLUMN_LABELS[column] }}</strong> – erstellt vom Teilnehmer, keine Wertung.
+            {{ t('print.matrixLead', { category: COLUMN_LABELS[column] }) }}
           </p>
           <table class="print-table">
             <thead>
-              <tr><th>Kriterium</th><th style="width: 22mm">Punkte</th><th style="width: 20mm">Basis</th><th>Anmerkung</th></tr>
+              <tr><th>{{ t('print.criterion') }}</th><th style="width: 22mm">{{ t('print.points') }}</th><th style="width: 20mm">{{ t('print.basis') }}</th><th>{{ t('print.remark') }}</th></tr>
             </thead>
             <tbody>
               <tr v-for="c in assessment.criteria" :key="c.id">
-                <td>{{ c.label.de }}</td>
+                <td>{{ tx(c.label) }}</td>
                 <td>{{ c.earned }} / {{ c.max }}</td>
-                <td>{{ c.basis === 'auto' ? 'abgeleitet' : c.basis === 'self' ? 'selbst' : 'offen' }}</td>
+                <td>{{ c.basis === 'auto' ? t('matrix.basisAuto') : c.basis === 'self' ? t('matrix.basisSelf') : t('matrix.basisOpen') }}</td>
                 <td>{{ c.note || c.detail }}</td>
               </tr>
               <tr>
-                <td><strong>Summe</strong></td>
+                <td><strong>{{ t('print.total') }}</strong></td>
                 <td><strong>{{ assessment.earned }} / {{ assessment.max }}</strong></td>
                 <td colspan="2"></td>
               </tr>

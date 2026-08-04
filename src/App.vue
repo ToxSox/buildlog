@@ -3,6 +3,9 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from './stores/project.js'
 import AppHeader from './components/AppHeader.vue'
+import { useI18n } from './i18n/index.js'
+
+const { t } = useI18n()
 
 const route = useRoute()
 const store = useProjectStore()
@@ -31,7 +34,7 @@ onMounted(() => {
     </main>
 
     <footer class="wizard-ui border-t border-slate-200 bg-white/70 py-3 text-center text-xs text-slate-500">
-      EMMA Build Log Creator · läuft komplett offline im Browser · keine Daten verlassen dein Gerät
+      {{ t('app.footer') }}
     </footer>
   </div>
 </template>

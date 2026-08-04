@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
+
 defineProps({
   title: { type: String, default: '' },
   meta: { type: Object, required: true },
@@ -23,8 +27,8 @@ defineProps({
     </div>
 
     <footer class="print-foot">
-      <span>EMMA Build Log · {{ meta.vehicle }}<span v-if="meta.event"> · {{ meta.event }}</span></span>
-      <span>Seite {{ pageNumber }} von {{ pageTotal }}</span>
+      <span>{{ t('app.name') }} · {{ meta.vehicle }}<span v-if="meta.event"> · {{ meta.event }}</span></span>
+      <span>{{ t('print.page', { current: pageNumber, total: pageTotal }) }}</span>
     </footer>
   </section>
 </template>

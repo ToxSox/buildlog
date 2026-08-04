@@ -5,6 +5,7 @@ import { useProjectStore } from '../stores/project.js'
 import { neighbours } from '../data/steps.js'
 import { useScore } from '../composables/useScore.js'
 import SkipDialog from './SkipDialog.vue'
+import { useI18n } from '../i18n/index.js'
 
 const props = defineProps({
   stepKey: { type: String, required: true },
@@ -15,6 +16,7 @@ const props = defineProps({
 const router = useRouter()
 const store = useProjectStore()
 const { missingForStep } = useScore()
+const { t } = useI18n()
 
 const nav = computed(() => neighbours(store.column, props.stepKey))
 const missing = computed(() => missingForStep(props.stepKey))
@@ -48,7 +50,7 @@ function goPrev() {
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <p class="text-xs font-semibold uppercase tracking-wider text-sky-600">
-          Schritt {{ nav.index + 1 }} von {{ nav.total }}
+          {{ t('common.step', { index: nav.index + 1, total: nav.total }) }}
         </p>
         <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{{ title }}</h1>
         <p v-if="subtitle" class="mt-1 max-w-2xl text-sm text-slate-600">{{ subtitle }}</p>
@@ -61,17 +63,17 @@ function goPrev() {
     <div class="wizard-ui sticky bottom-0 -mx-4 mt-8 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
       <div class="flex items-center justify-between gap-3">
         <button type="button" class="btn-ghost" :disabled="!nav.prev" @click="goPrev">
-          ← <span class="hidden sm:inline">{{ nav.prev?.label || 'Zurück' }}</span>
+          ← <span class="hidden sm:inline">{{ nav.prev ? t(nav.prev.labelKey) : t('common.back') }}</span>
         </button>
 
         <p v-if="missing.length" class="hidden text-xs text-amber-700 sm:block">
-          {{ missing.length }} Pflichtfoto{{ missing.length === 1 ? '' : 's' }} fehlt noch
+          {{ t('skip.stillMissing', { n: missing.length }) }}
         </p>
 
         <button v-if="nav.next" type="button" class="btn-primary" @click="goNext">
-          <span class="hidden sm:inline">{{ nav.next.label }}</span><span class="sm:hidden">Weiter</span> →
+          <span class="hidden sm:inline">{{ t(nav.next.labelKey) }}</span><span class="sm:hidden">{{ t('common.next') }}</span> →
         </button>
-        <router-link v-else to="/druck" class="btn-primary">Druckansicht öffnen →</router-link>
+        <router-link v-else to="/druck" class="btn-primary">{{ t('review.openPrint') }}</router-link>
       </div>
     </div>
 

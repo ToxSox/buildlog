@@ -1,3 +1,5 @@
+import { translate } from '../i18n/index.js'
+
 /**
  * Speicher-Robustheit.
  *
@@ -50,12 +52,17 @@ export function isQuotaError(err) {
 }
 
 export function quotaMessage(estimate) {
-  const base =
-    'Der Browser-Speicher ist voll. Neue Fotos können nicht mehr gesichert werden, ohne dass Platz frei wird.'
-  const tip =
-    ' Sichere die Mappe als ZIP, lösche danach nicht mehr benötigte Mappen oder einzelne Detailfotos.'
-  if (!estimate?.quota) return base + tip
-  return `${base} Belegt: ${formatBytes(estimate.usage)} von ${formatBytes(estimate.quota)}.${tip}`
+  const parts = [translate('storage.quotaFull')]
+  if (estimate?.quota) {
+    parts.push(
+      translate('storage.quotaUsage', {
+        used: formatBytes(estimate.usage),
+        quota: formatBytes(estimate.quota),
+      }),
+    )
+  }
+  parts.push(translate('storage.quotaTip'))
+  return parts.join(' ')
 }
 
 export function formatBytes(bytes) {

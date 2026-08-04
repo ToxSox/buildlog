@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from '../i18n/index.js'
+
+const { t, tx } = useI18n()
+
 defineProps({
   open: { type: Boolean, default: false },
   missing: { type: Array, default: () => [] },
@@ -17,10 +21,8 @@ defineEmits(['close', 'skip'])
         <div class="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-5 py-4">
           <span class="text-2xl">⚠️</span>
           <div>
-            <h2 class="text-base font-bold text-amber-900">Hier fehlen noch Pflichtfotos</h2>
-            <p class="mt-0.5 text-sm text-amber-800">
-              Ohne diese Bilder verschenkst du Punkte – der Richter kann nur bewerten, was er sieht.
-            </p>
+            <h2 class="text-base font-bold text-amber-900">{{ t('skip.title') }}</h2>
+            <p class="mt-0.5 text-sm text-amber-800">{{ t('skip.lead') }}</p>
           </div>
         </div>
 
@@ -29,17 +31,17 @@ defineEmits(['close', 'skip'])
             <li v-for="slot in missing" :key="slot.key" class="flex gap-3">
               <span class="mt-0.5 text-amber-500">●</span>
               <div>
-                <p class="text-sm font-semibold text-slate-800">{{ slot.label }}</p>
-                <p v-if="slot.tip" class="text-xs text-slate-600">{{ slot.tip }}</p>
-                <p v-else-if="slot.hint" class="text-xs text-slate-500">{{ slot.hint }}</p>
+                <p class="text-sm font-semibold text-slate-800">{{ tx(slot.label) }}</p>
+                <p v-if="tx(slot.tip)" class="text-xs text-slate-600">{{ tx(slot.tip) }}</p>
+                <p v-else-if="tx(slot.hint)" class="text-xs text-slate-500">{{ tx(slot.hint) }}</p>
               </div>
             </li>
           </ul>
         </div>
 
         <div class="flex flex-wrap justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-3">
-          <button type="button" class="btn-soft" @click="$emit('skip')">Trotzdem überspringen</button>
-          <button type="button" class="btn-primary" @click="$emit('close')">Fotos jetzt ergänzen</button>
+          <button type="button" class="btn-soft" @click="$emit('skip')">{{ t('skip.skipAnyway') }}</button>
+          <button type="button" class="btn-primary" @click="$emit('close')">{{ t('skip.addNow') }}</button>
         </div>
       </div>
     </div>

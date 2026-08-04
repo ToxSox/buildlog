@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { rotate90 } from '../utils/image.js'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   slotKey: { type: String, required: true },
@@ -38,7 +41,7 @@ async function rotate() {
 }
 
 function remove() {
-  if (!window.confirm('Dieses Foto aus der Mappe entfernen?')) return
+  if (!window.confirm(t('uploader.deleteConfirm'))) return
   store.removeMedia(props.slotKey, props.item.id)
 }
 </script>
@@ -54,10 +57,10 @@ function remove() {
         loading="lazy"
         @click="zoom = true"
       />
-      <div v-else class="grid h-32 place-items-center text-xs text-slate-400">Bild wird geladen …</div>
+      <div v-else class="grid h-32 place-items-center text-xs text-slate-400">{{ t('uploader.loading') }}</div>
 
       <div v-if="rotating" class="absolute inset-0 grid place-items-center bg-white/70 text-xs font-semibold">
-        dreht …
+        {{ t('uploader.rotating') }}
       </div>
     </div>
 
@@ -65,16 +68,16 @@ function remove() {
       <input
         :value="item.caption"
         class="input !py-1 !text-xs"
-        placeholder="Bildunterschrift (erscheint im Ausdruck)"
+        :placeholder="t('uploader.caption')"
         @input="store.updateMedia(slotKey, item.id, { caption: $event.target.value })"
       />
       <div class="flex flex-wrap items-center gap-1">
-        <button type="button" class="btn-soft btn-xs" :disabled="rotating" @click="rotate">↻ 90°</button>
+        <button type="button" class="btn-soft btn-xs" :disabled="rotating" @click="rotate">{{ t('uploader.rotate') }}</button>
         <button
           type="button"
           class="btn-soft btn-xs"
           :disabled="index === 0"
-          title="nach vorne"
+          :title="t('common.back')"
           @click="store.moveMedia(slotKey, item.id, -1)"
         >
           ←
@@ -83,12 +86,12 @@ function remove() {
           type="button"
           class="btn-soft btn-xs"
           :disabled="index >= total - 1"
-          title="nach hinten"
+          :title="t('common.next')"
           @click="store.moveMedia(slotKey, item.id, 1)"
         >
           →
         </button>
-        <button type="button" class="btn-ghost btn-xs ml-auto !text-rose-600" @click="remove">Löschen</button>
+        <button type="button" class="btn-ghost btn-xs ml-auto !text-rose-600" @click="remove">{{ t('common.delete') }}</button>
       </div>
     </figcaption>
 

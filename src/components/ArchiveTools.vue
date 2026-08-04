@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 import { exportArchive, importArchive } from '../utils/archive.js'
 import { useProjectStore } from '../stores/project.js'
 import { formatBytes } from '../utils/image.js'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   /** 'full' = Export + Import, 'import' = nur Import (Startseite) */
@@ -25,10 +28,10 @@ async function doExport() {
   message.value = ''
   try {
     const res = await exportArchive()
-    message.value = `Archiv gespeichert: ${res.images} Bild(er), ${formatBytes(res.size)}.`
+    message.value = t('archive.exportDone', { images: res.images, size: formatBytes(res.size) })
   } catch (err) {
     console.error(err)
-    error.value = 'Export fehlgeschlagen. Bitte erneut versuchen.'
+    error.value = t('archive.exportFailed')
   } finally {
     busy.value = ''
   }
@@ -37,10 +40,7 @@ async function doExport() {
 async function doImport(file) {
   if (!file) return
   if (!/\.zip$/i.test(file.name)) {
-    error.value = 'Bitte eine .zip-Datei auswählen.'
-    return
-  }
-  if (store.hasProject && !window.confirm('Der Import ersetzt die aktuell geöffnete Mappe. Fortfahren?')) {
+    error.value = t('archive.notZip')
     return
   }
   busy.value = 'import'
@@ -48,11 +48,11 @@ async function doImport(file) {
   message.value = ''
   try {
     const res = await importArchive(file)
-    message.value = `Mappe geladen – ${res.restored} Bild(er) wiederhergestellt.`
+    message.value = t('archive.importDone', { restored: res.restored })
     if (props.variant === 'import') router.push('/wizard/fahrzeug')
   } catch (err) {
     console.error(err)
-    error.value = err.message || 'Import fehlgeschlagen.'
+    error.value = err.message || t('archive.importFailed')
   } finally {
     busy.value = ''
   }
@@ -73,13 +73,10 @@ function onPick(event) {
   <div class="space-y-3">
     <div class="grid gap-3" :class="variant === 'full' ? 'sm:grid-cols-2' : ''">
       <div v-if="variant === 'full'" class="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <p class="text-sm font-bold text-slate-800">Projekt lokal sichern</p>
-        <p class="mt-0.5 text-xs text-slate-600">
-          Packt Eingaben und alle Fotos in eine ZIP-Datei – ideal, um am PC weiterzuarbeiten oder ein
-          Backup vor dem Event zu haben.
-        </p>
+        <p class="text-sm font-bold text-slate-800">{{ t('archive.exportTitle') }}</p>
+        <p class="mt-0.5 text-xs text-slate-600">{{ t('archive.exportHint') }}</p>
         <button type="button" class="btn-primary btn-xs mt-3" :disabled="busy === 'export'" @click="doExport">
-          {{ busy === 'export' ? 'packt …' : '⬇ ZIP herunterladen' }}
+          {{ busy === 'export' ? t('archive.exporting') : t('archive.exportButton') }}
         </button>
       </div>
 
@@ -90,12 +87,10 @@ function onPick(event) {
         @dragleave.prevent="dragOver = false"
         @drop.prevent="onDrop"
       >
-        <p class="text-sm font-bold text-slate-800">Projekt-ZIP laden</p>
-        <p class="mt-0.5 text-xs text-slate-600">
-          Ziehe eine zuvor gesicherte <code>.zip</code> hierher – die Mappe wird komplett wiederhergestellt.
-        </p>
+        <p class="text-sm font-bold text-slate-800">{{ t('archive.importTitle') }}</p>
+        <p class="mt-0.5 text-xs text-slate-600">{{ t('archive.importHint') }}</p>
         <button type="button" class="btn-soft btn-xs mt-3" :disabled="busy === 'import'" @click="fileInput?.click()">
-          {{ busy === 'import' ? 'entpackt …' : '📂 ZIP auswählen' }}
+          {{ busy === 'import' ? t('archive.importing') : t('archive.importButton') }}
         </button>
         <input ref="fileInput" type="file" accept=".zip,application/zip" class="hidden" @change="onPick" />
       </div>

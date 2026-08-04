@@ -4,6 +4,9 @@ import { useProjectStore } from '../stores/project.js'
 import { useScore } from '../composables/useScore.js'
 import { uid } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const store = useProjectStore()
 const { assessment, column } = useScore()
@@ -26,70 +29,78 @@ const outline = computed(() => {
 
   blocks.push({
     minutes: 1,
-    title: 'Einstieg: Ziel des Projekts',
+    title: t('presentation.block.intro'),
     points: [
-      pres.value.goal || 'Was wolltest du erreichen? (Feld oben ausfüllen)',
+      pres.value.goal || t('presentation.block.introFallback'),
       p.meta.vehicleMake || p.meta.vehicleModel
-        ? `Fahrzeug: ${[p.meta.vehicleMake, p.meta.vehicleModel, p.meta.vehicleYear].filter(Boolean).join(' ')}`
-        : 'Fahrzeug im Schritt „Fahrzeug & Klasse“ eintragen',
+        ? t('presentation.block.vehicle', {
+            vehicle: [p.meta.vehicleMake, p.meta.vehicleModel, p.meta.vehicleYear].filter(Boolean).join(' '),
+          })
+        : t('presentation.block.vehicleFallback'),
     ],
   })
 
   const sig = p.system.components.filter((c) => !['battery', 'fuse'].includes(c.type))
   blocks.push({
     minutes: 1,
-    title: 'Signalkette in einem Satz',
+    title: t('presentation.block.chain'),
     points: sig.length
       ? [sig.map((c) => c.name || c.type).join(' → ')]
-      : ['Komponenten im Schritt „Blockdiagramme“ anlegen'],
+      : [t('presentation.block.chainFallback')],
   })
 
   const powerBits = []
   if (p.power.mainCableSection && p.power.mainFuseAmps) {
-    powerBits.push(`${p.power.mainCableSection} mm² mit ${p.power.mainFuseAmps} A abgesichert`)
+    powerBits.push(
+      t('presentation.block.powerFuse', { section: p.power.mainCableSection, amps: p.power.mainFuseAmps }),
+    )
   }
-  if (p.power.mainFuseDistanceCm !== null) powerBits.push(`Hauptsicherung ${p.power.mainFuseDistanceCm} cm vom Pol`)
-  if (p.power.groundPoint) powerBits.push(`Masse: ${p.power.groundPoint}`)
+  if (p.power.mainFuseDistanceCm !== null) {
+    powerBits.push(t('presentation.block.powerDistance', { cm: p.power.mainFuseDistanceCm }))
+  }
+  if (p.power.groundPoint) powerBits.push(t('presentation.block.powerGround', { point: p.power.groundPoint }))
   blocks.push({
     minutes: 1,
-    title: 'Strom & Sicherheit',
-    points: powerBits.length ? powerBits : ['Angaben im Schritt „Strom & Sicherheit“ ergänzen'],
+    title: t('presentation.block.power'),
+    points: powerBits.length ? powerBits : [t('presentation.block.powerFallback')],
   })
 
   const custom = p.craft.customParts.filter((c) => c.name)
   blocks.push({
     minutes: 2,
-    title: 'Handwerk: was du selbst gebaut hast',
+    title: t('presentation.block.craft'),
     points: custom.length
       ? custom.map((c) => `${c.name}${c.technique ? ` (${c.technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`)
-      : ['Eigenbau-Teile im Schritt „Handwerk & Akustik“ erfassen'],
+      : [t('presentation.block.craftFallback')],
   })
 
   const challengeBits = [pres.value.challenge].filter(Boolean)
   const measures = p.craft.measurements.filter((m) => m.name)
-  if (measures.length) challengeBits.push(`Messungen: ${measures.map((m) => m.name).join(', ')}`)
-  if (p.craft.tuningNotes) challengeBits.push('Abstimmung erklären (Trennfrequenzen, Laufzeiten, Zielkurve)')
+  if (measures.length) {
+    challengeBits.push(t('presentation.block.challengeMeasure', { list: measures.map((m) => m.name).join(', ') }))
+  }
+  if (p.craft.tuningNotes) challengeBits.push(t('presentation.block.challengeTuning'))
   blocks.push({
     minutes: minutes.value === 15 ? 8 : 1,
-    title: 'Die größte Herausforderung – und deine Lösung',
-    points: challengeBits.length ? challengeBits : ['Feld „Größte Herausforderung“ oben ausfüllen'],
+    title: t('presentation.block.challenge'),
+    points: challengeBits.length ? challengeBits : [t('presentation.block.challengeFallback')],
   })
 
   const bonus = p.bonusRequests.filter((r) => r.title)
   if (bonus.length) {
     blocks.push({
       minutes: 1,
-      title: 'Bonuspunkte-Anträge benennen',
+      title: t('presentation.block.bonus'),
       points: bonus.map((r) => r.title),
     })
   }
 
   blocks.push({
     minutes: 1,
-    title: 'Abschluss',
+    title: t('presentation.block.outro'),
     points: [
-      pres.value.story || 'Warum lohnt sich der Blick auf genau dieses Auto?',
-      'Fragen der Richter abwarten – nicht überziehen.',
+      pres.value.story || t('presentation.block.outroFallback'),
+      t('presentation.block.outroWait'),
     ],
   })
 
@@ -110,61 +121,57 @@ function removeHighlight(id) {
 <template>
   <WizardShell
     step-key="presentation"
-    title="Erklärung an die Richter"
-    subtitle="Der Vortrag am Fahrzeug ist ein eigenes Bewertungskriterium – und der einzige Moment, in dem du deine Entscheidungen selbst erklären kannst."
+    :title="t('steps.presentation')"
+    :subtitle="t('presentation.subtitle')"
   >
     <div class="card card-body flex flex-wrap items-center justify-between gap-4 border-sky-200 bg-sky-50">
       <div>
         <p class="text-sm font-bold text-sky-900">
-          {{ minutes }} Minuten
-          <span v-if="criterion"> · {{ criterion.max }} Punkte</span>
+          {{ t('presentation.budget', { minutes }) }}
+          <span v-if="criterion"> · {{ t('presentation.points', { points: criterion.max }) }}</span>
         </p>
         <p class="text-xs text-sky-800">
-          Vorgetragen vom Fahrzeughalter persönlich. Je 30 Sekunden Überzug wird 1 Punkt abgezogen.
-          Bei nationalen und internationalen Finals gibt es 0 Punkte, wenn jemand anderes vorträgt.
+          {{ t('presentation.rules') }}
         </p>
       </div>
       <p class="text-xs font-semibold" :class="plannedMinutes > minutes ? 'text-rose-700' : 'text-emerald-700'">
-        Leitfaden unten: ca. {{ plannedMinutes }} min
+        {{ t('presentation.planned', { minutes: plannedMinutes }) }}
       </p>
     </div>
 
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="section-title">Dein roter Faden</h2>
-          <p class="mt-0.5 text-sm text-slate-600">
-            Das Regelwerk empfiehlt: Fokus auf <em>wie</em> und <em>warum</em> gebaut wurde – nicht auf
-            Marken und nicht auf das Endergebnis.
-          </p>
+          <h2 class="section-title">{{ t('presentation.thread') }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">{{ t('presentation.threadHint') }}</p>
         </div>
       </div>
       <div class="card-body grid gap-4">
         <div>
-          <label class="field" for="goal">Ziel des Projekts (ein Satz)</label>
+          <label class="field" for="goal">{{ t('presentation.goal') }}</label>
           <input
             id="goal"
             v-model="pres.goal"
             class="input"
-            placeholder="Eine Bühne auf Augenhöhe, ohne den Alltagsnutzen des Kombis aufzugeben"
+            :placeholder="t('presentation.goalPlaceholder')"
           />
         </div>
         <div>
-          <label class="field" for="challenge">Größte Herausforderung – und wie du sie gelöst hast</label>
+          <label class="field" for="challenge">{{ t('presentation.challenge') }}</label>
           <textarea
             id="challenge"
             v-model="pres.challenge"
             class="textarea"
-            placeholder="Die A-Säule gab keinen Winkel her, also habe ich das Podest in CAD auf den Hörplatz gerechnet und in ASA gedruckt …"
+            :placeholder="t('presentation.challengePlaceholder')"
           />
         </div>
         <div>
-          <label class="field" for="story">Womit willst du enden?</label>
+          <label class="field" for="story">{{ t('presentation.story') }}</label>
           <textarea
             id="story"
             v-model="pres.story"
             class="textarea"
-            placeholder="Der Satz, der beim Richter hängen bleiben soll."
+            :placeholder="t('presentation.storyPlaceholder')"
           />
         </div>
       </div>
@@ -173,17 +180,15 @@ function removeHighlight(id) {
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="section-title">Details, auf die du hinweisen willst</h2>
-          <p class="mt-0.5 text-sm text-slate-600">
-            Dinge, die der Richter sonst übersieht – verdeckte Lösungen, Kleinigkeiten mit Aufwand.
-          </p>
+          <h2 class="section-title">{{ t('presentation.highlights') }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">{{ t('presentation.highlightsHint') }}</p>
         </div>
-        <button type="button" class="btn-soft btn-xs" @click="addHighlight">+ Detail</button>
+        <button type="button" class="btn-soft btn-xs" @click="addHighlight">{{ t('presentation.addDetail') }}</button>
       </div>
       <div class="card-body space-y-2">
-        <p v-if="!pres.highlights.length" class="text-sm text-slate-500">Noch nichts notiert.</p>
+        <p v-if="!pres.highlights.length" class="text-sm text-slate-500">{{ t('presentation.noHighlights') }}</p>
         <div v-for="h in pres.highlights" :key="h.id" class="flex gap-2">
-          <input v-model="h.text" class="input" placeholder="z. B. Kabeldurchführung in der Tür wasserdicht gekapselt" />
+          <input v-model="h.text" class="input" :placeholder="t('presentation.highlightPlaceholder')" />
           <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
         </div>
       </div>
@@ -192,11 +197,8 @@ function removeHighlight(id) {
     <div class="card">
       <div class="card-header">
         <div>
-          <h2 class="section-title">Generierter Leitfaden</h2>
-          <p class="mt-0.5 text-sm text-slate-600">
-            Aus deinen erfassten Daten zusammengestellt. Landet auf einer eigenen Seite im Ausdruck –
-            zum Mitnehmen ans Auto.
-          </p>
+          <h2 class="section-title">{{ t('presentation.outline') }}</h2>
+          <p class="mt-0.5 text-sm text-slate-600">{{ t('presentation.outlineHint') }}</p>
         </div>
       </div>
       <div class="card-body space-y-3">
@@ -207,7 +209,7 @@ function removeHighlight(id) {
         >
           <div class="flex items-baseline justify-between gap-2">
             <p class="text-sm font-bold text-slate-800">{{ i + 1 }}. {{ block.title }}</p>
-            <span class="badge bg-slate-200 text-slate-600">ca. {{ block.minutes }} min</span>
+            <span class="badge bg-slate-200 text-slate-600">{{ t('presentation.approxMinutes', { n: block.minutes }) }}</span>
           </div>
           <ul class="mt-1 space-y-0.5">
             <li v-for="(point, j) in block.points" :key="j" class="flex gap-2 text-sm text-slate-700">

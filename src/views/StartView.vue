@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
 import { MODES, EMMA_CLASSES } from '../data/schema.js'
 import ArchiveTools from '../components/ArchiveTools.vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t, locale } = useI18n()
 
 const router = useRouter()
 const store = useProjectStore()
@@ -13,34 +16,26 @@ const savedProjects = computed(() =>
 )
 
 const className = (id) => EMMA_CLASSES.find((c) => c.id === id)?.label || '–'
-const formatDate = (iso) => new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+const formatDate = (iso) => new Date(iso).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' })
 
-const modes = [
+const modes = computed(() => [
   {
     id: MODES.QUICK,
     icon: '🚑',
-    title: 'Quick Rescue',
-    claim: 'Show ist morgen, Mappe ist leer.',
-    bullets: [
-      'Zeigt nur, was in deiner EMMA-Kategorie Pflicht ist',
-      'Strom, Absicherung, Befestigung, Blockdiagramm',
-      'In ca. 20 Minuten druckfertig',
-    ],
+    title: t('start.quick.title'),
+    claim: t('start.quick.claim'),
+    bullets: [t('start.quick.b1'), t('start.quick.b2'), t('start.quick.b3')],
     accent: 'from-rose-500 to-orange-500',
   },
   {
     id: MODES.MASTER,
     icon: '🏆',
-    title: 'SQ Masterclass',
-    claim: 'Der komplette Bauprozess, lückenlos belegt.',
-    bullets: [
-      'Alles aus Quick Rescue plus jedes optionale Detailfoto',
-      'Türdämmung Schicht für Schicht, Terminierung unter dem Teppich',
-      'Custom-Parts, GFK, 3D-Druck, REW-Messungen, Bonuspunkte-Anträge',
-    ],
+    title: t('start.master.title'),
+    claim: t('start.master.claim'),
+    bullets: [t('start.master.b1'), t('start.master.b2'), t('start.master.b3')],
     accent: 'from-sky-500 to-indigo-500',
   },
-]
+])
 
 async function start(mode) {
   await store.startProject(mode)
@@ -60,9 +55,7 @@ async function duplicate(id) {
 }
 
 async function remove(entry) {
-  const ok = window.confirm(
-    `Mappe „${entry.title}“ mit ${entry.photos} Foto(s) endgültig löschen? Das lässt sich nicht rückgängig machen.`,
-  )
+  const ok = window.confirm(t('start.deleteConfirm', { title: entry.title, photos: entry.photos }))
   if (ok) await store.deleteProject(entry.id)
 }
 </script>
@@ -70,26 +63,22 @@ async function remove(entry) {
 <template>
   <div class="space-y-8">
     <section class="rounded-2xl bg-slate-900 px-6 py-8 text-white sm:px-10 sm:py-12">
-      <p class="text-xs font-bold uppercase tracking-[0.2em] text-sky-300">EMMA Build Log Creator</p>
+      <p class="text-xs font-bold uppercase tracking-[0.2em] text-sky-300">{{ t('start.kicker') }}</p>
       <h1 class="mt-2 text-3xl font-black leading-tight sm:text-4xl">
-        Deine Einbaudokumentation.<br class="hidden sm:block" />
-        Geführt, regelkonform, druckfertig.
+        {{ t('start.headline') }}<br class="hidden sm:block" />
+        {{ t('start.headline2') }}
       </h1>
-      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">
-        Der Assistent fragt genau das ab, was die Richter sehen wollen – prüft deine Absicherung live gegen
-        das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem
-        Browser: keine Uploads, kein Konto, kein Server.
-      </p>
+      <p class="mt-3 max-w-2xl text-sm leading-relaxed text-slate-300">{{ t('start.lead') }}</p>
       <div class="mt-5 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-300">
-        <span class="rounded-full bg-white/10 px-3 py-1">100 % offline</span>
-        <span class="rounded-full bg-white/10 px-3 py-1">Autosave im Browser</span>
-        <span class="rounded-full bg-white/10 px-3 py-1">Handy-Kamera direkt nutzbar</span>
-        <span class="rounded-full bg-white/10 px-3 py-1">ZIP-Export für später</span>
+        <span class="rounded-full bg-white/10 px-3 py-1">{{ t('start.badgeOffline') }}</span>
+        <span class="rounded-full bg-white/10 px-3 py-1">{{ t('start.badgeAutosave') }}</span>
+        <span class="rounded-full bg-white/10 px-3 py-1">{{ t('start.badgeCamera') }}</span>
+        <span class="rounded-full bg-white/10 px-3 py-1">{{ t('start.badgeZip') }}</span>
       </div>
     </section>
 
     <section v-if="savedProjects.length">
-      <h2 class="section-title mb-3">Deine Mappen</h2>
+      <h2 class="section-title mb-3">{{ t('start.yourProjects') }}</h2>
       <ul class="space-y-2">
         <li
           v-for="entry in savedProjects"
@@ -100,27 +89,29 @@ async function remove(entry) {
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-bold text-slate-900">
               {{ entry.title }}
-              <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">aktiv</span>
+              <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">{{ t('start.active') }}</span>
             </p>
             <p class="truncate text-xs text-slate-500">
-              {{ className(entry.emmaClass) }} · {{ entry.photos }} Foto(s) · geändert
-              {{ formatDate(entry.updatedAt) }}
+              {{ className(entry.emmaClass) }} · {{ t('common.photos', { n: entry.photos }) }} ·
+              {{ t('start.changedAt', { date: formatDate(entry.updatedAt) }) }}
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">Öffnen</button>
-            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">Duplizieren</button>
-            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">Löschen</button>
+            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">{{ t('common.open') }}</button>
+            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">{{ t('common.duplicate') }}</button>
+            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">{{ t('common.delete') }}</button>
           </div>
         </li>
       </ul>
       <p class="mt-2 text-xs text-slate-500">
-        Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.
+        {{ t('start.duplicateHint') }}
       </p>
     </section>
 
     <section>
-      <h2 class="section-title mb-3">{{ savedProjects.length ? 'Neue Mappe anlegen' : 'Womit möchtest du starten?' }}</h2>
+      <h2 class="section-title mb-3">
+        {{ savedProjects.length ? t('start.newProject') : t('start.chooseStart') }}
+      </h2>
       <div class="grid gap-4 md:grid-cols-2">
         <button
           v-for="m in modes"
@@ -143,22 +134,20 @@ async function remove(entry) {
                 <span class="text-sky-500">✓</span><span>{{ b }}</span>
               </li>
             </ul>
-            <p class="mt-4 text-sm font-bold text-sky-600 group-hover:underline">Modus starten →</p>
+            <p class="mt-4 text-sm font-bold text-sky-600 group-hover:underline">{{ t('start.startMode') }}</p>
           </div>
         </button>
       </div>
       <p class="mt-3 text-xs text-slate-500">
-        Der Modus steuert nur den Umfang der Abfrage. <strong>Was Pflicht ist, ergibt sich aus deiner
-        EMMA-Kategorie</strong> – die wählst du gleich im ersten Schritt. Beides lässt sich jederzeit
-        ändern, ohne dass Eingaben verloren gehen.
+        {{ t('start.modeHint') }}
       </p>
     </section>
 
     <section>
-      <h2 class="section-title mb-3">Mappe aus einer ZIP laden</h2>
+      <h2 class="section-title mb-3">{{ t('start.loadZip') }}</h2>
       <ArchiveTools variant="import" />
       <p class="mt-2 text-xs text-slate-500">
-        So kannst du am Handy fotografieren, die ZIP sichern und am PC in Ruhe weiterschreiben.
+        {{ t('start.loadZipHint') }}
       </p>
     </section>
   </div>

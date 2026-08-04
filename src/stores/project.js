@@ -4,6 +4,7 @@ import localforage from 'localforage'
 import { createEmptyProject, migrateProject, uid, MODES } from '../data/schema.js'
 import { columnForClass } from '../data/matrix.js'
 import { isQuotaError } from '../utils/storage.js'
+import { translate } from '../i18n/index.js'
 import { useMediaStore } from './media.js'
 
 const stateDb = localforage.createInstance({
@@ -323,8 +324,8 @@ export const useProjectStore = defineStore('project', () => {
     } catch (err) {
       console.error('[emma] Autosave fehlgeschlagen', err)
       storageError.value = isQuotaError(err)
-        ? 'Browser-Speicher voll – Änderungen konnten nicht gesichert werden.'
-        : 'Autosave fehlgeschlagen.'
+        ? translate('storage.autosaveQuota')
+        : translate('storage.autosaveFailed')
     } finally {
       saving.value = false
     }
