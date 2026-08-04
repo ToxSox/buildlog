@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
 import { MODES } from '../data/schema.js'
+import ArchiveTools from '../components/ArchiveTools.vue'
 
 const router = useRouter()
 const store = useProjectStore()
@@ -116,6 +117,14 @@ function resume() {
       <p class="mt-3 text-xs text-slate-500">
         Der Modus lässt sich später im Schritt „Fahrzeug &amp; Klasse“ jederzeit wechseln – eingegebene Daten
         bleiben dabei erhalten.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="section-title mb-3">Angefangene Mappe fortsetzen</h2>
+      <ArchiveTools variant="import" />
+      <p class="mt-2 text-xs text-slate-500">
+        So kannst du am Handy fotografieren, die ZIP sichern und am PC in Ruhe weiterschreiben.
       </p>
     </section>
   </div>

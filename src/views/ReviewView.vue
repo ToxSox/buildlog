@@ -6,6 +6,7 @@ import { evaluateRules, summarize } from '../data/emmaRules.js'
 import { useScore } from '../composables/useScore.js'
 import WizardShell from '../components/WizardShell.vue'
 import RuleReport from '../components/RuleReport.vue'
+import ArchiveTools from '../components/ArchiveTools.vue'
 
 const store = useProjectStore()
 const { percent, level, missingRequired } = useScore()
@@ -59,6 +60,22 @@ const grouped = computed(() => {
           {{ missingRequired.length }}
         </p>
         <p class="text-xs text-slate-500">von {{ checklist.filter((c) => c.required).length }} Pflicht-Slots</p>
+      </div>
+    </div>
+
+    <div class="card border-sky-200">
+      <div class="card-header">
+        <div>
+          <h2 class="section-title">Ausdruck & Archiv</h2>
+          <p class="mt-0.5 text-sm text-slate-600">
+            Die Druckansicht erzeugt ein DIN-A4-Querformat-Dokument. Dein Browser rendert daraus direkt ein
+            PDF – zum Speichern, Teilen oder Ausdrucken.
+          </p>
+        </div>
+      </div>
+      <div class="card-body space-y-4">
+        <router-link to="/druck" class="btn-primary">🖨️ Druckansicht öffnen</router-link>
+        <ArchiveTools />
       </div>
     </div>
 

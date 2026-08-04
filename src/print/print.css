@@ -1,7 +1,264 @@
-/* Print-Engine – wird in Step 5 vervollständigt. */
+/* ==========================================================================
+   DIN-A4-Querformat Print-Engine
+   Der Browser rendert das PDF nativ (window.print) – ohne jsPDF, ohne Server.
+   ========================================================================== */
+
+:root {
+  --page-w: 277mm; /* A4 quer (297mm) minus 2 × 10mm Seitenrand */
+  --page-h: 188mm; /* A4 quer (210mm) minus 2 × 10mm, 2mm Reserve gegen Umbruchfehler */
+}
+
+/* ------------------------------------------------------------- Bildschirm */
+.print-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 0.5rem 3rem;
+}
+
+.print-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: var(--page-w);
+  min-height: var(--page-h);
+  max-width: 100%;
+  padding: 0;
+  background: #fff;
+  color: #0f172a;
+  font-size: 10pt;
+  line-height: 1.35;
+  box-shadow: 0 6px 24px rgb(15 23 42 / 0.14);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.print-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8mm;
+  padding: 4mm 6mm 2.5mm;
+  border-bottom: 0.6mm solid #0f172a;
+}
+.print-head__title {
+  font-size: 11pt;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.print-head__meta {
+  text-align: right;
+  font-size: 7.5pt;
+  line-height: 1.3;
+  color: #334155;
+}
+.print-head__meta strong {
+  color: #0f172a;
+}
+
+.print-body {
+  flex: 1;
+  padding: 4mm 6mm;
+}
+
+.print-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2mm 6mm 3.5mm;
+  border-top: 0.3mm solid #cbd5e1;
+  font-size: 7pt;
+  color: #64748b;
+}
+
+/* ---------------------------------------------------------------- Inhalte */
+.print-h1 {
+  font-size: 20pt;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.print-h2 {
+  font-size: 12pt;
+  font-weight: 800;
+  margin-bottom: 2mm;
+  padding-bottom: 1mm;
+  border-bottom: 0.3mm solid #cbd5e1;
+}
+.print-lead {
+  font-size: 9.5pt;
+  color: #334155;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8.5pt;
+}
+.print-table th,
+.print-table td {
+  border: 0.2mm solid #cbd5e1;
+  padding: 1.4mm 2mm;
+  text-align: left;
+  vertical-align: top;
+}
+.print-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.print-table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.print-kv {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5mm 6mm;
+  font-size: 9pt;
+}
+.print-kv__key {
+  color: #64748b;
+}
+
+/* Bild-Raster: 2er- oder 3er-Reihen, Bild + Titel + Begleittext */
+.print-grid {
+  display: grid;
+  gap: 4mm;
+}
+.print-grid--1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.print-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.print-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.print-figure {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+}
+.print-figure__frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52mm;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 0.2mm solid #cbd5e1;
+  border-radius: 1mm;
+}
+.print-grid--2 .print-figure__frame {
+  height: 68mm;
+}
+.print-grid--1 .print-figure__frame {
+  height: 135mm;
+}
+.print-figure__frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.print-figure__title {
+  margin-top: 1.5mm;
+  font-size: 8.5pt;
+  font-weight: 700;
+}
+.print-figure__caption {
+  font-size: 7.5pt;
+  color: #475569;
+}
+
+.print-diagram {
+  display: flex;
+  justify-content: center;
+}
+/* mermaid setzt eine inline max-width – die muss für die Seitenbreite weichen. */
+.print-diagram svg {
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 140mm;
+  height: auto;
+}
+
+.print-note {
+  border-left: 1mm solid #0284c7;
+  background: #f0f9ff;
+  padding: 2mm 3mm;
+  font-size: 8.5pt;
+}
+.print-note--warn {
+  border-color: #d97706;
+  background: #fffbeb;
+}
+.print-note--error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+/* ------------------------------------------------------------------ Druck */
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
 @media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Alles, was zur Bedienoberfläche gehört, verschwindet. */
   .wizard-ui,
-  .no-print {
+  .no-print,
+  header.sticky,
+  footer.wizard-ui {
     display: none !important;
+  }
+
+  .print-doc {
+    display: block;
+    padding: 0;
+    gap: 0;
+  }
+
+  .print-page {
+    width: 100%;
+    min-height: var(--page-h);
+    max-width: none;
+    box-shadow: none;
+    border-radius: 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: page;
+    page-break-after: always;
+  }
+  .print-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .print-head,
+  .print-body,
+  .print-foot {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  img {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-table th,
+  .print-note,
+  .print-figure__frame {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
