@@ -416,6 +416,9 @@ export default {
     previewTitle: 'Druckvorschau · DIN A4 quer',
     previewHint: '{pages} Seite(n) · im Druckdialog „Hintergrundgrafiken“ aktivieren, Ränder auf „Standard“',
     backToWizard: '← zurück zum Assistenten',
+    overflowWarning:
+      'Seite {pages} ist länger als ein Blatt. Beim Drucken rutscht der Rest auf ein Zusatzblatt, dort fehlt die Kopfzeile und die Seitenzahlen im Fuß stimmen nicht mehr. Kürze dort die Texte oder verteile die Einträge.',
+    continued: 'Fortsetzung',
     cover: 'Deckblatt',
     documentation: 'Einbaudokumentation',
     classPrefix: 'Klasse {name}',

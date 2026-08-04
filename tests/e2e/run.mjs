@@ -354,6 +354,36 @@ try {
     .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((v) => /^(cm|mm²|A)$/.test(v)))
   check('kein leeres Zahlenfeld im Ausdruck', orphanUnits.length === 0, orphanUnits.join(', '))
 
+  check(
+    'normale Mappe passt auf ihre Blätter',
+    (await page.locator('[data-testid=print-overflow]').count()) === 0,
+    await page
+      .locator('[data-testid=print-overflow]')
+      .first()
+      .innerText()
+      .catch(() => ''),
+  )
+
+  // Zu langer Abschnitt: Der Rest landet beim Drucken auf einem Zusatzblatt ohne
+  // Kopfzeile, die Seitenzahlen stimmen dann nicht mehr – das muss die Vorschau sagen.
+  await page.goto(`${BASE}#/wizard/handwerk`)
+  await page.waitForTimeout(600)
+  await page.fill('#tuning', Array.from({ length: 60 }, (_, i) => `Abstimmschritt ${i + 1}`).join('\n'))
+  await page.waitForTimeout(700)
+  await page.goto(`${BASE}#/druck`)
+  await page.waitForTimeout(3000)
+  check(
+    'Vorschau warnt vor überlangen Abschnitten',
+    (await page.locator('[data-testid=print-overflow]').count()) === 1,
+    (
+      await page
+        .locator('[data-testid=print-overflow]')
+        .first()
+        .innerText()
+        .catch(() => '')
+    ).slice(0, 90),
+  )
+
   const pdfPath = join(WORK, 'out.pdf')
   await page.emulateMedia({ media: 'print' })
   await page.pdf({ path: pdfPath, preferCSSPageSize: true, printBackground: true })

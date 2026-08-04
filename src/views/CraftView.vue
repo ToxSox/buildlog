@@ -122,10 +122,16 @@ const MEASURE_FIELDS = [
 
     <div class="card">
       <div class="card-header">
-        <h2 class="section-title">{{ t('craft.tuning') }}</h2>
+        <h2 class="section-title" id="craft-tuning-title">{{ t('craft.tuning') }}</h2>
       </div>
       <div class="card-body">
-        <textarea v-model="craft.tuningNotes" class="textarea" :placeholder="t('craft.tuningPlaceholder')" />
+        <textarea
+          id="tuning"
+          v-model="craft.tuningNotes"
+          class="textarea"
+          aria-labelledby="craft-tuning-title"
+          :placeholder="t('craft.tuningPlaceholder')"
+        />
       </div>
     </div>
 
