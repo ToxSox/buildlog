@@ -248,9 +248,11 @@ const pages = computed(() => {
 
   // `story` zählt mit: sonst verschwindet ein nur dort gefüllter Vortrag aus dem Druck.
   // Leere Highlight-Zeilen zählen nicht, sie erzeugten sonst eine leere Seite.
+  // Bewusst ohne Kategorie-Filter: Wer den Vortrag in einer höheren Kategorie
+  // vorbereitet und danach wechselt, soll seinen Text nicht verlieren – genau
+  // wie beim Handwerk-Abschnitt, der ebenfalls am Inhalt hängt.
   const pr = p.value.presentation
-  const hasPresentation = pr.goal || pr.story || pr.challenge || (pr.highlights || []).some((h) => h.text)
-  if (column.value && ['M', 'X', 'XUNL'].includes(column.value) && hasPresentation) {
+  if (pr.goal || pr.story || pr.challenge || (pr.highlights || []).some((h) => h.text)) {
     list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
