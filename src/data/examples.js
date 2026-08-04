@@ -67,7 +67,7 @@ export const EXAMPLES = {
     tips: [
       'Richter können keine Entfernungen raten. Lege einen Zollstock ins Bild!',
       'Sicherungswert muss auf dem Foto lesbar sein.',
-      'Maximal 40 cm ungeschütztes Kabel zwischen Pol und Sicherung.',
+      'Regelwerk: innerhalb von 40 cm zum Pluspol und/oder vor der ersten Blechdurchführung.',
     ],
     svg: wrap(`
       <rect x="24" y="72" width="80" height="60" rx="6" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>
@@ -105,7 +105,7 @@ export const EXAMPLES = {
     title: 'Blechdurchführung',
     caption: 'Nahaufnahme der Spritzwand-Durchführung mit Gummitülle.',
     tips: [
-      'Ohne Tülle oder Kantenschutz gibt es hier keine Punkte.',
+      'Pro ungeschütztem Kabel zieht der Richter 1 Punkt ab (Kriterium "Cables protected from damage").',
       'Ein Bild von beiden Seiten der Wand wirkt besonders überzeugend.',
     ],
     svg: wrap(`
@@ -123,7 +123,7 @@ export const EXAMPLES = {
     title: 'Terminierung / Crimpung',
     caption: 'Kabelschuh, Presshülse und Schrumpfschlauch aus der Nähe.',
     tips: [
-      'Ohne dieses Foto gibt es keine Punkte für die Terminierung.',
+      'Der Foto-Log ist hier ein offiziell zugelassener Nachweis – nutze ihn für alles, was später verdeckt ist.',
       'Am besten zwei Bilder: offen gecrimpt und fertig geschrumpft.',
     ],
     svg: wrap(`
@@ -139,7 +139,10 @@ export const EXAMPLES = {
   distribution: {
     title: 'Verteiler & Sicherungshalter',
     caption: 'Verteilerblock mit allen Abgängen, Sicherungswerte lesbar.',
-    tips: ['Jeder Abgang mit kleinerem Querschnitt braucht eine eigene Sicherung.'],
+    tips: [
+      'Jeder Abgang mit kleinerem Querschnitt braucht eine eigene Sicherung.',
+      'Die Fuse Size Matrix gilt ausdrücklich auch für Verteilerblöcke und Busbars.',
+    ],
     svg: wrap(`
       <rect x="110" y="55" width="100" height="90" rx="8" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>
       <path d="M20 100 H 110" stroke="#dc2626" stroke-width="8"/>
@@ -154,8 +157,8 @@ export const EXAMPLES = {
     title: 'Massepunkt',
     caption: 'Blank geschliffene Karosseriestelle, Kabelschuh verschraubt.',
     tips: [
-      'Das blanke Blech muss sichtbar sein – lackierte Masse gibt Abzug.',
-      'Masse so kurz wie möglich, gleicher Querschnitt wie Plus.',
+      'Das blanke Blech muss sichtbar sein.',
+      'Kurze Masse im Plus-Querschnitt ist gute Praxis – im Rulebook steht dazu kein Wert.',
     ],
     svg: wrap(`
       <rect x="24" y="40" width="272" height="120" rx="6" fill="#cbd5e1" stroke="#64748b"/>

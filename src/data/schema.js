@@ -7,23 +7,39 @@
  * hier steht nur die Metadaten-Referenz (id, caption, rotation, ...).
  */
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 export const MODES = {
   QUICK: 'QuickRescue',
   MASTER: 'SQMasterclass',
 }
 
-/** Frei erweiterbare Liste der EMMA-Klassen (Stand Rulebook 2024/2025). */
+/**
+ * Kategorien laut EMMA competition manual, edition 2026, Kapitel 2
+ * („EMMA Categories & Classes overview“).
+ *
+ * `docPoints` ist die Punktzahl, die in dieser Kategorie auf die Rubrik
+ * System documentation entfällt (Signal-Flowchart, Cable/Fuse-Diagramm,
+ * Foto-Log nicht zugänglicher Verbindungen). In E und S gibt es stattdessen
+ * nur 4 Punkte für „System/Wiring Diagram present“.
+ */
 export const EMMA_CLASSES = [
-  { id: 'rookie', label: 'Rookie', group: 'Sound Quality' },
-  { id: 'crazy', label: 'Crazy', group: 'Sound Quality' },
-  { id: 'expert', label: 'Expert', group: 'Sound Quality' },
-  { id: 'master', label: 'Master', group: 'Sound Quality' },
-  { id: 'esql', label: 'ESQL / Esoteric', group: 'Sound Quality' },
-  { id: 'multimedia', label: 'Multimedia', group: 'Multimedia' },
-  { id: 'tuning', label: 'Car Tuning / Show', group: 'Show' },
-  { id: 'spl', label: 'SPL', group: 'SPL' },
+  { id: 'esql-inside', label: 'ESQL Inside (Einsteiger)', group: 'Einstieg', docPoints: 0 },
+  { id: 'sq-e', label: 'SQ E – Entry', group: 'Sound Quality', docPoints: 0 },
+  { id: 'sq-s', label: 'SQ S – Skilled', group: 'Sound Quality', docPoints: 0 },
+  { id: 'sq-m', label: 'SQ M – Master', group: 'Sound Quality', docPoints: 10 },
+  { id: 'sq-x-limited', label: 'SQ X – Expert Limited', group: 'Sound Quality', docPoints: 10 },
+  { id: 'sq-x-unlimited', label: 'SQ X – Expert Unlimited', group: 'Sound Quality', docPoints: 10 },
+  { id: 'mm', label: 'MM – Multimedia', group: 'Multimedia', docPoints: 10 },
+  { id: 'espl-trunk', label: 'ESPL Trunk', group: 'ESPL', docPoints: 0 },
+  { id: 'espl-br', label: 'ESPL B / R', group: 'ESPL', docPoints: 0 },
+  { id: 'espl-wall', label: 'ESPL Wall', group: 'ESPL', docPoints: 0 },
+  { id: 'espl-expert', label: 'ESPL Expert', group: 'ESPL', docPoints: 0 },
+  { id: 'esql-limited', label: 'ESQL Limited', group: 'ESQL', docPoints: 0 },
+  { id: 'esql-unlimited', label: 'ESQL Unlimited', group: 'ESQL', docPoints: 0 },
+  { id: 'tuning-stock', label: 'Tuning Stock', group: 'EMMA Tuning', docPoints: 0 },
+  { id: 'tuning-custom-trunk', label: 'Tuning Custom Trunk', group: 'EMMA Tuning', docPoints: 0 },
+  { id: 'tuning-custom-unlimited', label: 'Tuning Custom Unlimited', group: 'EMMA Tuning', docPoints: 0 },
 ]
 
 export const COMPONENT_TYPES = [
@@ -36,8 +52,12 @@ export const COMPONENT_TYPES = [
   { id: 'fuse', label: 'Sicherung / Verteiler', icon: '🛡️' },
 ]
 
-/** Gängige Kupfer-Querschnitte in mm². */
-export const CABLE_SECTIONS = [2.5, 4, 6, 10, 16, 20, 25, 35, 50, 70, 95, 120]
+/**
+ * Querschnitte exakt nach der Fuse Size Matrix des Rulebooks 2026.
+ * Andere Querschnitte sind zwar verbaubar, das Regelwerk verlangt dann aber eine
+ * eigene Berechnung nach der Formel aus dem Judge Book.
+ */
+export const CABLE_SECTIONS = [0.5, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70]
 
 export function uid(prefix = 'id') {
   const rnd = Math.random().toString(36).slice(2, 8)
@@ -80,7 +100,13 @@ export function createEmptyProject() {
       mainFuseAmps: null,
       mainFuseType: '',
       mainFuseDistanceCm: null,
+      /** true / false / null – Sicherung vor jeder Blechdurchführung? */
+      fuseBeforeMetalPanel: null,
       mainCableSection: null,
+      /** OEM-Masseleitung des Fahrzeugs verstärkt? (100-A-Deckel des Rulebooks) */
+      oemGroundUpgraded: false,
+      /** Berechnung nach Judge-Book-Formel liegt bei? */
+      groundCalculationProvided: false,
       groundCableSection: null,
       groundLengthCm: null,
       groundPoint: '',
@@ -122,6 +148,31 @@ export function createEmptyProject() {
   }
 }
 
+/**
+ * Klassen-IDs vor Schema 4 stammten aus einer nicht verifizierten Liste.
+ * Best-effort-Zuordnung auf die echten Kategorien des Rulebooks 2026.
+ */
+const LEGACY_CLASS_MAP = {
+  rookie: 'sq-e',
+  crazy: 'sq-s',
+  master: 'sq-m',
+  expert: 'sq-x-limited',
+  esql: 'esql-limited',
+  multimedia: 'mm',
+  tuning: 'tuning-stock',
+  spl: 'espl-trunk',
+}
+
+/**
+ * Querschnitte, die es in der offiziellen Fuse Size Matrix nicht gibt, werden
+ * bewusst geleert statt stillschweigend umgerechnet – ein falsch übernommener
+ * Sicherheitswert wäre gefährlicher als eine erneute Eingabe.
+ */
+function sanitizeSection(value) {
+  if (value === null || value === undefined || value === '') return null
+  return CABLE_SECTIONS.includes(Number(value)) ? Number(value) : null
+}
+
 /** Migriert ältere Projektstände auf das aktuelle Schema. */
 export function migrateProject(raw) {
   const base = createEmptyProject()
@@ -138,6 +189,21 @@ export function migrateProject(raw) {
     media: { ...(raw.media || {}) },
     skipped: Array.isArray(raw.skipped) ? raw.skipped : [],
   }
+
+  if (LEGACY_CLASS_MAP[merged.meta.emmaClass]) {
+    merged.meta.emmaClass = LEGACY_CLASS_MAP[merged.meta.emmaClass]
+  } else if (merged.meta.emmaClass && !EMMA_CLASSES.some((c) => c.id === merged.meta.emmaClass)) {
+    merged.meta.emmaClass = ''
+  }
+
+  merged.power.mainCableSection = sanitizeSection(merged.power.mainCableSection)
+  merged.power.groundCableSection = sanitizeSection(merged.power.groundCableSection)
+  merged.power.chargingCableSection = sanitizeSection(merged.power.chargingCableSection)
+  merged.power.distributionFuses = (merged.power.distributionFuses || []).map((b) => ({
+    ...b,
+    section: sanitizeSection(b.section),
+  }))
+
   merged.schemaVersion = SCHEMA_VERSION
   return merged
 }

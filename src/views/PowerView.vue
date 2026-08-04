@@ -2,7 +2,13 @@
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { CABLE_SECTIONS, uid } from '../data/schema.js'
-import { FUSE_LIMITS, maxAmpsFor, MAX_FUSE_DISTANCE_CM } from '../data/emmaRules.js'
+import {
+  FUSE_LIMITS,
+  maxAmpsFor,
+  MAX_FUSE_DISTANCE_CM,
+  OEM_GROUND_MAX_MAIN_FUSE_A,
+  RULEBOOK_EDITION,
+} from '../data/emmaRules.js'
 import WizardShell from '../components/WizardShell.vue'
 import SlotGrid from '../components/SlotGrid.vue'
 import RuleReport from '../components/RuleReport.vue'
@@ -49,6 +55,11 @@ function removeBranch(id) {
     title="Strom & Sicherheit"
     subtitle="Der Block, an dem die meisten Punkte verloren gehen. Die Eingaben werden live gegen das Regelwerk geprüft."
   >
+    <p class="text-xs text-slate-500">
+      Geprüft gegen das {{ RULEBOOK_EDITION }}. Grundlage der Absicherungswerte ist die dort
+      abgedruckte Fuse Size Matrix (nach VW75212, Rechenspannung U = 12 V).
+    </p>
+
     <RuleReport step="power" />
 
     <div class="card">
@@ -92,7 +103,8 @@ function removeBranch(id) {
             <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
           </select>
           <p v-if="sectionInfo" class="hint">
-            {{ sectionInfo.awg }} · maximal zulässige Absicherung: <strong>{{ sectionInfo.max }} A</strong>
+            {{ sectionInfo.awg }} · maximal zulässige Absicherung:
+            <strong>{{ sectionInfo.max }} A</strong> (Fuse Size Matrix)
           </p>
         </div>
         <div>
@@ -123,6 +135,59 @@ function removeBranch(id) {
             :placeholder="`max. ${MAX_FUSE_DISTANCE_CM}`"
           />
           <p class="hint">Gemessen entlang des Kabels vom Pol bis zur Sicherung.</p>
+        </div>
+
+        <div class="sm:col-span-2">
+          <span class="field">Sitzt die Sicherung vor jeder Blechdurchführung?</span>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="opt in [
+                { value: true, label: 'Ja, vor dem ersten Blech' },
+                { value: false, label: 'Nein' },
+                { value: null, label: 'weiß ich nicht' },
+              ]"
+              :key="String(opt.value)"
+              type="button"
+              class="rounded-lg border px-3 py-1.5 text-sm transition"
+              :class="
+                power.fuseBeforeMetalPanel === opt.value
+                  ? 'border-sky-600 bg-sky-600 font-semibold text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-sky-400'
+              "
+              @click="power.fuseBeforeMetalPanel = opt.value"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+          <p class="hint">
+            Das Regelwerk verlangt die Hauptsicherung innerhalb von 40 cm zum Pluspol
+            <strong>und/oder</strong> bevor das Kabel ein Blech durchdringt.
+          </p>
+        </div>
+
+        <div class="sm:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <p class="text-sm font-bold text-slate-800">
+            Die {{ OEM_GROUND_MAX_MAIN_FUSE_A }}-A-Grenze bei originaler Masseleitung
+          </p>
+          <p class="mt-0.5 text-xs text-slate-600">
+            Ist die OEM-Masseleitung des Fahrzeugs nicht verstärkt, begrenzt das Regelwerk die
+            Hauptsicherung (bzw. die Summe mehrerer Hauptsicherungen) auf
+            {{ OEM_GROUND_MAX_MAIN_FUSE_A }} A – außer du legst eine eigene Berechnung bei.
+          </p>
+          <div class="mt-2 space-y-1.5">
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+              <input v-model="power.oemGroundUpgraded" type="checkbox" class="h-4 w-4 rounded border-slate-300" />
+              Masseleitung Motor/Karosserie ↔ Batterie wurde verstärkt
+            </label>
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+              <input
+                v-model="power.groundCalculationProvided"
+                type="checkbox"
+                class="h-4 w-4 rounded border-slate-300"
+              />
+              Berechnung nach Judge-Book-Formel liegt der Mappe bei
+            </label>
+          </div>
         </div>
       </div>
     </div>

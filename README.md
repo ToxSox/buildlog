@@ -68,22 +68,57 @@ und verhindert RAM-Probleme bei vielen Fotos.
 
 ### Regel-Engine
 
-`src/data/emmaRules.js` prüft die Eingaben live, u. a.:
+`src/data/emmaRules.js` prüft die Eingaben live. Die Werte sind gegen das
+**EMMA competition manual, edition 2026** verifiziert (Kapitel 3 „EMMA rules –
+Installation Quality"). Geprüft wird u. a.:
 
-* Hauptsicherung gegen Kabelquerschnitt (Tabelle `FUSE_LIMITS`)
-* max. 40 cm zwischen Batterie-Pluspol und Hauptsicherung
-* eigene Absicherung der Zweitbatterie und des Ladekabels
-* Masse-Querschnitt ≥ Plus-Querschnitt, Masselänge
-* Absicherung jedes Verteiler-Abgangs
+* **Fuse Size Matrix** – Sicherungswert gegen Kabelquerschnitt, exakt nach der
+  Tabelle des Rulebooks (Grundlage: VW75212, Rechenspannung U = 12 V).
+  Die Matrix gilt ausdrücklich auch für Verteilerblöcke und Busbars.
+* **Hauptsicherung** innerhalb von 40 cm zu jedem Batterie-Pluspol
+  **und/oder** vor jeder Blechdurchführung.
+* **100-A-Deckel**: Ist die OEM-Masseleitung nicht verstärkt, ist die
+  Hauptsicherung (bzw. die Summe mehrerer Hauptsicherungen) auf 100 A begrenzt –
+  außer der Teilnehmer legt eine Berechnung nach der Judge-Book-Formel bei.
+* **Mehrbatterie-Systeme**: Jeder Leiter muss die Summe aller einspeisenden
+  Quellen tragen; jede Quelle am Verteiler braucht eine eigene Absicherung.
+* Absicherung jeder Komponentenleitung, Kabelschutz, feste Montage.
 
-Befunde haben die Schweregrade `error` (Disqualifikationsgefahr), `warn`, `info`
-und `ok` und erscheinen im jeweiligen Wizard-Schritt, in der Prüfansicht und
-zusammengefasst auf dem Deckblatt des Ausdrucks.
+Jeder Befund trägt ein `source`-Feld und wird in der UI entsprechend gekennzeichnet:
 
-> **Hinweis zu den Zahlenwerten:** Die Grenzwerte sind bewusst in Tabellen am
-> Kopf von `emmaRules.js` ausgelagert, damit sie bei einer neuen Regelwerk-Version
-> an einer Stelle nachgezogen werden können. Maßgeblich ist immer das aktuelle
-> offizielle EMMA-Rulebook.
+| `source`   | Bedeutung                                                        |
+| ---------- | ---------------------------------------------------------------- |
+| `rulebook` | steht so (oder sinngemäß) im offiziellen Regelwerk                |
+| `praxis`   | gute Einbaupraxis, **keine** EMMA-Vorgabe – kostet keine Punkte   |
+
+Als `praxis` markiert sind bewusst: Masse-Querschnitt ≥ Plus-Querschnitt,
+empfohlene Masselänge und die Beschreibung des Massepunkts. Das Rulebook macht
+dazu keine Vorgabe.
+
+Schweregrade: `error` (Punktverlust), `warn`, `info`, `ok`. Befunde erscheinen im
+jeweiligen Wizard-Schritt, in der Prüfansicht und zusammengefasst auf dem
+Deckblatt des Ausdrucks.
+
+`npm test` prüft die Matrix und die Kernregeln gegen die aus dem Rulebook
+abgetippten Sollwerte (`tests/emmaRules.test.mjs`).
+
+> **Bei einer neuen Rulebook-Edition:** `FUSE_LIMITS`, `MAX_FUSE_DISTANCE_CM`,
+> `OEM_GROUND_MAX_MAIN_FUSE_A` und `RULEBOOK_EDITION` am Kopf von `emmaRules.js`
+> nachziehen, die Sollwerte in `tests/emmaRules.test.mjs` anpassen und
+> `EMMA_CLASSES` in `schema.js` gegen Kapitel 2 abgleichen. Maßgeblich ist immer
+> das aktuelle offizielle Rulebook.
+
+### Kategorien und Dokumentationspflicht
+
+`EMMA_CLASSES` in `schema.js` bildet die Kategorien aus Kapitel 2 des Rulebooks ab
+(ESQL Inside, SQ E/S/M/X Limited/Unlimited, MM, ESPL, ESQL, EMMA Tuning).
+
+Die Rubrik **System documentation** (Signal-Flowchart, Cable/Fuse-Diagramm,
+Foto-Log nicht zugänglicher Verbindungen, 10 Punkte) gibt es erst ab **SQ M**.
+In E und S werden stattdessen 4 Punkte für „System/Wiring Diagram present"
+vergeben, und Dokumentation ist nur für verdeckte Komponenten nötig. Genau
+darauf zielen die beiden Modi der App: Quick Rescue deckt E/S ab, SQ Masterclass
+die Anforderungen ab M aufwärts.
 
 ### Bilder
 

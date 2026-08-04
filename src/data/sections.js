@@ -77,7 +77,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'fuseRuler',
         hint: 'Sicherung + Zollstock/Maßband bis zum Batterie-Pluspol im selben Bild.',
-        tip: 'Richter können keine Entfernungen raten. Lege einen Zollstock ins Bild und fotografiere so, dass Sicherung UND Batteriepol sichtbar sind.',
+        tip: 'Richter können keine Entfernungen raten. Lege einen Zollstock ins Bild und fotografiere so, dass Sicherung UND Batteriepol sichtbar sind. Die Sicherung muss innerhalb von 40 cm zum Pol und/oder vor der ersten Blechdurchführung sitzen – sonst gibt es 0 von 10 Punkten.',
       },
       {
         key: 'power.secondBattery',
@@ -118,7 +118,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'grommet',
         hint: 'Nahaufnahme der Durchführung durch die Spritzwand.',
-        tip: 'Ohne Tülle oder Kantenschutz gibt es hier keine Punkte – Scheuerstellen sind ein K.-o.-Kriterium.',
+        tip: 'Kabel durch Blech müssen durch Tüllen oder Gummis geschützt sein, mechanisch belastete Kabel (Türdurchführung, Nähe Keilriemen) brauchen einen Schutzschlauch. Pro ungeschütztem Kabel wird 1 Punkt abgezogen.',
       },
       {
         key: 'power.terminals',
@@ -129,7 +129,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'crimp',
         hint: 'Kabelschuhe, Crimpungen, Schrumpfschlauch – am besten offen und montiert.',
-        tip: 'Ohne dieses Foto gibt es keine Punkte für die Terminierung. Ein Bild "vorher offen" + "fertig geschrumpft" wirkt Wunder.',
+        tip: 'Das Regelwerk lässt für "Cables properly terminated / secured" und "Cable terminations protected" ausdrücklich den Foto-Log als Nachweis zu – ohne Bild bleibt nur die Sichtprüfung. Ein Bild "offen gecrimpt" + "fertig geschrumpft" wirkt Wunder.',
       },
       {
         key: 'power.underCarpet',
@@ -140,7 +140,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'crimp',
         hint: 'Verbindungen, die im fertigen Zustand nicht mehr sichtbar sind.',
-        tip: 'Alles, was der Richter am Show-Tag nicht mehr sehen kann, MUSS in der Mappe dokumentiert sein.',
+        tip: 'Ab Kategorie SQ M verlangt das Regelwerk ausdrücklich einen Foto-Log nicht zugänglicher Verbindungen und Komponenten – pro fehlendem Element 1 Punkt Abzug.',
       },
       {
         key: 'power.distribution',
@@ -162,7 +162,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'ground',
         hint: 'Blank geschliffene Stelle, Schraube, Kabelschuh.',
-        tip: 'Masse möglichst kurz (< 50 cm) und im gleichen Querschnitt wie Plus. Zeige das blanke Blech!',
+        tip: 'Zeige das blank geschliffene Blech. Kurze Masse im gleichen Querschnitt wie Plus ist gute Praxis – das Regelwerk schreibt dafür allerdings keinen Wert vor.',
       },
     ],
   },
@@ -183,7 +183,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'mount',
         hint: 'Einbaulage + Nahaufnahme der Befestigungspunkte.',
-        tip: 'Klettband ist keine Befestigung. Zeige Schrauben oder Gewindeeinsätze.',
+        tip: 'Die Richter prüfen jede Komponente per Handprobe auf festen Sitz (2 Punkte Abzug pro loser Komponente). Zeige Schrauben oder Gewindeeinsätze.',
       },
       {
         key: 'hardware.dsp',
@@ -205,7 +205,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'speaker',
         hint: 'Tief-/Mitteltöner und Hochtöner in Einbaulage.',
-        tip: 'Adapterringe und Verschraubung mitfotografieren – das ist Handwerk, das Punkte bringt.',
+        tip: 'Adapterringe und Verschraubung mitfotografieren. Denk an das Kriterium "Protection of Speakers": Lautsprecher in Fronttüren und Fußraum brauchen einen starren Schutz, wenn man die Membran mit einem 3-cm-Zylinder berühren kann.',
       },
       {
         key: 'hardware.speakersRear',
@@ -238,7 +238,7 @@ export const SECTIONS = [
         multiple: true,
         example: 'routing',
         hint: 'Trennung von Strom- und Signalkabeln sichtbar machen.',
-        tip: 'Cinch und Strom auf getrennten Fahrzeugseiten verlegen – das ist ein klassischer Punktebringer.',
+        tip: 'Getrennte Verlegung von Strom und Signal ist gute Praxis und zahlt in den Craftsmanship-Block (Kabelführung) ein. Eine eigene Regel dafür gibt es im Rulebook nicht.',
       },
       {
         key: 'hardware.overview',

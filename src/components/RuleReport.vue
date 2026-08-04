@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
-import { evaluateRules } from '../data/emmaRules.js'
+import { evaluateRules, RULEBOOK_EDITION } from '../data/emmaRules.js'
 
 const props = defineProps({
   step: { type: String, default: '' },
@@ -37,10 +37,26 @@ const styles = {
     >
       <span class="text-lg leading-none">{{ styles[f.severity].icon }}</span>
       <div class="min-w-0">
-        <p class="text-sm font-bold" :class="styles[f.severity].title">{{ f.title }}</p>
+        <p class="flex flex-wrap items-center gap-2 text-sm font-bold" :class="styles[f.severity].title">
+          <span>{{ f.title }}</span>
+          <span
+            class="badge"
+            :class="f.source === 'praxis' ? 'bg-slate-200 text-slate-600' : 'bg-slate-900 text-white'"
+            :title="
+              f.source === 'praxis'
+                ? 'Gute Einbaupraxis – steht so nicht im Regelwerk, kostet also keine Punkte'
+                : `Steht im ${RULEBOOK_EDITION}`
+            "
+          >
+            {{ f.source === 'praxis' ? 'Praxis-Tipp' : 'Regelwerk' }}
+          </span>
+        </p>
         <p class="text-xs leading-relaxed" :class="styles[f.severity].text">{{ f.message }}</p>
         <p v-if="f.fix" class="mt-1 text-xs font-semibold" :class="styles[f.severity].text">
           → {{ f.fix }}
+        </p>
+        <p v-if="f.ref" class="mt-1 text-[11px] italic opacity-75" :class="styles[f.severity].text">
+          {{ f.ref }}
         </p>
       </div>
     </div>
