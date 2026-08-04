@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import { useScore } from '../composables/useScore.js'
 import { uid } from '../data/schema.js'
 import { toNumber } from '../data/emmaRules.js'
+import { FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import WizardShell from '../components/WizardShell.vue'
 import { useI18n } from '../i18n/index.js'
 
@@ -73,9 +74,10 @@ const outline = computed(() => {
     minutes: 2,
     title: t('presentation.block.craft'),
     points: custom.length
-      ? custom.map(
-          (c) => `${c.name}${c.technique ? ` (${c.technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`,
-        )
+      ? custom.map((c) => {
+          const technique = optionLabel(FABRICATION_TECHNIQUES, c.technique)
+          return `${c.name}${technique ? ` (${technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`
+        })
       : [t('presentation.block.craftFallback')],
   })
 

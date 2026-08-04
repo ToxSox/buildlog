@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import WizardShell from '../components/WizardShell.vue'
 import SlotGrid from '../components/SlotGrid.vue'
 import ItemList from '../components/ItemList.vue'
+import { FABRICATION_TECHNIQUES } from '../data/options.js'
 import { useI18n } from '../i18n/index.js'
 
 const { t } = useI18n()
@@ -17,7 +18,7 @@ const CUSTOM_FIELDS = [
     key: 'technique',
     label: { de: 'Fertigung', en: 'Fabrication' },
     type: 'select',
-    options: ['3D-Druck', 'GFK / Laminat', 'MDF / Holz', 'CNC-Fräsen', 'Metallbau', 'Sonstiges'],
+    options: FABRICATION_TECHNIQUES,
   },
   { key: 'material', label: { de: 'Material', en: 'Material' }, placeholder: 'ASA / PETG / Epoxid-Matte' },
   {

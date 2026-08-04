@@ -54,6 +54,8 @@ async function remove(item) {
   store.removeItem(props.path, item.id)
 }
 
+const optionValue = (option) => (typeof option === 'string' ? option : option.de)
+
 function add() {
   const blank = {}
   props.fields.forEach((f) => (blank[f.key] = f.type === 'number' ? null : ''))
@@ -96,7 +98,10 @@ function add() {
               class="select"
             >
               <option value="">–</option>
-              <option v-for="o in f.options" :key="o" :value="o">{{ o }}</option>
+              <!-- Optionen dürfen { de, en } sein: gespeichert wird der deutsche Wert. -->
+              <option v-for="o in f.options" :key="optionValue(o)" :value="optionValue(o)">
+                {{ typeof o === 'string' ? o : tx(o) }}
+              </option>
             </select>
             <textarea
               v-else-if="f.type === 'textarea'"

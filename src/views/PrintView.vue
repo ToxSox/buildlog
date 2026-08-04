@@ -8,6 +8,7 @@ import { evaluateRules, summarize, toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { assessProject } from '../data/assessment.js'
 import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
+import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { useI18n } from '../i18n/index.js'
@@ -79,7 +80,10 @@ const powerRows = computed(() => {
         .filter(Boolean)
         .join(', '),
     ],
-    [t('print.cableProtection'), (pw.cableProtection || []).join(', ')],
+    [
+      t('print.cableProtection'),
+      (pw.cableProtection || []).map((entry) => optionLabel(CABLE_PROTECTION, entry)).join(', '),
+    ],
   ]
   if (pw.secondBattery) {
     rows.push([
@@ -603,7 +607,7 @@ function print() {
               <tbody>
                 <tr v-for="c in p.craft.customParts" :key="c.id">
                   <td>{{ c.name || '—' }}</td>
-                  <td>{{ c.technique }}</td>
+                  <td>{{ optionLabel(FABRICATION_TECHNIQUES, c.technique) }}</td>
                   <td>{{ c.material }}</td>
                   <td>{{ [c.purpose, c.notes].filter(Boolean).join(' – ') }}</td>
                 </tr>

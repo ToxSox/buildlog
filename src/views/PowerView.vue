@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { CABLE_SECTIONS, uid } from '../data/schema.js'
+import { CABLE_PROTECTION } from '../data/options.js'
 import {
   FUSE_LIMITS,
   maxAmpsFor,
@@ -20,14 +21,7 @@ const store = useProjectStore()
 const power = computed(() => store.project.power)
 
 /** Wird als deutscher Schlüssel gespeichert und beim Anzeigen übersetzt. */
-const PROTECTION_OPTIONS = [
-  { de: 'Gummitülle in der Blechdurchführung', en: 'Grommet in the metal pass-through' },
-  { de: 'Wellrohr / Schutzschlauch', en: 'Corrugated conduit / protective sleeving' },
-  { de: 'Gewebeband', en: 'Fabric tape' },
-  { de: 'Kantenschutzprofil', en: 'Edge protection profile' },
-  { de: 'Kabelkanal', en: 'Cable duct' },
-  { de: 'Zugentlastung / Kabelbinder', en: 'Strain relief / cable ties' },
-]
+const PROTECTION_OPTIONS = CABLE_PROTECTION
 
 const sectionInfo = computed(() => {
   const mm2 = Number(power.value.mainCableSection)
