@@ -192,3 +192,34 @@ weiterschreiben.
   `CHROMIUM_PATH` setzen.
 
 `.github/workflows/ci.yml` führt Lint, Formatprüfung, Tests, Build und E2E aus.
+
+## Online stellen
+
+Die App braucht keinen Server, nur einen Ort, der statische Dateien ausliefert.
+`dist/` nach dem Build irgendwohin kopieren genügt.
+
+### GitHub Pages (eingerichtet)
+
+`.github/workflows/deploy.yml` baut bei jedem Push auf `main` und veröffentlicht
+das Ergebnis auf GitHub Pages. Einmalig im Repository nötig:
+
+1. **Settings → Pages → Build and deployment → Source:** `GitHub Actions` wählen.
+2. Den Stand nach `main` mergen (oder den Workflow unter **Actions → Deploy →
+   Run workflow** manuell starten).
+
+Danach liegt die App unter `https://<user>.github.io/<repo>/`. Der Unterpfad ist
+unkritisch: der Build ist relativ verlinkt (`base: './'`) und der Router nutzt
+Hash-URLs (`/#/wizard`), es braucht also keine Server-Rewrites.
+
+### Andere Hoster
+
+Überall dasselbe Muster – Build-Befehl `npm run build`, Ausgabeverzeichnis
+`dist`:
+
+- **Netlify / Vercel / Cloudflare Pages:** Repo verbinden, die beiden Werte
+  eintragen, fertig. Ohne Repo tut es auch ein Drag & Drop des `dist`-Ordners.
+- **Eigener Webspace:** `dist/` per FTP/rsync in ein beliebiges Verzeichnis
+  legen.
+
+Für den Service Worker (Offline-Betrieb) und die Kamera-Aufnahme muss die Seite
+über **HTTPS** laufen; alle genannten Hoster liefern das Zertifikat mit.
