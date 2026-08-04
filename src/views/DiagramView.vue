@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { COMPONENT_TYPES, uid, CABLE_SECTIONS } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
+import MermaidDiagram from '../components/MermaidDiagram.vue'
+import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 
 const store = useProjectStore()
 const system = computed(() => store.project.system)
@@ -42,19 +44,8 @@ function removeLink(kind, id) {
   if (idx >= 0) list.splice(idx, 1)
 }
 
-const signalPreview = computed(() =>
-  system.value.signalLinks
-    .filter((l) => l.from && l.to)
-    .map((l) => `${componentLabel(l.from)} → ${componentLabel(l.to)}${l.label ? ` (${l.label})` : ''}`),
-)
-const powerPreview = computed(() =>
-  system.value.powerLinks
-    .filter((l) => l.from && l.to)
-    .map(
-      (l) =>
-        `${componentLabel(l.from)} → ${componentLabel(l.to)}${l.section ? ` (${l.section} mm²)` : ''}`,
-    ),
-)
+const signalDef = computed(() => signalDefinition(system.value) || '')
+const powerDef = computed(() => powerDefinition(system.value) || '')
 </script>
 
 <template>
@@ -203,22 +194,21 @@ const powerPreview = computed(() =>
 
     <div class="card">
       <div class="card-header">
-        <h2 class="section-title">Vorschau</h2>
-      </div>
-      <div class="card-body grid gap-4 sm:grid-cols-2">
         <div>
-          <p class="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Signalweg</p>
-          <ul class="space-y-1 text-sm text-slate-700">
-            <li v-for="(line, i) in signalPreview" :key="i">{{ line }}</li>
-            <li v-if="!signalPreview.length" class="text-slate-400">–</li>
-          </ul>
+          <h2 class="section-title">Automatisch generierte Diagramme</h2>
+          <p class="mt-0.5 text-sm text-slate-600">
+            Genau diese Grafiken landen später im Ausdruck – du musst nichts zeichnen.
+          </p>
+        </div>
+      </div>
+      <div class="card-body space-y-6">
+        <div>
+          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Signalweg</p>
+          <MermaidDiagram :definition="signalDef" id-prefix="signal-edit" />
         </div>
         <div>
-          <p class="mb-1 text-xs font-bold uppercase tracking-wider text-slate-400">Strom</p>
-          <ul class="space-y-1 text-sm text-slate-700">
-            <li v-for="(line, i) in powerPreview" :key="i">{{ line }}</li>
-            <li v-if="!powerPreview.length" class="text-slate-400">–</li>
-          </ul>
+          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Stromlaufplan</p>
+          <MermaidDiagram :definition="powerDef" id-prefix="power-edit" />
         </div>
       </div>
     </div>

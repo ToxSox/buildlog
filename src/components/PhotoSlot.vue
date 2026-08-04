@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import ImageUploader from './ImageUploader.vue'
 import ImageCard from './ImageCard.vue'
+import ExampleHint from './ExampleHint.vue'
 
 const props = defineProps({
   slotDef: { type: Object, required: true },
@@ -25,7 +26,14 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
   >
     <div class="mb-2 flex items-start justify-between gap-2">
       <div class="min-w-0">
-        <p class="text-sm font-bold text-slate-800">{{ slotDef.label }}</p>
+        <p class="flex items-center gap-1.5 text-sm font-bold text-slate-800">
+          <span>{{ slotDef.label }}</span>
+          <ExampleHint
+            :example-key="slotDef.example"
+            :slot-label="slotDef.label"
+            :extra-tip="slotDef.tip"
+          />
+        </p>
         <p v-if="slotDef.hint" class="text-xs text-slate-500">{{ slotDef.hint }}</p>
       </div>
       <span
