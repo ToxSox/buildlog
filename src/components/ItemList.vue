@@ -1,0 +1,78 @@
+<script setup>
+import { computed } from 'vue'
+import { useProjectStore } from '../stores/project.js'
+
+const props = defineProps({
+  /** Pfad im Store, z. B. 'hardware.amps' */
+  path: { type: String, required: true },
+  title: { type: String, required: true },
+  intro: { type: String, default: '' },
+  addLabel: { type: String, default: '+ Eintrag' },
+  emptyLabel: { type: String, default: 'Noch nichts erfasst.' },
+  /** [{ key, label, placeholder, type, options, span }] */
+  fields: { type: Array, required: true },
+})
+
+const store = useProjectStore()
+
+const items = computed(() => {
+  const list = props.path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), store.project)
+  return Array.isArray(list) ? list : []
+})
+
+function add() {
+  const blank = {}
+  props.fields.forEach((f) => (blank[f.key] = f.type === 'number' ? null : ''))
+  store.pushItem(props.path, blank)
+}
+</script>
+
+<template>
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h2 class="section-title">{{ title }}</h2>
+        <p v-if="intro" class="mt-0.5 text-sm text-slate-600">{{ intro }}</p>
+      </div>
+      <button type="button" class="btn-soft btn-xs" @click="add">{{ addLabel }}</button>
+    </div>
+    <div class="card-body space-y-3">
+      <p v-if="!items.length" class="text-sm text-slate-500">{{ emptyLabel }}</p>
+
+      <div
+        v-for="(item, i) in items"
+        :key="item.id"
+        class="rounded-lg border border-slate-200 bg-slate-50 p-3"
+      >
+        <div class="mb-2 flex items-center justify-between">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">#{{ i + 1 }}</span>
+          <button type="button" class="btn-ghost btn-xs" @click="store.removeItem(path, item.id)">
+            Entfernen
+          </button>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <div v-for="f in fields" :key="f.key" :class="f.span === 2 ? 'sm:col-span-2' : ''">
+            <label class="field">{{ f.label }}</label>
+            <select v-if="f.type === 'select'" v-model="item[f.key]" class="select">
+              <option value="">–</option>
+              <option v-for="o in f.options" :key="o" :value="o">{{ o }}</option>
+            </select>
+            <textarea
+              v-else-if="f.type === 'textarea'"
+              v-model="item[f.key]"
+              class="textarea"
+              :placeholder="f.placeholder"
+            />
+            <input
+              v-else
+              v-model="item[f.key]"
+              class="input"
+              :type="f.type === 'number' ? 'number' : 'text'"
+              :placeholder="f.placeholder"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
