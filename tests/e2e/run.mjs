@@ -430,6 +430,50 @@ try {
     [wideStart && `Start (${wideStart})`, ...wideSteps].filter(Boolean).join(', '),
   )
 
+  // ------------------------------------------------- Beschriftung der Felder
+  // Felder in Listen (Komponenten, Endstufen, Bonusantraege) hatten Beschriftungen
+  // ohne Bezug zum Eingabefeld – Screenreader lasen sie deshalb nicht vor.
+  const ctx4 = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const a11y = await ctx4.newPage()
+  a11y.on('pageerror', (e) => consoleErrors.push(`a11y: ${e.message}`))
+  await a11y.goto(BASE, { waitUntil: 'networkidle' })
+  await a11y.locator('button.card').nth(1).click()
+  await a11y.waitForURL('**/#/wizard/fahrzeug')
+  await a11y.getByRole('button', { name: 'SQ X – Expert Unlimited', exact: true }).click()
+  await a11y.waitForTimeout(500)
+
+  const nameless = []
+  for (const step of ['fahrzeug', 'diagramme', 'strom', 'hardware', 'handwerk', 'praesentation', 'punkte']) {
+    await a11y.goto(`${BASE}#/wizard/${step}`)
+    await a11y.waitForTimeout(600)
+    // je einen Listeneintrag anlegen, damit auch dessen Felder geprüft werden
+    const adders = a11y.locator('.card-header button, .card-body > .flex-wrap > button')
+    const count = Math.min(await adders.count(), 8)
+    for (let i = 0; i < count; i++)
+      await adders
+        .nth(i)
+        .click({ timeout: 2000 })
+        .catch(() => {})
+    await a11y.waitForTimeout(500)
+    nameless.push(
+      ...(await a11y.evaluate((where) => {
+        const doc = globalThis.document
+        return [...doc.querySelectorAll('input, select, textarea')]
+          .filter((el) => el.type !== 'hidden' && el.offsetParent !== null)
+          .filter(
+            (el) =>
+              !el.labels?.length &&
+              !el.getAttribute('aria-label') &&
+              !el.getAttribute('aria-labelledby') &&
+              !el.closest('label'),
+          )
+          .map((el) => `${where}: <${el.tagName.toLowerCase()} placeholder="${el.placeholder || ''}">`)
+      }, step)),
+    )
+  }
+  await ctx4.close()
+  check('jedes Eingabefeld hat eine Beschriftung', nameless.length === 0, nameless.slice(0, 5).join(' | '))
+
   check('keine Konsolenfehler', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '))
 } finally {
   await browser?.close()

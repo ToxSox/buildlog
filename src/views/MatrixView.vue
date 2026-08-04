@@ -139,6 +139,7 @@ function photoHint(criterionId) {
               <input
                 :value="c.note"
                 class="input !py-1 !text-xs sm:max-w-xs"
+                :aria-label="t('matrix.notePlaceholder')"
                 :placeholder="t('matrix.notePlaceholder')"
                 @input="store.setAssessment(c.id, { note: $event.target.value })"
               />
@@ -185,19 +186,25 @@ function photoHint(criterionId) {
           >
             <span class="text-xs font-bold text-slate-400">#{{ i + 1 }}</span>
             <div>
-              <label class="field">{{ t('matrix.bonusTitleField') }}</label>
-              <input v-model="req.title" class="input" placeholder="Beleuchteter Sicherungsverteiler" />
+              <label class="field" :for="`${req.id}-title`">{{ t('matrix.bonusTitleField') }}</label>
+              <input
+                :id="`${req.id}-title`"
+                v-model="req.title"
+                class="input"
+                placeholder="Beleuchteter Sicherungsverteiler"
+              />
             </div>
             <div>
-              <label class="field">{{ t('matrix.bonusArea') }}</label>
-              <input v-model="req.area" class="input" placeholder="Kofferraum" />
+              <label class="field" :for="`${req.id}-area`">{{ t('matrix.bonusArea') }}</label>
+              <input :id="`${req.id}-area`" v-model="req.area" class="input" placeholder="Kofferraum" />
             </div>
             <button type="button" class="btn-ghost btn-xs self-end" @click="store.removeBonusRequest(req.id)">
               {{ t('common.remove') }}
             </button>
             <div class="sm:col-span-4">
-              <label class="field">{{ t('matrix.bonusReason') }}</label>
+              <label class="field" :for="`${req.id}-reason`">{{ t('matrix.bonusReason') }}</label>
               <textarea
+                :id="`${req.id}-reason`"
                 v-model="req.description"
                 class="textarea"
                 :placeholder="t('matrix.bonusReasonPlaceholder')"

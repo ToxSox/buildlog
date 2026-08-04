@@ -290,19 +290,30 @@ function removeBranch(id) {
           class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto]"
         >
           <div>
-            <label class="field">{{ t('power.branchLabel') }}</label>
-            <input v-model="branch.label" class="input" placeholder="Endstufe Front" />
+            <label class="field" :for="`${branch.id}-label`">{{ t('power.branchLabel') }}</label>
+            <input
+              :id="`${branch.id}-label`"
+              v-model="branch.label"
+              class="input"
+              placeholder="Endstufe Front"
+            />
           </div>
           <div>
-            <label class="field">{{ t('diagram.section') }}</label>
-            <select v-model.number="branch.section" class="select">
+            <label class="field" :for="`${branch.id}-section`">{{ t('diagram.section') }}</label>
+            <select :id="`${branch.id}-section`" v-model.number="branch.section" class="select">
               <option :value="null">–</option>
               <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
             </select>
           </div>
           <div>
-            <label class="field">{{ t('power.branchFuse') }}</label>
-            <input v-model.number="branch.amps" class="input" type="number" min="0" />
+            <label class="field" :for="`${branch.id}-amps`">{{ t('power.branchFuse') }}</label>
+            <input
+              :id="`${branch.id}-amps`"
+              v-model.number="branch.amps"
+              class="input"
+              type="number"
+              min="0"
+            />
           </div>
           <div class="flex items-end">
             <button type="button" class="btn-ghost btn-xs" @click="removeBranch(branch.id)">

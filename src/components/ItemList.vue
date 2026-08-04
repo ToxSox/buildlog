@@ -88,19 +88,26 @@ function add() {
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div v-for="f in fields" :key="f.key" :class="f.span === 2 ? 'sm:col-span-2' : ''">
-            <label class="field">{{ tx(f.label) }}</label>
-            <select v-if="f.type === 'select'" v-model="item[f.key]" class="select">
+            <label class="field" :for="`${item.id}-${f.key}`">{{ tx(f.label) }}</label>
+            <select
+              v-if="f.type === 'select'"
+              :id="`${item.id}-${f.key}`"
+              v-model="item[f.key]"
+              class="select"
+            >
               <option value="">–</option>
               <option v-for="o in f.options" :key="o" :value="o">{{ o }}</option>
             </select>
             <textarea
               v-else-if="f.type === 'textarea'"
+              :id="`${item.id}-${f.key}`"
               v-model="item[f.key]"
               class="textarea"
               :placeholder="tx(f.placeholder)"
             />
             <input
               v-else
+              :id="`${item.id}-${f.key}`"
               v-model="item[f.key]"
               class="input"
               :type="f.type === 'number' ? 'number' : 'text'"

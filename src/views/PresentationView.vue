@@ -196,7 +196,12 @@ function removeHighlight(id) {
           {{ t('presentation.noHighlights') }}
         </p>
         <div v-for="h in pres.highlights" :key="h.id" class="flex gap-2">
-          <input v-model="h.text" class="input" :placeholder="t('presentation.highlightPlaceholder')" />
+          <input
+            v-model="h.text"
+            class="input"
+            :aria-label="t('presentation.highlights')"
+            :placeholder="t('presentation.highlightPlaceholder')"
+          />
           <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
         </div>
       </div>
