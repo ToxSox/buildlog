@@ -366,7 +366,8 @@ export default {
     importButton: '📂 Choose ZIP',
     importing: 'extracting …',
     importDone: 'Build log loaded – {restored} image(s) restored.',
-    importFailed: 'Import failed.',
+    importFailed: 'Import failed. Is the file fully downloaded?',
+    noProjectJson: 'This ZIP contains no project.json – is it really an export of this app?',
     notZip: 'Please select a .zip file.',
   },
 

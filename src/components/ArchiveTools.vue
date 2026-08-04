@@ -50,7 +50,8 @@ async function doImport(file) {
     if (props.variant === 'import') router.push('/wizard/fahrzeug')
   } catch (err) {
     console.error(err)
-    error.value = err.message || t('archive.importFailed')
+    // Nur eigene, übersetzte Meldungen zeigen – JSZip meldet technisch und englisch.
+    error.value = err?.userMessage ? err.message : t('archive.importFailed')
   } finally {
     busy.value = ''
   }

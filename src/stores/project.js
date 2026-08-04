@@ -73,6 +73,21 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
+  /**
+   * Räumt einen kompletten Foto-Slot ab. Nötig beim Löschen von Einträgen mit
+   * eigenem Slot (Custom-Parts, Messungen): sonst blieben die Blobs für immer in
+   * der IndexedDB liegen und der Slot im Projekt-JSON stehen.
+   */
+  async function removeMediaSlot(slot) {
+    const ids = (project.value.media[slot] || []).map((item) => item.id)
+    delete project.value.media[slot]
+    if (!ids.length) return
+    const media = useMediaStore()
+    for (const id of ids) {
+      if (!allMediaIds.value.includes(id)) await media.remove(id)
+    }
+  }
+
   function updateMedia(slot, id, patch) {
     const item = (project.value.media[slot] || []).find((i) => i.id === id)
     if (item) Object.assign(item, patch)
@@ -272,7 +287,18 @@ export const useProjectStore = defineStore('project', () => {
     await save()
   }
 
-  async function load() {
+  /**
+   * Router-Guard und App-Mount stoßen das Laden beide an. Ohne diese Sperre
+   * könnten beide Läufe parallel starten und die Alt-Migration unten zwei
+   * Mappen aus demselben Datensatz anlegen.
+   */
+  let loading = null
+  function load() {
+    if (!loading) loading = loadOnce()
+    return loading
+  }
+
+  async function loadOnce() {
     try {
       const index = await stateDb.getItem(INDEX_KEY)
 
@@ -362,6 +388,7 @@ export const useProjectStore = defineStore('project', () => {
     mediaFor,
     addMedia,
     removeMedia,
+    removeMediaSlot,
     updateMedia,
     moveMedia,
     skip,

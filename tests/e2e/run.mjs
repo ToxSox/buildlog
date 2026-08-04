@@ -239,6 +239,13 @@ try {
   await page.waitForTimeout(600)
   const navEn = await page.locator('nav ol li button').first().innerText()
   check('Sprachwechsel greift in der Navigation', navEn.includes('Vehicle'), navEn.replace(/\n/g, ' '))
+  // Die Bewertungsstufe im Kopf war fest auf Deutsch verdrahtet, obwohl beide Kataloge sie führen.
+  const headEn = await page.locator('header').innerText()
+  check(
+    'Bewertungsstufe folgt der Sprache',
+    /criteria not assessed/i.test(headEn) && !/Kriterien/.test(headEn),
+    headEn.replace(/\n/g, ' ').slice(0, 120),
+  )
   await page.getByRole('button', { name: 'DE', exact: true }).click()
   await page.waitForTimeout(400)
 
@@ -264,13 +271,88 @@ try {
     (await page2.inputValue('#participant')) === 'Max Mustermann',
   )
   check('Import stellt die Fotos wieder her', (await page2.locator('figure img').count()) === 1)
+
+  // Zweiter Import derselben ZIP: Früher behielt der Import die alten Bild-IDs und
+  // überschrieb damit die Fotos der bereits importierten Mappe.
+  await page2.goto(`${BASE}#/`)
+  await page2.waitForTimeout(600)
+  await page2.locator('input[type=file][accept*="zip"]').setInputFiles(zipPath)
+  await page2.waitForTimeout(3000)
+  const mediaIdSets = await page2.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const req = globalThis.indexedDB.open('emma-buildlog')
+        req.onerror = () => resolve([])
+        req.onblocked = () => resolve([])
+        req.onsuccess = () => {
+          const db = req.result
+          const done = (value) => {
+            db.close()
+            resolve(value)
+          }
+          try {
+            const store = db.transaction('state', 'readonly').objectStore('state')
+            const keys = store.getAllKeys()
+            const values = store.getAll()
+            values.onerror = () => done([])
+            values.onsuccess = () =>
+              done(
+                values.result
+                  .filter((_, i) => String(keys.result[i]).startsWith('project:'))
+                  .map((prj) =>
+                    Object.values(prj.media || {}).flatMap((list) => (list || []).map((m) => m.id)),
+                  ),
+              )
+          } catch {
+            done([])
+          }
+        }
+      }),
+  )
+  const allIds = mediaIdSets.flat()
+  check(
+    'Import vergibt eigene Bild-IDs je Mappe',
+    mediaIdSets.length === 2 && allIds.length === 2 && new Set(allIds).size === 2,
+    JSON.stringify(mediaIdSets),
+  )
+  check('Zweiter Import zeigt sein eigenes Foto', (await page2.locator('figure img').count()) === 1)
   await ctx2.close()
+
+  // --------------------------------------------- Vortrag & leere Zahlenfelder
+  // Nur „story“ gefüllt: Diese Seite fiel früher komplett aus dem Druck.
+  await page.goto(`${BASE}#/wizard/praesentation`)
+  await page.waitForTimeout(600)
+  await page.fill('#story', 'Zum Schluss zeige ich die Messungen am Hörplatz.')
+  // Leeres Zahlenfeld: der Ausdruck zeigte dafür eine Zeile mit nacktem „cm“.
+  await page.goto(`${BASE}#/wizard/strom`)
+  await page.waitForTimeout(600)
+  await page.fill('#fuseDist', '')
+  await page.waitForTimeout(600)
 
   // --------------------------------------------------------------- Druckausgabe
   await page.goto(`${BASE}#/druck`)
   await page.waitForTimeout(3000)
   const printPages = await page.locator('.print-page').count()
   check('Druckansicht baut Seiten auf', printPages >= 4, `${printPages} Seiten`)
+
+  const printTitles = await page.locator('.print-head__title').allInnerTexts()
+  check(
+    'Vortragsseite erscheint auch nur mit Abschluss-Text',
+    printTitles.some((tt) => tt.includes('Erklärung an die Richter')),
+    printTitles.join(' | ').slice(0, 160),
+  )
+
+  const cover = await page.locator('.print-page').first().innerText()
+  check(
+    'Deckblatt nennt den Modus lesbar',
+    cover.includes('SQ Masterclass') && !cover.includes('SQMasterclass'),
+    (cover.split('\n').find((l) => l.includes('Dokumentation')) || '').slice(0, 80),
+  )
+
+  const orphanUnits = await page
+    .locator('.print-table td')
+    .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((v) => /^(cm|mm²|A)$/.test(v)))
+  check('kein leeres Zahlenfeld im Ausdruck', orphanUnits.length === 0, orphanUnits.join(', '))
 
   const pdfPath = join(WORK, 'out.pdf')
   await page.emulateMedia({ media: 'print' })

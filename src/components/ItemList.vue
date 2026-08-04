@@ -48,6 +48,12 @@ function slotDefFor(item, index) {
   }
 }
 
+/** Mit dem Eintrag verschwinden auch seine Fotos – sonst bleiben sie unerreichbar im Speicher. */
+async function remove(item) {
+  if (props.photoSlotPrefix) await store.removeMediaSlot(`${props.photoSlotPrefix}.${item.id}`)
+  store.removeItem(props.path, item.id)
+}
+
 function add() {
   const blank = {}
   props.fields.forEach((f) => (blank[f.key] = f.type === 'number' ? null : ''))
@@ -76,7 +82,7 @@ function add() {
       >
         <div class="mb-2 flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-slate-400">#{{ i + 1 }}</span>
-          <button type="button" class="btn-ghost btn-xs" @click="store.removeItem(path, item.id)">
+          <button type="button" class="btn-ghost btn-xs" @click="remove(item)">
             {{ t('common.remove') }}
           </button>
         </div>

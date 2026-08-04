@@ -3,6 +3,7 @@ import { useProjectStore } from '../stores/project.js'
 import { allSlots, requiredSlots } from '../data/sections.js'
 import { assessProject } from '../data/assessment.js'
 import { COLUMN_LABELS } from '../data/matrix.js'
+import { translate } from '../i18n/index.js'
 
 /**
  * Fortschritt und Selbsteinschätzung.
@@ -36,13 +37,13 @@ export function useScore() {
   const maxScore = computed(() => (column.value ? assessment.value.max : photos.value.total))
 
   const level = computed(() => {
-    if (!column.value) return 'Kategorie wählen, um gegen die Matrix zu rechnen'
-    if (assessment.value.unrated) return `${assessment.value.unrated} Kriterien noch nicht eingeschätzt`
-    if (percent.value >= 90) return 'Vorzeigemappe'
-    if (percent.value >= 75) return 'Richtertauglich'
-    if (percent.value >= 50) return 'Solide Mappe'
-    if (percent.value >= 25) return 'Grundgerüst steht'
-    return 'Rohbau'
+    if (!column.value) return translate('level.noCategory')
+    if (assessment.value.unrated) return translate('level.unrated', { n: assessment.value.unrated })
+    if (percent.value >= 90) return translate('level.showcase')
+    if (percent.value >= 75) return translate('level.judgeReady')
+    if (percent.value >= 50) return translate('level.solid')
+    if (percent.value >= 25) return translate('level.foundation')
+    return translate('level.shell')
   })
 
   const missingRequired = computed(() =>

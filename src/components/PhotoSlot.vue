@@ -66,7 +66,12 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
       />
     </div>
 
-    <ImageUploader v-if="showUploader" :slot-key="slotDef.key" :compact="items.length > 0" />
+    <ImageUploader
+      v-if="showUploader"
+      :slot-key="slotDef.key"
+      :multiple="slotDef.multiple !== false"
+      :compact="items.length > 0"
+    />
 
     <button v-else-if="slotDef.multiple" type="button" class="btn-soft btn-xs w-full" @click="addMore = true">
       {{ t('uploader.addMore') }}

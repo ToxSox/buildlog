@@ -3,7 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { SECTIONS, isSlotVisible } from '../data/sections.js'
-import { EMMA_CLASSES } from '../data/schema.js'
+import { EMMA_CLASSES, MODES } from '../data/schema.js'
 import { evaluateRules, summarize } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { assessProject } from '../data/assessment.js'
@@ -34,6 +34,17 @@ const headMeta = computed(() => {
   }
 })
 
+/** Leere Zahlenfelder kommen als '' oder null zurück – beides darf nicht als „ cm“ im Druck landen. */
+const num = (value) => (value === null || value === undefined || value === '' ? null : Number(value))
+const hasNum = (value) => Number.isFinite(num(value))
+
+/** Der interne Modus-Schlüssel („SQMasterclass“) gehört nicht auf das Deckblatt. */
+const modeLabel = computed(() => {
+  if (p.value.mode === MODES.QUICK) return t('start.quick.title')
+  if (p.value.mode === MODES.MASTER) return t('start.master.title')
+  return p.value.mode || '—'
+})
+
 const findings = computed(() => summarize(evaluateRules(p.value)))
 const column = computed(() => columnForClass(p.value.meta.emmaClass))
 const assessment = computed(() => assessProject(p.value, column.value))
@@ -47,17 +58,19 @@ const powerRows = computed(() => {
   const rows = [
     [t('print.battery'), [pw.batteryType, pw.batteryLocation].filter(Boolean).join(', ')],
     [t('print.batteryMount'), pw.batterySecured],
-    [t('print.cableSection'), pw.mainCableSection ? `${pw.mainCableSection} mm²` : ''],
+    [t('print.cableSection'), hasNum(pw.mainCableSection) ? `${num(pw.mainCableSection)} mm²` : ''],
     [
       t('print.mainFuse'),
-      pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : '',
+      hasNum(pw.mainFuseAmps)
+        ? `${num(pw.mainFuseAmps)} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}`
+        : '',
     ],
-    [t('print.fuseDistance'), pw.mainFuseDistanceCm !== null ? `${pw.mainFuseDistanceCm} cm` : ''],
+    [t('print.fuseDistance'), hasNum(pw.mainFuseDistanceCm) ? `${num(pw.mainFuseDistanceCm)} cm` : ''],
     [
       t('print.ground'),
       [
-        pw.groundCableSection ? `${pw.groundCableSection} mm²` : '',
-        pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '',
+        hasNum(pw.groundCableSection) ? `${num(pw.groundCableSection)} mm²` : '',
+        hasNum(pw.groundLengthCm) ? `${num(pw.groundLengthCm)} cm` : '',
         pw.groundPoint,
       ]
         .filter(Boolean)
@@ -69,9 +82,13 @@ const powerRows = computed(() => {
     rows.push([
       t('print.secondBattery'),
       [
-        pw.secondBatteryFuseAmps ? `${pw.secondBatteryFuseAmps} A` : '',
-        pw.secondBatteryDistanceCm !== null ? t('print.cmToPost', { cm: pw.secondBatteryDistanceCm }) : '',
-        pw.chargingCableSection ? t('print.chargingCable', { section: pw.chargingCableSection }) : '',
+        hasNum(pw.secondBatteryFuseAmps) ? `${num(pw.secondBatteryFuseAmps)} A` : '',
+        hasNum(pw.secondBatteryDistanceCm)
+          ? t('print.cmToPost', { cm: num(pw.secondBatteryDistanceCm) })
+          : '',
+        hasNum(pw.chargingCableSection)
+          ? t('print.chargingCable', { section: num(pw.chargingCableSection) })
+          : '',
       ]
         .filter(Boolean)
         .join(', '),
@@ -173,12 +190,11 @@ const pages = computed(() => {
     list.push({ kind: 'craft', title: t('print.craft') })
   }
 
+  // `story` zählt mit: sonst verschwindet ein nur dort gefüllter Vortrag aus dem Druck.
+  // Leere Highlight-Zeilen zählen nicht, sie erzeugten sonst eine leere Seite.
   const pr = p.value.presentation
-  if (
-    column.value &&
-    ['M', 'X', 'XUNL'].includes(column.value) &&
-    (pr.goal || pr.challenge || pr.highlights.length)
-  ) {
+  const hasPresentation = pr.goal || pr.story || pr.challenge || (pr.highlights || []).some((h) => h.text)
+  if (column.value && ['M', 'X', 'XUNL'].includes(column.value) && hasPresentation) {
     list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
@@ -278,7 +294,7 @@ function print() {
                 {{ p.meta.installerName || '—' }}
               </div>
               <div>
-                <span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ p.mode }}
+                <span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ modeLabel }}
               </div>
             </div>
 

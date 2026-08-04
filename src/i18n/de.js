@@ -370,7 +370,8 @@ export default {
     importButton: '📂 ZIP auswählen',
     importing: 'entpackt …',
     importDone: 'Mappe geladen – {restored} Bild(er) wiederhergestellt.',
-    importFailed: 'Import fehlgeschlagen.',
+    importFailed: 'Import fehlgeschlagen. Ist die Datei vollständig heruntergeladen?',
+    noProjectJson: 'In dieser ZIP steckt keine project.json – ist das wirklich ein Export dieser App?',
     notZip: 'Bitte eine .zip-Datei auswählen.',
   },
 

@@ -13,7 +13,7 @@ import { useI18n } from '../i18n/index.js'
 const { t, tx } = useI18n()
 
 const store = useProjectStore()
-const { percent, level, missingRequired, assessment, column, columnLabel } = useScore()
+const { level, missingRequired, assessment, column, columnLabel, photos } = useScore()
 
 const findings = computed(() => summarize(evaluateRules(store.project)))
 
@@ -46,9 +46,10 @@ const grouped = computed(() => {
         <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
           {{ column ? t('review.installPoints') : t('review.requiredPhotos') }}
         </p>
+        <!-- ohne Kategorie gibt es keine Matrixpunkte: dann die echten Fotozahlen statt einer Prozentzahl -->
         <p class="mt-1 text-3xl font-black text-slate-900">
-          {{ assessment.earned || percent
-          }}<span class="text-lg text-slate-400">/{{ assessment.max || 100 }}</span>
+          {{ column ? assessment.earned : photos.done
+          }}<span class="text-lg text-slate-400">/{{ column ? assessment.max : photos.total }}</span>
         </p>
         <p class="text-xs text-slate-500">{{ columnLabel || level }}</p>
       </div>

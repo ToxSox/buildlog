@@ -1,4 +1,4 @@
-import { watch, nextTick } from 'vue'
+import { watch, nextTick, onScopeDispose } from 'vue'
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -55,4 +55,10 @@ export function useModal(isOpen, panelRef, onClose) {
     },
     { immediate: true },
   )
+
+  // Wird die Komponente mit offenem Dialog entfernt (z. B. Seitenwechsel),
+  // bliebe der Listener sonst am Dokument hängen.
+  onScopeDispose(() => {
+    document.removeEventListener('keydown', onKeydown, true)
+  })
 }

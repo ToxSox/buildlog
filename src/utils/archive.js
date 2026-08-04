@@ -2,7 +2,8 @@ import JSZip from 'jszip'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { extensionFor } from './image.js'
-import { migrateProject } from '../data/schema.js'
+import { migrateProject, uid } from '../data/schema.js'
+import { translate } from '../i18n/index.js'
 
 const PROJECT_FILE = 'project.json'
 const IMAGE_DIR = 'bilder'
@@ -90,28 +91,39 @@ export async function importArchive(file) {
   const zip = await JSZip.loadAsync(file)
   const entry = zip.file(PROJECT_FILE)
   if (!entry) {
-    throw new Error('In dieser ZIP steckt keine project.json – ist das wirklich ein Export dieser App?')
+    const err = new Error(translate('archive.noProjectJson'))
+    err.userMessage = true
+    throw err
   }
 
   const raw = JSON.parse(await entry.async('string'))
   const project = migrateProject(raw)
 
   let restored = 0
-  for (const items of Object.values(project.media || {})) {
+  for (const [slot, items] of Object.entries(project.media || {})) {
+    const kept = []
     for (const item of items || []) {
-      const candidates = [
-        `${IMAGE_DIR}/${item.id}.jpg`,
-        `${IMAGE_DIR}/${item.id}.png`,
-        `${IMAGE_DIR}/${item.id}.webp`,
-      ]
-      const found = candidates.map((p) => zip.file(p)).find(Boolean)
+      const found = findImage(zip, item.id)
+      // Ohne Blob wäre der Eintrag nur ein leerer Rahmen im Ausdruck.
       if (!found) continue
+      // Frische ID: Der Import legt eine neue Mappe an. Mit den alten IDs würde
+      // er die Fotos einer bereits vorhandenen Mappe überschreiben.
+      const newId = uid('img')
       const blob = await found.async('blob')
-      await media.put(item.id, new Blob([blob], { type: item.mime || 'image/jpeg' }))
+      await media.put(newId, new Blob([blob], { type: item.mime || 'image/jpeg' }))
+      kept.push({ ...item, id: newId })
       restored += 1
     }
+    if (kept.length) project.media[slot] = kept
+    else delete project.media[slot]
   }
 
   await store.replaceProject(project)
   return { restored }
+}
+
+/** Findet das Bild unabhängig von der Dateiendung, mit der es exportiert wurde. */
+function findImage(zip, id) {
+  const safe = String(id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return zip.file(new RegExp(`^${IMAGE_DIR}/${safe}\\.[^./]+$`, 'i'))[0] || null
 }
