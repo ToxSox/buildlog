@@ -352,6 +352,8 @@ export const useProjectStore = defineStore('project', () => {
       lastSavedAt.value = new Date()
       storageError.value = ''
     } catch (err) {
+      // Der Stand ist weiterhin ungesichert – der nächste Versuch soll ihn mitnehmen.
+      pending = true
       console.error('[emma] Autosave fehlgeschlagen', err)
       storageError.value = isQuotaError(err)
         ? translate('storage.autosaveQuota')
