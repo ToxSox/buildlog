@@ -69,6 +69,8 @@ export default {
     duplicateHint:
       'Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.',
     newProject: 'Neue Mappe anlegen',
+    untitled: 'Neue Mappe',
+    copySuffix: '(Kopie)',
     chooseStart: 'Womit möchtest du starten?',
     startMode: 'Modus starten →',
     modeHint:

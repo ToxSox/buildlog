@@ -68,6 +68,8 @@ export default {
     changedAt: 'changed {date}',
     duplicateHint: 'Duplicating copies the photos too – ideal for next season or a second vehicle.',
     newProject: 'Create a new build log',
+    untitled: 'New build log',
+    copySuffix: '(copy)',
     chooseStart: 'How would you like to start?',
     startMode: 'Start mode →',
     modeHint:

@@ -36,7 +36,7 @@ export const useProjectStore = defineStore('project', () => {
   const title = computed(() => {
     const m = project.value.meta
     const car = [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ')
-    return car || m.participantName || 'Neues Projekt'
+    return car || m.participantName || translate('start.untitled')
   })
 
   /** Alle Bild-IDs, die aktuell irgendwo referenziert werden. */
@@ -161,7 +161,9 @@ export const useProjectStore = defineStore('project', () => {
     const m = data.meta || {}
     return {
       id,
-      title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || 'Neue Mappe',
+      // Bewusst ohne Ersatztext: Der wird beim Anzeigen übersetzt, sonst
+      // friert die Sprache ein, in der die Mappe zufällig angelegt wurde.
+      title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || '',
       participant: m.participantName || '',
       emmaClass: m.emmaClass || '',
       mode: data.mode || '',
@@ -217,7 +219,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   /** Kopiert die aktive Mappe inklusive eigener Bildkopien. */
-  async function duplicateActive(suffix = '(Kopie)') {
+  async function duplicateActive(suffix = translate('start.copySuffix')) {
     const media = useMediaStore()
     const copy = migrateProject(plain(project.value))
     copy.createdAt = new Date().toISOString()

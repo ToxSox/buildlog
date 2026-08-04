@@ -6,7 +6,8 @@ const props = defineProps({
   score: { type: Number, default: 0 },
   max: { type: Number, default: 100 },
   level: { type: String, default: '' },
-  caption: { type: String, default: 'Install-Punkte (geschätzt)' },
+  /** Die Beschriftung kommt übersetzt von außen – hier steht bewusst kein fester Text. */
+  caption: { type: String, default: '' },
 })
 
 const barClass = computed(() => {

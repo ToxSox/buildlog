@@ -48,7 +48,7 @@ async function open(id) {
 
 async function duplicate(id) {
   await store.switchTo(id)
-  const newId = await store.duplicateActive()
+  const newId = await store.duplicateActive(t('start.copySuffix'))
   if (newId) await store.switchTo(newId)
   router.push('/wizard/fahrzeug')
 }
@@ -87,7 +87,7 @@ async function remove(entry) {
         >
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-bold text-slate-900">
-              {{ entry.title }}
+              {{ entry.title || t('start.untitled') }}
               <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">{{
                 t('start.active')
               }}</span>
