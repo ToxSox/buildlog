@@ -1,0 +1,7 @@
+/* Print-Engine – wird in Step 5 vervollständigt. */
+@media print {
+  .wizard-ui,
+  .no-print {
+    display: none !important;
+  }
+}

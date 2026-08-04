@@ -1,0 +1,27 @@
+{
+  "name": "emma-build-log-creator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Clientseitiger Assistent zur Erstellung EMMA-konformer Car-HiFi Build Logs (DIN A4 quer).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "compressorjs": "^1.2.1",
+    "jszip": "^3.10.1",
+    "localforage": "^1.10.0",
+    "mermaid": "^11.4.1",
+    "pinia": "^2.3.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.0.7"
+  }
+}
