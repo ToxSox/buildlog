@@ -393,6 +393,19 @@ try {
   const a4Landscape = boxes.every((b) => /841\.9|842/.test(b) && /594\.9|595/.test(b))
   check('PDF ist DIN A4 quer', boxes.length === 1 && a4Landscape, boxes.join(' '))
 
+  // Ohne diese Prüfung faellt nicht auf, wenn die Fotos zwar in der Vorschau
+  // stehen, im gedruckten Dokument aber fehlen – dort zaehlen sie am meisten.
+  // Achtung: Auch die gerasterten Diagramme sind Bildobjekte, deshalb wird
+  // gegen Fotos + Diagramme der Vorschau gerechnet statt gegen "mindestens eins".
+  const embeddedImages = (pdf.toString('latin1').match(/\/Subtype\s*\/Image/g) || []).length
+  const previewFigures = await page.locator('.print-figure img').count()
+  const previewDiagrams = await page.locator('.print-diagram svg').count()
+  check(
+    'jedes Foto steckt im PDF',
+    previewFigures > 0 && embeddedImages >= previewFigures + previewDiagrams,
+    `${embeddedImages} Bildobjekte, erwartet ≥ ${previewFigures} Fotos + ${previewDiagrams} Diagramme`,
+  )
+
   // ------------------------------------------------------------ Handy-Layout
   // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
   // und lange Eingaben schoben die Seite dort seitlich aus dem Bild.
