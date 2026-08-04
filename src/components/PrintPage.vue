@@ -16,8 +16,12 @@ defineProps({
     <header class="print-head">
       <div class="print-head__title">{{ title }}</div>
       <div class="print-head__meta">
-        <div><strong>{{ meta.name || '—' }}</strong></div>
-        <div>{{ meta.className || '—' }}<span v-if="meta.plate"> · {{ meta.plate }}</span></div>
+        <div>
+          <strong>{{ meta.name || '—' }}</strong>
+        </div>
+        <div>
+          {{ meta.className || '—' }}<span v-if="meta.plate"> · {{ meta.plate }}</span>
+        </div>
         <div>{{ meta.vehicle }}</div>
       </div>
     </header>
@@ -27,7 +31,9 @@ defineProps({
     </div>
 
     <footer class="print-foot">
-      <span>{{ t('app.name') }} · {{ meta.vehicle }}<span v-if="meta.event"> · {{ meta.event }}</span></span>
+      <span
+        >{{ t('app.name') }} · {{ meta.vehicle }}<span v-if="meta.event"> · {{ meta.event }}</span></span
+      >
       <span>{{ t('print.page', { current: pageNumber, total: pageTotal }) }}</span>
     </footer>
   </section>

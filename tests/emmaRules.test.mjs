@@ -3,13 +3,27 @@ import { createEmptyProject } from '../src/data/schema.js'
 
 // Offizielle Fuse Size Matrix, abgetippt aus dem Rulebook 2026 (Seite 25/28)
 const OFFICIAL = [
-  [0.5, 'AWG 20', 10], [1.0, 'AWG 17', 15], [1.5, 'AWG 15', 20], [2.5, 'AWG 13', 20],
-  [4.0, 'AWG 11', 30], [6.0, 'AWG 9', 50], [10, 'AWG 7', 60], [16, 'AWG 5', 100],
-  [25, 'AWG 4', 125], [35, 'AWG 2', 175], [50, 'AWG 0', 250], [70, 'AWG 2/0', 300],
+  [0.5, 'AWG 20', 10],
+  [1.0, 'AWG 17', 15],
+  [1.5, 'AWG 15', 20],
+  [2.5, 'AWG 13', 20],
+  [4.0, 'AWG 11', 30],
+  [6.0, 'AWG 9', 50],
+  [10, 'AWG 7', 60],
+  [16, 'AWG 5', 100],
+  [25, 'AWG 4', 125],
+  [35, 'AWG 2', 175],
+  [50, 'AWG 0', 250],
+  [70, 'AWG 2/0', 300],
 ]
 
 let fail = 0
-const check = (name, cond) => { if (!cond) { console.log('FAIL:', name); fail++ } }
+const check = (name, cond) => {
+  if (!cond) {
+    console.log('FAIL:', name)
+    fail++
+  }
+}
 
 check('Matrix hat 12 Zeilen', FUSE_LIMITS.length === OFFICIAL.length)
 OFFICIAL.forEach(([mm2, awg, amps]) => {
@@ -84,7 +98,10 @@ p.power.mainFuseAmps = 100
 f = evaluateRules(p)
 const gs = f.find((x) => x.id === 'ground.section')
 check('Masse-Querschnitt ist als Praxis markiert', gs && gs.source === 'praxis' && gs.severity === 'info')
-check('alle Befunde haben eine Quelle', f.every((x) => x.source === 'rulebook' || x.source === 'praxis'))
+check(
+  'alle Befunde haben eine Quelle',
+  f.every((x) => x.source === 'rulebook' || x.source === 'praxis'),
+)
 
 console.log(fail === 0 ? `\nAlle Checks bestanden.` : `\n${fail} Check(s) fehlgeschlagen.`)
 process.exit(fail ? 1 : 0)

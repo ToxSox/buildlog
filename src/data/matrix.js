@@ -132,7 +132,10 @@ export const CRITERIA = [
   },
   {
     id: 'fuseValue',
-    label: { de: 'Sicherungswert passend zum Querschnitt', en: 'Is the fuse value appropriate to the cable circuit?' },
+    label: {
+      de: 'Sicherungswert passend zum Querschnitt',
+      en: 'Is the fuse value appropriate to the cable circuit?',
+    },
     points: P(0, 20, 20, 20, 20),
     assess: 'auto',
     help: {

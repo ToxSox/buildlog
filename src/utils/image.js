@@ -18,7 +18,6 @@ export function isImage(file) {
  */
 export function compressImage(file, opts = {}) {
   return new Promise((resolve, reject) => {
-    /* eslint-disable no-new */
     new Compressor(file, {
       maxWidth: opts.maxEdge ?? MAX_EDGE,
       maxHeight: opts.maxEdge ?? MAX_EDGE,

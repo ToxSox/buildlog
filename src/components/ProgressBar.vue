@@ -24,7 +24,11 @@ const barClass = computed(() => {
       <span class="tabular-nums">{{ score }}/{{ max }}</span>
     </div>
     <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-      <div class="h-full rounded-full transition-all duration-500" :class="barClass" :style="{ width: percent + '%' }" />
+      <div
+        class="h-full rounded-full transition-all duration-500"
+        :class="barClass"
+        :style="{ width: percent + '%' }"
+      />
     </div>
     <p v-if="level" class="mt-0.5 text-[10px] text-slate-500">{{ level }}</p>
   </div>

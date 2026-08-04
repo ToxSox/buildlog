@@ -11,12 +11,11 @@ const { t, locale } = useI18n()
 const router = useRouter()
 const store = useProjectStore()
 
-const savedProjects = computed(() =>
-  [...store.projects].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)),
-)
+const savedProjects = computed(() => [...store.projects].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)))
 
 const className = (id) => EMMA_CLASSES.find((c) => c.id === id)?.label || '–'
-const formatDate = (iso) => new Date(iso).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' })
+const formatDate = (iso) =>
+  new Date(iso).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' })
 
 const modes = computed(() => [
   {
@@ -89,7 +88,9 @@ async function remove(entry) {
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-bold text-slate-900">
               {{ entry.title }}
-              <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">{{ t('start.active') }}</span>
+              <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">{{
+                t('start.active')
+              }}</span>
             </p>
             <p class="truncate text-xs text-slate-500">
               {{ className(entry.emmaClass) }} · {{ t('common.photos', { n: entry.photos }) }} ·
@@ -97,9 +98,15 @@ async function remove(entry) {
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">{{ t('common.open') }}</button>
-            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">{{ t('common.duplicate') }}</button>
-            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">{{ t('common.delete') }}</button>
+            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">
+              {{ t('common.open') }}
+            </button>
+            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">
+              {{ t('common.duplicate') }}
+            </button>
+            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">
+              {{ t('common.delete') }}
+            </button>
           </div>
         </li>
       </ul>
@@ -134,7 +141,9 @@ async function remove(entry) {
                 <span class="text-sky-500">✓</span><span>{{ b }}</span>
               </li>
             </ul>
-            <p class="mt-4 text-sm font-bold text-sky-600 group-hover:underline">{{ t('start.startMode') }}</p>
+            <p class="mt-4 text-sm font-bold text-sky-600 group-hover:underline">
+              {{ t('start.startMode') }}
+            </p>
           </div>
         </button>
       </div>

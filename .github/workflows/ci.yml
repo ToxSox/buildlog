@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Linting
+        run: npm run lint
+
+      - name: Formatierung prüfen
+        run: npm run format:check
+
+      - name: Regel- und Matrix-Tests
+        run: npm test
+
+      - name: Produktions-Build
+        run: npm run build
+
+      - name: Browser für E2E installieren
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-End-Tests
+        run: npm run test:e2e

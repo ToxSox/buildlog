@@ -115,7 +115,13 @@ function deriveAuto(criterion, project, column, findings) {
     }
 
     case 'mounted': {
-      const groups = ['hardware.amps', 'hardware.dsp', 'hardware.speakersFront', 'hardware.sub', 'power.battery']
+      const groups = [
+        'hardware.amps',
+        'hardware.dsp',
+        'hardware.speakersFront',
+        'hardware.sub',
+        'power.battery',
+      ]
       const covered = groups.filter((k) => has(project, k)).length
       return ok((covered / groups.length) * max, d('mountedGroups', { covered, total: groups.length }))
     }
@@ -147,7 +153,7 @@ export function assessProject(project, column) {
 
     const entry = project.assessment?.[criterion.id] || {}
     const state = entry.state || null
-    const factor = state ? SELF_FACTOR[state] ?? 0 : 0
+    const factor = state ? (SELF_FACTOR[state] ?? 0) : 0
     return {
       ...criterion,
       max,

@@ -31,11 +31,7 @@ function photoHint(criterionId) {
 </script>
 
 <template>
-  <WizardShell
-    step-key="matrix"
-    :title="t('steps.matrix')"
-    :subtitle="t('matrix.subtitle')"
-  >
+  <WizardShell step-key="matrix" :title="t('steps.matrix')" :subtitle="t('matrix.subtitle')">
     <div v-if="!column" class="card card-body border-amber-300 bg-amber-50">
       <p class="text-sm font-bold text-amber-900">{{ t('matrix.noCategory') }}</p>
       <p class="mt-0.5 text-sm text-amber-800">{{ t('matrix.noCategoryHint') }}</p>
@@ -53,7 +49,9 @@ function photoHint(criterionId) {
           </p>
           <p class="text-xs text-slate-600">
             {{ t('matrix.estimated') }}
-            <span v-if="assessment.unrated"> · {{ t('matrix.openCriteria', { n: assessment.unrated }) }}</span>
+            <span v-if="assessment.unrated">
+              · {{ t('matrix.openCriteria', { n: assessment.unrated }) }}</span
+            >
           </p>
         </div>
         <p class="max-w-md text-xs text-slate-600">
@@ -82,7 +80,9 @@ function photoHint(criterionId) {
               <div class="h-1.5 overflow-hidden rounded-full bg-slate-200">
                 <div
                   class="h-full rounded-full"
-                  :class="c.earned >= c.max ? 'bg-emerald-500' : c.earned > 0 ? 'bg-amber-500' : 'bg-rose-400'"
+                  :class="
+                    c.earned >= c.max ? 'bg-emerald-500' : c.earned > 0 ? 'bg-amber-500' : 'bg-rose-400'
+                  "
                   :style="{ width: `${c.max ? (c.earned / c.max) * 100 : 0}%` }"
                 />
               </div>
@@ -116,7 +116,9 @@ function photoHint(criterionId) {
                   {{ t('matrix.provableVia', { slots: photoHint(c.id).join(', ') }) }}
                 </p>
               </div>
-              <span class="badge shrink-0 bg-slate-900 text-white">{{ t('matrix.maxPoints', { n: c.max }) }}</span>
+              <span class="badge shrink-0 bg-slate-900 text-white">{{
+                t('matrix.maxPoints', { n: c.max })
+              }}</span>
             </div>
 
             <div class="mt-2 flex flex-wrap items-center gap-2">
@@ -153,7 +155,9 @@ function photoHint(criterionId) {
           <div>
             <h2 class="section-title">{{ t('matrix.bonusTitle') }}</h2>
             <p class="mt-0.5 text-sm text-slate-600">
-              {{ t('matrix.bonusHint', { points: bonus.max, cap: bonusCap, each: BONUS_POINTS_PER_REQUEST }) }}
+              {{
+                t('matrix.bonusHint', { points: bonus.max, cap: bonusCap, each: BONUS_POINTS_PER_REQUEST })
+              }}
             </p>
           </div>
           <button

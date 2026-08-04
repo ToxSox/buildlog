@@ -1,13 +1,18 @@
 <script setup>
+import { ref, toRef } from 'vue'
 import { useI18n } from '../i18n/index.js'
+import { useModal } from '../composables/useModal.js'
 
 const { t, tx } = useI18n()
 
-defineProps({
+const props = defineProps({
   open: { type: Boolean, default: false },
   missing: { type: Array, default: () => [] },
 })
-defineEmits(['close', 'skip'])
+const emit = defineEmits(['close', 'skip'])
+
+const panel = ref(null)
+useModal(toRef(props, 'open'), panel, () => emit('close'))
 </script>
 
 <template>
@@ -17,11 +22,17 @@ defineEmits(['close', 'skip'])
       class="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 p-4"
       @click.self="$emit('close')"
     >
-      <div class="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
+      <div
+        ref="panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="skip-dialog-title"
+        class="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl"
+      >
         <div class="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-5 py-4">
           <span class="text-2xl">⚠️</span>
           <div>
-            <h2 class="text-base font-bold text-amber-900">{{ t('skip.title') }}</h2>
+            <h2 id="skip-dialog-title" class="text-base font-bold text-amber-900">{{ t('skip.title') }}</h2>
             <p class="mt-0.5 text-sm text-amber-800">{{ t('skip.lead') }}</p>
           </div>
         </div>

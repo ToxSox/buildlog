@@ -70,14 +70,18 @@ const outline = computed(() => {
     minutes: 2,
     title: t('presentation.block.craft'),
     points: custom.length
-      ? custom.map((c) => `${c.name}${c.technique ? ` (${c.technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`)
+      ? custom.map(
+          (c) => `${c.name}${c.technique ? ` (${c.technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`,
+        )
       : [t('presentation.block.craftFallback')],
   })
 
   const challengeBits = [pres.value.challenge].filter(Boolean)
   const measures = p.craft.measurements.filter((m) => m.name)
   if (measures.length) {
-    challengeBits.push(t('presentation.block.challengeMeasure', { list: measures.map((m) => m.name).join(', ') }))
+    challengeBits.push(
+      t('presentation.block.challengeMeasure', { list: measures.map((m) => m.name).join(', ') }),
+    )
   }
   if (p.craft.tuningNotes) challengeBits.push(t('presentation.block.challengeTuning'))
   blocks.push({
@@ -98,10 +102,7 @@ const outline = computed(() => {
   blocks.push({
     minutes: 1,
     title: t('presentation.block.outro'),
-    points: [
-      pres.value.story || t('presentation.block.outroFallback'),
-      t('presentation.block.outroWait'),
-    ],
+    points: [pres.value.story || t('presentation.block.outroFallback'), t('presentation.block.outroWait')],
   })
 
   return blocks
@@ -134,7 +135,10 @@ function removeHighlight(id) {
           {{ t('presentation.rules') }}
         </p>
       </div>
-      <p class="text-xs font-semibold" :class="plannedMinutes > minutes ? 'text-rose-700' : 'text-emerald-700'">
+      <p
+        class="text-xs font-semibold"
+        :class="plannedMinutes > minutes ? 'text-rose-700' : 'text-emerald-700'"
+      >
         {{ t('presentation.planned', { minutes: plannedMinutes }) }}
       </p>
     </div>
@@ -183,10 +187,14 @@ function removeHighlight(id) {
           <h2 class="section-title">{{ t('presentation.highlights') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('presentation.highlightsHint') }}</p>
         </div>
-        <button type="button" class="btn-soft btn-xs" @click="addHighlight">{{ t('presentation.addDetail') }}</button>
+        <button type="button" class="btn-soft btn-xs" @click="addHighlight">
+          {{ t('presentation.addDetail') }}
+        </button>
       </div>
       <div class="card-body space-y-2">
-        <p v-if="!pres.highlights.length" class="text-sm text-slate-500">{{ t('presentation.noHighlights') }}</p>
+        <p v-if="!pres.highlights.length" class="text-sm text-slate-500">
+          {{ t('presentation.noHighlights') }}
+        </p>
         <div v-for="h in pres.highlights" :key="h.id" class="flex gap-2">
           <input v-model="h.text" class="input" :placeholder="t('presentation.highlightPlaceholder')" />
           <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
@@ -209,7 +217,9 @@ function removeHighlight(id) {
         >
           <div class="flex items-baseline justify-between gap-2">
             <p class="text-sm font-bold text-slate-800">{{ i + 1 }}. {{ block.title }}</p>
-            <span class="badge bg-slate-200 text-slate-600">{{ t('presentation.approxMinutes', { n: block.minutes }) }}</span>
+            <span class="badge bg-slate-200 text-slate-600">{{
+              t('presentation.approxMinutes', { n: block.minutes })
+            }}</span>
           </div>
           <ul class="mt-1 space-y-0.5">
             <li v-for="(point, j) in block.points" :key="j" class="flex gap-2 text-sm text-slate-700">

@@ -54,11 +54,7 @@ function removeBranch(id) {
 </script>
 
 <template>
-  <WizardShell
-    step-key="power"
-    :title="t('steps.power')"
-    :subtitle="t('power.subtitle')"
-  >
+  <WizardShell step-key="power" :title="t('steps.power')" :subtitle="t('power.subtitle')">
     <p class="text-xs text-slate-500">
       {{ t('power.source', { edition: RULEBOOK_EDITION }) }}
     </p>
@@ -72,7 +68,12 @@ function removeBranch(id) {
       <div class="card-body grid gap-4 sm:grid-cols-2">
         <div>
           <label class="field" for="batLoc">{{ t('power.location') }}</label>
-          <input id="batLoc" v-model="power.batteryLocation" class="input" placeholder="Motorraum / Kofferraum" />
+          <input
+            id="batLoc"
+            v-model="power.batteryLocation"
+            class="input"
+            placeholder="Motorraum / Kofferraum"
+          />
         </div>
         <div>
           <label class="field" for="batType">{{ t('power.type') }}</label>
@@ -175,7 +176,11 @@ function removeBranch(id) {
           </p>
           <div class="mt-2 space-y-1.5">
             <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
-              <input v-model="power.oemGroundUpgraded" type="checkbox" class="h-4 w-4 rounded border-slate-300" />
+              <input
+                v-model="power.oemGroundUpgraded"
+                type="checkbox"
+                class="h-4 w-4 rounded border-slate-300"
+              />
               {{ t('power.oemUpgraded') }}
             </label>
             <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
@@ -205,11 +210,23 @@ function removeBranch(id) {
         </div>
         <div>
           <label class="field" for="gndLen">{{ t('power.groundLength') }}</label>
-          <input id="gndLen" v-model.number="power.groundLengthCm" class="input" type="number" min="0" placeholder="35" />
+          <input
+            id="gndLen"
+            v-model.number="power.groundLengthCm"
+            class="input"
+            type="number"
+            min="0"
+            placeholder="35"
+          />
         </div>
         <div>
           <label class="field" for="gndPoint">{{ t('power.groundPoint') }}</label>
-          <input id="gndPoint" v-model="power.groundPoint" class="input" placeholder="Karosserieschraube Radmulde, blank" />
+          <input
+            id="gndPoint"
+            v-model="power.groundPoint"
+            class="input"
+            placeholder="Karosserieschraube Radmulde, blank"
+          />
         </div>
       </div>
     </div>
@@ -227,11 +244,23 @@ function removeBranch(id) {
       <div v-if="power.secondBattery" class="card-body grid gap-4 sm:grid-cols-3">
         <div>
           <label class="field" for="secFuse">{{ t('power.secondFuse') }}</label>
-          <input id="secFuse" v-model.number="power.secondBatteryFuseAmps" class="input" type="number" min="0" />
+          <input
+            id="secFuse"
+            v-model.number="power.secondBatteryFuseAmps"
+            class="input"
+            type="number"
+            min="0"
+          />
         </div>
         <div>
           <label class="field" for="secDist">{{ t('power.secondDistance') }}</label>
-          <input id="secDist" v-model.number="power.secondBatteryDistanceCm" class="input" type="number" min="0" />
+          <input
+            id="secDist"
+            v-model.number="power.secondBatteryDistanceCm"
+            class="input"
+            type="number"
+            min="0"
+          />
         </div>
         <div>
           <label class="field" for="chargeSection">{{ t('power.chargingSection') }}</label>
@@ -276,7 +305,9 @@ function removeBranch(id) {
             <input v-model.number="branch.amps" class="input" type="number" min="0" />
           </div>
           <div class="flex items-end">
-            <button type="button" class="btn-ghost btn-xs" @click="removeBranch(branch.id)">{{ t('common.remove') }}</button>
+            <button type="button" class="btn-ghost btn-xs" @click="removeBranch(branch.id)">
+              {{ t('common.remove') }}
+            </button>
           </div>
         </div>
       </div>

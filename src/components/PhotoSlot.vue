@@ -42,7 +42,9 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
         </p>
         <p v-if="tx(slotDef.hint)" class="text-xs text-slate-500">{{ tx(slotDef.hint) }}</p>
         <p v-if="criterion && store.column" class="mt-0.5 text-[11px] text-sky-700">
-          {{ t('uploader.paysInto', { criterion: tx(criterion.label), points: criterion.points[store.column] }) }}
+          {{
+            t('uploader.paysInto', { criterion: tx(criterion.label), points: criterion.points[store.column] })
+          }}
         </p>
       </div>
       <span
@@ -66,15 +68,12 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
 
     <ImageUploader v-if="showUploader" :slot-key="slotDef.key" :compact="items.length > 0" />
 
-    <button
-      v-else-if="slotDef.multiple"
-      type="button"
-      class="btn-soft btn-xs w-full"
-      @click="addMore = true"
-    >
+    <button v-else-if="slotDef.multiple" type="button" class="btn-soft btn-xs w-full" @click="addMore = true">
       {{ t('uploader.addMore') }}
     </button>
 
-    <p v-if="tx(slotDef.tip)" class="mt-2 text-[11px] leading-snug text-slate-500">💡 {{ tx(slotDef.tip) }}</p>
+    <p v-if="tx(slotDef.tip)" class="mt-2 text-[11px] leading-snug text-slate-500">
+      💡 {{ tx(slotDef.tip) }}
+    </p>
   </div>
 </template>

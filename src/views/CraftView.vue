@@ -20,24 +20,44 @@ const CUSTOM_FIELDS = [
     options: ['3D-Druck', 'GFK / Laminat', 'MDF / Holz', 'CNC-Fräsen', 'Metallbau', 'Sonstiges'],
   },
   { key: 'material', label: { de: 'Material', en: 'Material' }, placeholder: 'ASA / PETG / Epoxid-Matte' },
-  { key: 'purpose', label: { de: 'Zweck', en: 'Purpose' }, placeholder: 'Winkelgenaue Ausrichtung auf den Hörplatz', span: 2 },
-  { key: 'notes', label: { de: 'Beschreibung des Bauprozesses', en: 'Description of the build process' }, type: 'textarea', span: 2 },
+  {
+    key: 'purpose',
+    label: { de: 'Zweck', en: 'Purpose' },
+    placeholder: 'Winkelgenaue Ausrichtung auf den Hörplatz',
+    span: 2,
+  },
+  {
+    key: 'notes',
+    label: { de: 'Beschreibung des Bauprozesses', en: 'Description of the build process' },
+    type: 'textarea',
+    span: 2,
+  },
 ]
 
 const MEASURE_FIELDS = [
-  { key: 'name', label: { de: 'Messung', en: 'Measurement' }, placeholder: 'Frequenzgang Fahrerplatz nach Einmessung', span: 2 },
+  {
+    key: 'name',
+    label: { de: 'Messung', en: 'Measurement' },
+    placeholder: 'Frequenzgang Fahrerplatz nach Einmessung',
+    span: 2,
+  },
   { key: 'tool', label: { de: 'Messsystem', en: 'Measurement system' }, placeholder: 'REW + UMIK-1' },
-  { key: 'position', label: { de: 'Mikrofonposition', en: 'Microphone position' }, placeholder: 'Kopfposition Fahrer' },
-  { key: 'result', label: { de: 'Ergebnis / Interpretation', en: 'Result / interpretation' }, type: 'textarea', span: 2 },
+  {
+    key: 'position',
+    label: { de: 'Mikrofonposition', en: 'Microphone position' },
+    placeholder: 'Kopfposition Fahrer',
+  },
+  {
+    key: 'result',
+    label: { de: 'Ergebnis / Interpretation', en: 'Result / interpretation' },
+    type: 'textarea',
+    span: 2,
+  },
 ]
 </script>
 
 <template>
-  <WizardShell
-    step-key="craft"
-    :title="t('steps.craft')"
-    :subtitle="t('craft.subtitle')"
-  >
+  <WizardShell step-key="craft" :title="t('steps.craft')" :subtitle="t('craft.subtitle')">
     <div class="card">
       <div class="card-header">
         <div>
@@ -57,11 +77,21 @@ const MEASURE_FIELDS = [
         </div>
         <div>
           <label class="field" for="dampFloor">{{ t('craft.floor') }}</label>
-          <textarea id="dampFloor" v-model="craft.dampingFloor" class="textarea" placeholder="Alubutyl + Schaumauflage" />
+          <textarea
+            id="dampFloor"
+            v-model="craft.dampingFloor"
+            class="textarea"
+            placeholder="Alubutyl + Schaumauflage"
+          />
         </div>
         <div>
           <label class="field" for="dampTrunk">{{ t('craft.trunk') }}</label>
-          <textarea id="dampTrunk" v-model="craft.dampingTrunk" class="textarea" placeholder="Radhäuser und Heckklappe" />
+          <textarea
+            id="dampTrunk"
+            v-model="craft.dampingTrunk"
+            class="textarea"
+            placeholder="Radhäuser und Heckklappe"
+          />
         </div>
       </div>
     </div>
@@ -95,11 +125,7 @@ const MEASURE_FIELDS = [
         <h2 class="section-title">{{ t('craft.tuning') }}</h2>
       </div>
       <div class="card-body">
-        <textarea
-          v-model="craft.tuningNotes"
-          class="textarea"
-          :placeholder="t('craft.tuningPlaceholder')"
-        />
+        <textarea v-model="craft.tuningNotes" class="textarea" :placeholder="t('craft.tuningPlaceholder')" />
       </div>
     </div>
 

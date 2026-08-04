@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { exampleFor } from '../data/examples.js'
 import { useI18n } from '../i18n/index.js'
+import { useModal } from '../composables/useModal.js'
 
 const { t, tx } = useI18n()
 
@@ -12,7 +13,12 @@ const props = defineProps({
 })
 
 const open = ref(false)
+const panel = ref(null)
 const example = computed(() => exampleFor(props.exampleKey))
+
+useModal(open, panel, () => {
+  open.value = false
+})
 </script>
 
 <template>
@@ -33,16 +39,34 @@ const example = computed(() => exampleFor(props.exampleKey))
         class="fixed inset-0 z-50 grid place-items-center bg-slate-900/60 p-4"
         @click.self="open = false"
       >
-        <div class="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div
+          ref="panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="example-dialog-title"
+          class="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl"
+        >
           <div class="flex items-start justify-between gap-3 border-b border-slate-100 px-5 py-3">
             <div>
-              <p class="text-[11px] font-bold uppercase tracking-wider text-sky-600">{{ t('example.kicker') }}</p>
-              <h3 class="text-base font-bold text-slate-900">{{ slotLabel || tx(example.title) }}</h3>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-sky-600">
+                {{ t('example.kicker') }}
+              </p>
+              <h3 id="example-dialog-title" class="text-base font-bold text-slate-900">
+                {{ slotLabel || tx(example.title) }}
+              </h3>
             </div>
-            <button type="button" class="text-slate-400 hover:text-slate-700" @click="open = false">✕</button>
+            <button
+              type="button"
+              class="text-slate-400 hover:text-slate-700"
+              :aria-label="t('common.close')"
+              @click="open = false"
+            >
+              ✕
+            </button>
           </div>
 
           <div class="px-5 py-4">
+            <!-- eslint-disable-next-line vue/no-v-html -- statisch im Code hinterlegte SVG-Schemazeichnung, kein Nutzerinhalt -->
             <div class="overflow-hidden rounded-lg border border-slate-200" v-html="example.svg()" />
             <p class="mt-3 text-sm text-slate-700">{{ tx(example.caption) }}</p>
             <ul class="mt-2 space-y-1">
@@ -56,7 +80,9 @@ const example = computed(() => exampleFor(props.exampleKey))
           </div>
 
           <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-5 py-3">
-            <button type="button" class="btn-primary btn-xs" @click="open = false">{{ t('common.understood') }}</button>
+            <button type="button" class="btn-primary btn-xs" @click="open = false">
+              {{ t('common.understood') }}
+            </button>
           </div>
         </div>
       </div>

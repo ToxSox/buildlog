@@ -26,6 +26,7 @@ export default {
     none: 'none',
     yes: 'Yes',
     no: 'No',
+    close: 'Close',
     understood: 'Got it',
     refresh: 'refresh',
     choose: 'please choose …',
@@ -57,8 +58,7 @@ export default {
     kicker: 'EMMA Build Log Creator',
     headline: 'Your installation documentation.',
     headline2: 'Guided, rule-compliant, ready to print.',
-    lead:
-      'The assistant asks exactly what the judges want to see, checks your fusing live against the rulebook and produces an A4 landscape document at the end. Everything runs locally in your browser: no uploads, no account, no server.',
+    lead: 'The assistant asks exactly what the judges want to see, checks your fusing live against the rulebook and produces an A4 landscape document at the end. Everything runs locally in your browser: no uploads, no account, no server.',
     badgeOffline: '100 % offline',
     badgeAutosave: 'Autosave in the browser',
     badgeCamera: 'Phone camera ready to use',
@@ -191,7 +191,8 @@ export default {
   },
 
   hardware: {
-    subtitle: 'What is installed, where does it sit and how is it fixed? Every component must be mounted securely.',
+    subtitle:
+      'What is installed, where does it sit and how is it fixed? Every component must be mounted securely.',
     amps: 'Amplifiers',
     ampsIntro: 'All amplifiers including location and type of mounting.',
     ampsEmpty: 'No amplifier recorded yet.',
@@ -244,7 +245,8 @@ export default {
     story: 'How do you want to finish?',
     storyPlaceholder: 'The sentence that should stick with the judge.',
     highlights: 'Details you want to point out',
-    highlightsHint: 'Things a judge would otherwise miss – hidden solutions, small things with a lot of effort.',
+    highlightsHint:
+      'Things a judge would otherwise miss – hidden solutions, small things with a lot of effort.',
     highlightPlaceholder: 'e.g. cable pass-through in the door sealed watertight',
     noHighlights: 'Nothing noted yet.',
     addDetail: '+ Detail',
@@ -291,7 +293,8 @@ export default {
     autoTitle: 'Derived by the app',
     autoHint: 'Follows from your entries and photos.',
     selfTitle: 'Assess yourself',
-    selfHint: 'The judge checks this at the vehicle – be honest and you will know where you stand before the event.',
+    selfHint:
+      'The judge checks this at the vehicle – be honest and you will know where you stand before the event.',
     provableVia: 'Can be evidenced by: {slots}',
     maxPoints: 'max. {n} pts',
     notePlaceholder: 'Note to yourself (e.g. what is still missing)',
@@ -344,6 +347,7 @@ export default {
     caption: 'Caption (appears in the printout)',
     rotate: '↻ 90°',
     rotating: 'rotating …',
+    photo: 'Photo',
     loading: 'Loading image …',
     deleteConfirm: 'Remove this photo from the build log?',
     paysInto: 'counts towards “{criterion}” ({points} pts)',
@@ -376,12 +380,15 @@ export default {
     persisted: 'Persistent storage granted – the browser will not clear your build logs on its own.',
     notPersisted:
       'The browser did not grant persistent storage. It may delete the data when space runs low – export your build log as a ZIP regularly.',
-    unsupported: 'This browser does not support persistent storage. Export your build log as a ZIP regularly.',
+    unsupported:
+      'This browser does not support persistent storage. Export your build log as a ZIP regularly.',
     offlineReady: 'Ready for offline use – the app starts without a network, e.g. at the show ground.',
-    offlinePending: 'Offline preparation is running. Reload the page once if you want to use it without a network.',
+    offlinePending:
+      'Offline preparation is running. Reload the page once if you want to use it without a network.',
     quotaFull: 'Browser storage is full. New photos cannot be saved until space is freed up.',
     quotaUsage: 'Used: {used} of {quota}.',
-    quotaTip: 'Save the build log as a ZIP, then delete build logs or individual detail photos you no longer need.',
+    quotaTip:
+      'Save the build log as a ZIP, then delete build logs or individual detail photos you no longer need.',
     autosaveQuota: 'Browser storage full – changes could not be saved.',
     autosaveFailed: 'Autosave failed.',
   },
@@ -561,7 +568,7 @@ export default {
       message:
         'Your main fuse is {fuse} A. As long as the vehicle’s OEM ground cable is not upgraded, the rulebook caps the main fuse (or the combined size of several main fuses) at {max} A.',
       fix: 'Upgrade the ground cable engine/chassis ↔ battery – or include a calculation with the judge book formula using the OEM ground cable size.',
-      ref: '“If the car\'s OEM ground cable is not upgraded the biggest allowed size for the main fuse … is 100 A”',
+      ref: "“If the car's OEM ground cable is not upgraded the biggest allowed size for the main fuse … is 100 A”",
     },
     groundOemCapOk: {
       title: 'Main fuse below the {max} A limit',

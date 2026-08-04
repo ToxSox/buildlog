@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { rotate90 } from '../utils/image.js'
 import { useI18n } from '../i18n/index.js'
+import { useModal } from '../composables/useModal.js'
 
 const { t } = useI18n()
 
@@ -18,6 +19,11 @@ const store = useProjectStore()
 const media = useMediaStore()
 const rotating = ref(false)
 const zoom = ref(false)
+const zoomPanel = ref(null)
+
+useModal(zoom, zoomPanel, () => {
+  zoom.value = false
+})
 
 const src = computed(() => media.url(props.item.id))
 
@@ -57,7 +63,9 @@ function remove() {
         loading="lazy"
         @click="zoom = true"
       />
-      <div v-else class="grid h-32 place-items-center text-xs text-slate-400">{{ t('uploader.loading') }}</div>
+      <div v-else class="grid h-32 place-items-center text-xs text-slate-400">
+        {{ t('uploader.loading') }}
+      </div>
 
       <div v-if="rotating" class="absolute inset-0 grid place-items-center bg-white/70 text-xs font-semibold">
         {{ t('uploader.rotating') }}
@@ -72,7 +80,9 @@ function remove() {
         @input="store.updateMedia(slotKey, item.id, { caption: $event.target.value })"
       />
       <div class="flex flex-wrap items-center gap-1">
-        <button type="button" class="btn-soft btn-xs" :disabled="rotating" @click="rotate">{{ t('uploader.rotate') }}</button>
+        <button type="button" class="btn-soft btn-xs" :disabled="rotating" @click="rotate">
+          {{ t('uploader.rotate') }}
+        </button>
         <button
           type="button"
           class="btn-soft btn-xs"
@@ -91,17 +101,34 @@ function remove() {
         >
           →
         </button>
-        <button type="button" class="btn-ghost btn-xs ml-auto !text-rose-600" @click="remove">{{ t('common.delete') }}</button>
+        <button type="button" class="btn-ghost btn-xs ml-auto !text-rose-600" @click="remove">
+          {{ t('common.delete') }}
+        </button>
       </div>
     </figcaption>
 
     <teleport to="body">
       <div
         v-if="zoom"
+        ref="zoomPanel"
+        role="dialog"
+        aria-modal="true"
         class="fixed inset-0 z-50 grid place-items-center bg-slate-900/80 p-4"
         @click="zoom = false"
       >
-        <img :src="src" :alt="item.caption || 'Foto'" class="max-h-full max-w-full rounded-lg object-contain" />
+        <img
+          :src="src"
+          :alt="item.caption || t('uploader.photo')"
+          class="max-h-full max-w-full rounded-lg object-contain"
+        />
+        <button
+          type="button"
+          class="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1 text-sm font-bold text-slate-800"
+          :aria-label="t('common.close')"
+          @click="zoom = false"
+        >
+          ✕
+        </button>
       </div>
     </teleport>
   </figure>

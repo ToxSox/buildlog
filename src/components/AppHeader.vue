@@ -79,8 +79,10 @@ function go(step) {
             "
             @click="go(step)"
           >
-            <span class="grid h-5 w-5 place-items-center rounded-full text-[10px]"
-              :class="step.key === currentKey ? 'bg-white/25' : 'bg-slate-200 text-slate-700'">
+            <span
+              class="grid h-5 w-5 place-items-center rounded-full text-[10px]"
+              :class="step.key === currentKey ? 'bg-white/25' : 'bg-slate-200 text-slate-700'"
+            >
               {{ i + 1 }}
             </span>
             <span class="hidden sm:inline">{{ t(step.labelKey) }}</span>
@@ -92,12 +94,12 @@ function go(step) {
 
     <div v-if="store.hasProject" class="md:hidden border-t border-slate-100 px-4 py-2">
       <ProgressBar
-          :percent="percent"
-          :score="score"
-          :max="maxScore"
-          :level="level"
-          :caption="column ? t('app.progress') : t('app.photoProgress')"
-        />
+        :percent="percent"
+        :score="score"
+        :max="maxScore"
+        :level="level"
+        :caption="column ? t('app.progress') : t('app.photoProgress')"
+      />
     </div>
   </header>
 </template>

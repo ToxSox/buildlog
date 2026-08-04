@@ -32,7 +32,10 @@ const tone = computed(() => {
 })
 
 const barClass = computed(
-  () => ({ rose: 'bg-rose-500', amber: 'bg-amber-500', emerald: 'bg-emerald-500', slate: 'bg-slate-400' })[tone.value],
+  () =>
+    ({ rose: 'bg-rose-500', amber: 'bg-amber-500', emerald: 'bg-emerald-500', slate: 'bg-slate-400' })[
+      tone.value
+    ],
 )
 </script>
 
@@ -50,11 +53,17 @@ const barClass = computed(
       <div class="flex items-baseline justify-between text-xs text-slate-600">
         <span>{{ t('storage.used') }}</span>
         <span class="tabular-nums">
-          {{ t('storage.ofQuota', { used: formatBytes(estimate.usage), quota: formatBytes(estimate.quota) }) }}
+          {{
+            t('storage.ofQuota', { used: formatBytes(estimate.usage), quota: formatBytes(estimate.quota) })
+          }}
         </span>
       </div>
       <div class="mt-1 h-2 overflow-hidden rounded-full bg-slate-200">
-        <div class="h-full rounded-full transition-all" :class="barClass" :style="{ width: `${estimate.percent}%` }" />
+        <div
+          class="h-full rounded-full transition-all"
+          :class="barClass"
+          :style="{ width: `${estimate.percent}%` }"
+        />
       </div>
       <p v-if="estimate.percent >= 70" class="mt-1 text-xs font-semibold text-amber-700">
         {{ t('storage.tight') }}
@@ -82,7 +91,10 @@ const barClass = computed(
       </li>
     </ul>
 
-    <p v-if="store.storageError" class="mt-3 rounded-md bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700">
+    <p
+      v-if="store.storageError"
+      class="mt-3 rounded-md bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700"
+    >
       {{ store.storageError }}
     </p>
   </div>

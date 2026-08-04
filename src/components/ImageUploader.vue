@@ -106,7 +106,9 @@ function onPick(event) {
       <div v-else class="flex flex-col items-center gap-2 text-center">
         <p class="hidden text-xs text-slate-500 sm:block">{{ t('uploader.dropHint') }}</p>
         <div class="flex flex-wrap justify-center gap-2">
-          <button type="button" class="btn-soft btn-xs" @click="fileInput?.click()">{{ t('uploader.pickFile') }}</button>
+          <button type="button" class="btn-soft btn-xs" @click="fileInput?.click()">
+            {{ t('uploader.pickFile') }}
+          </button>
           <button
             type="button"
             class="btn-primary btn-xs"

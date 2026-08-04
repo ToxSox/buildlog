@@ -62,7 +62,11 @@ export async function exportArchive() {
     ].join('\n'),
   )
 
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } })
+  const blob = await zip.generateAsync({
+    type: 'blob',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 6 },
+  })
   triggerDownload(blob, archiveFileName(project))
   return { images: manifest.length, size: blob.size }
 }

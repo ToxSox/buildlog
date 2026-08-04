@@ -12,45 +12,81 @@ const store = useProjectStore()
 const hardware = computed(() => store.project.hardware)
 
 const AMP_FIELDS = [
-  { key: 'brand', label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' }, placeholder: 'Audison AP8.9 bit', span: 2 },
+  {
+    key: 'brand',
+    label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' },
+    placeholder: 'Audison AP8.9 bit',
+    span: 2,
+  },
   { key: 'channels', label: { de: 'Kanäle', en: 'Channels' }, placeholder: '8' },
   { key: 'power', label: { de: 'Leistung (RMS)', en: 'Power (RMS)' }, placeholder: '8 × 85 W' },
   { key: 'location', label: { de: 'Einbauort', en: 'Location' }, placeholder: 'Unter dem Beifahrersitz' },
-  { key: 'mounting', label: { de: 'Befestigung', en: 'Mounting' }, placeholder: 'MDF-Platte, M6 verschraubt' },
+  {
+    key: 'mounting',
+    label: { de: 'Befestigung', en: 'Mounting' },
+    placeholder: 'MDF-Platte, M6 verschraubt',
+  },
   { key: 'fuse', label: { de: 'Absicherung (A)', en: 'Fuse (A)' }, placeholder: '60' },
 ]
 
 const DSP_FIELDS = [
-  { key: 'brand', label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' }, placeholder: 'Helix DSP.3', span: 2 },
+  {
+    key: 'brand',
+    label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' },
+    placeholder: 'Helix DSP.3',
+    span: 2,
+  },
   { key: 'channels', label: { de: 'Ein-/Ausgänge', en: 'Inputs / outputs' }, placeholder: '6 in / 8 out' },
   { key: 'location', label: { de: 'Einbauort', en: 'Location' }, placeholder: 'Hinter Handschuhfach' },
   { key: 'mounting', label: { de: 'Befestigung', en: 'Mounting' }, placeholder: 'Alu-Halter, verschraubt' },
-  { key: 'input', label: { de: 'Signalquelle', en: 'Signal source' }, placeholder: 'Hochpegel ab Werksradio' },
+  {
+    key: 'input',
+    label: { de: 'Signalquelle', en: 'Signal source' },
+    placeholder: 'Hochpegel ab Werksradio',
+  },
 ]
 
 const SPEAKER_FIELDS = [
-  { key: 'brand', label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' }, placeholder: 'Gladen RS 165', span: 2 },
+  {
+    key: 'brand',
+    label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' },
+    placeholder: 'Gladen RS 165',
+    span: 2,
+  },
   { key: 'position', label: { de: 'Position', en: 'Position' }, placeholder: 'Tür vorne links' },
   { key: 'size', label: { de: 'Größe', en: 'Size' }, placeholder: '165 mm' },
-  { key: 'mounting', label: { de: 'Montage / Adapter', en: 'Mounting / adapter' }, placeholder: 'MDF-Ring, mit Karosserie verschraubt' },
+  {
+    key: 'mounting',
+    label: { de: 'Montage / Adapter', en: 'Mounting / adapter' },
+    placeholder: 'MDF-Ring, mit Karosserie verschraubt',
+  },
   { key: 'wiring', label: { de: 'Kabel (mm²)', en: 'Cable (mm²)' }, placeholder: '2,5' },
 ]
 
 const SUB_FIELDS = [
-  { key: 'brand', label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' }, placeholder: 'Ground Zero GZPW 12', span: 2 },
+  {
+    key: 'brand',
+    label: { de: 'Hersteller / Modell', en: 'Manufacturer / model' },
+    placeholder: 'Ground Zero GZPW 12',
+    span: 2,
+  },
   { key: 'enclosure', label: { de: 'Gehäuse', en: 'Enclosure' }, placeholder: 'Geschlossen 32 l' },
-  { key: 'volume', label: { de: 'Volumen / Abstimmung', en: 'Volume / tuning' }, placeholder: '32 l / geschlossen' },
+  {
+    key: 'volume',
+    label: { de: 'Volumen / Abstimmung', en: 'Volume / tuning' },
+    placeholder: '32 l / geschlossen',
+  },
   { key: 'location', label: { de: 'Einbauort', en: 'Location' }, placeholder: 'Reserveradmulde' },
-  { key: 'securing', label: { de: 'Sicherung gegen Verrutschen', en: 'Secured against movement' }, placeholder: 'Verschraubt + Spanngurt' },
+  {
+    key: 'securing',
+    label: { de: 'Sicherung gegen Verrutschen', en: 'Secured against movement' },
+    placeholder: 'Verschraubt + Spanngurt',
+  },
 ]
 </script>
 
 <template>
-  <WizardShell
-    step-key="hardware"
-    :title="t('steps.hardware')"
-    :subtitle="t('hardware.subtitle')"
-  >
+  <WizardShell step-key="hardware" :title="t('steps.hardware')" :subtitle="t('hardware.subtitle')">
     <ItemList
       path="hardware.amps"
       :title="t('hardware.amps')"

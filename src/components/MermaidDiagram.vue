@@ -56,9 +56,13 @@ watch(() => props.definition, render)
 
 <template>
   <div>
+    <!-- eslint-disable-next-line vue/no-v-html -- von mermaid erzeugtes SVG, mermaid laeuft mit securityLevel "strict" -->
     <div v-if="svg" class="mermaid-host overflow-x-auto" v-html="svg" />
     <p v-else-if="error" class="text-sm text-rose-600">{{ error }}</p>
-    <p v-else class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400">
+    <p
+      v-else
+      class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400"
+    >
       {{ t('diagram.empty2') }}
     </p>
   </div>

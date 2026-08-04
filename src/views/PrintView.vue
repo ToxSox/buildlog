@@ -48,9 +48,21 @@ const powerRows = computed(() => {
     [t('print.battery'), [pw.batteryType, pw.batteryLocation].filter(Boolean).join(', ')],
     [t('print.batteryMount'), pw.batterySecured],
     [t('print.cableSection'), pw.mainCableSection ? `${pw.mainCableSection} mm²` : ''],
-    [t('print.mainFuse'), pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : ''],
+    [
+      t('print.mainFuse'),
+      pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : '',
+    ],
     [t('print.fuseDistance'), pw.mainFuseDistanceCm !== null ? `${pw.mainFuseDistanceCm} cm` : ''],
-    [t('print.ground'), [pw.groundCableSection ? `${pw.groundCableSection} mm²` : '', pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '', pw.groundPoint].filter(Boolean).join(', ')],
+    [
+      t('print.ground'),
+      [
+        pw.groundCableSection ? `${pw.groundCableSection} mm²` : '',
+        pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '',
+        pw.groundPoint,
+      ]
+        .filter(Boolean)
+        .join(', '),
+    ],
     [t('print.cableProtection'), (pw.cableProtection || []).join(', ')],
   ]
   if (pw.secondBattery) {
@@ -98,8 +110,18 @@ const photoPages = computed(() => {
 
   // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen)
   const perItem = [
-    { list: p.value.craft.customParts, prefix: 'craft.customParts', title: t('print.customPartsPhotos'), nameKey: 'name' },
-    { list: p.value.craft.measurements, prefix: 'craft.measurements', title: t('print.measurementPhotos'), nameKey: 'name' },
+    {
+      list: p.value.craft.customParts,
+      prefix: 'craft.customParts',
+      title: t('print.customPartsPhotos'),
+      nameKey: 'name',
+    },
+    {
+      list: p.value.craft.measurements,
+      prefix: 'craft.measurements',
+      title: t('print.measurementPhotos'),
+      nameKey: 'name',
+    },
   ]
   perItem.forEach(({ list, prefix, title, nameKey }) => {
     const figures = []
@@ -140,12 +162,23 @@ const pages = computed(() => {
   }
 
   const c = p.value.craft
-  if (c.dampingDoors || c.dampingFloor || c.dampingTrunk || c.customParts.length || c.measurements.length || c.tuningNotes) {
+  if (
+    c.dampingDoors ||
+    c.dampingFloor ||
+    c.dampingTrunk ||
+    c.customParts.length ||
+    c.measurements.length ||
+    c.tuningNotes
+  ) {
     list.push({ kind: 'craft', title: t('print.craft') })
   }
 
   const pr = p.value.presentation
-  if (column.value && ['M', 'X', 'XUNL'].includes(column.value) && (pr.goal || pr.challenge || pr.highlights.length)) {
+  if (
+    column.value &&
+    ['M', 'X', 'XUNL'].includes(column.value) &&
+    (pr.goal || pr.challenge || pr.highlights.length)
+  ) {
     list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
@@ -185,7 +218,9 @@ function print() {
           </p>
         </div>
         <div class="flex gap-2">
-          <router-link to="/wizard/pruefen" class="btn-ghost btn-xs">{{ t('print.backToWizard') }}</router-link>
+          <router-link to="/wizard/pruefen" class="btn-ghost btn-xs">
+            {{ t('print.backToWizard') }}
+          </router-link>
           <button type="button" class="btn-primary" @click="print">🖨️ {{ t('common.print') }}</button>
         </div>
       </div>
@@ -204,7 +239,15 @@ function print() {
         <template v-if="page.kind === 'cover'">
           <div style="display: flex; flex-direction: column; height: 100%; gap: 6mm">
             <div>
-              <p style="font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; color: #0284c7; font-weight: 700">
+              <p
+                style="
+                  font-size: 9pt;
+                  letter-spacing: 0.18em;
+                  text-transform: uppercase;
+                  color: #0284c7;
+                  font-weight: 700;
+                "
+              >
                 EMMA Build Log
               </p>
               <h1 class="print-h1" style="margin-top: 2mm">
@@ -217,12 +260,26 @@ function print() {
             </div>
 
             <div class="print-kv">
-              <div><span class="print-kv__key">{{ t('print.participant') }}:</span> {{ p.meta.participantName || '—' }}</div>
-              <div><span class="print-kv__key">{{ t('print.team') }}:</span> {{ p.meta.teamName || '—' }}</div>
-              <div><span class="print-kv__key">{{ t('print.vehicle') }}:</span> {{ headMeta.vehicle || '—' }}</div>
-              <div><span class="print-kv__key">{{ t('print.plate') }}:</span> {{ p.meta.plate || '—' }}</div>
-              <div><span class="print-kv__key">{{ t('print.installer') }}:</span> {{ p.meta.installerName || '—' }}</div>
-              <div><span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ p.mode }}</div>
+              <div>
+                <span class="print-kv__key">{{ t('print.participant') }}:</span>
+                {{ p.meta.participantName || '—' }}
+              </div>
+              <div>
+                <span class="print-kv__key">{{ t('print.team') }}:</span> {{ p.meta.teamName || '—' }}
+              </div>
+              <div>
+                <span class="print-kv__key">{{ t('print.vehicle') }}:</span> {{ headMeta.vehicle || '—' }}
+              </div>
+              <div>
+                <span class="print-kv__key">{{ t('print.plate') }}:</span> {{ p.meta.plate || '—' }}
+              </div>
+              <div>
+                <span class="print-kv__key">{{ t('print.installer') }}:</span>
+                {{ p.meta.installerName || '—' }}
+              </div>
+              <div>
+                <span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ p.mode }}
+              </div>
             </div>
 
             <div v-if="p.meta.notes">
@@ -270,7 +327,7 @@ function print() {
           <h2 class="print-h2">{{ t('print.powerSupply') }}</h2>
           <table class="print-table">
             <tbody>
-              <tr v-for="([key, value], i) in powerRows" :key="i">
+              <tr v-for="[key, value] in powerRows" :key="key">
                 <th style="width: 55mm">{{ key }}</th>
                 <td>{{ value }}</td>
               </tr>
@@ -281,7 +338,11 @@ function print() {
             <h2 class="print-h2" style="margin-top: 5mm">{{ t('print.distribution') }}</h2>
             <table class="print-table">
               <thead>
-                <tr><th>{{ t('print.branch') }}</th><th>{{ t('print.section') }}</th><th>{{ t('print.fuse') }}</th></tr>
+                <tr>
+                  <th>{{ t('print.branch') }}</th>
+                  <th>{{ t('print.section') }}</th>
+                  <th>{{ t('print.fuse') }}</th>
+                </tr>
               </thead>
               <tbody>
                 <tr v-for="b in p.power.distributionFuses" :key="b.id">
@@ -294,9 +355,13 @@ function print() {
           </template>
 
           <div v-if="findings.errors.length || findings.warnings.length" style="margin-top: 5mm">
-            <div v-for="f in [...findings.errors, ...findings.warnings]" :key="f.id"
-                 class="print-note" :class="f.severity === 'error' ? 'print-note--error' : 'print-note--warn'"
-                 style="margin-bottom: 2mm">
+            <div
+              v-for="f in [...findings.errors, ...findings.warnings]"
+              :key="f.id"
+              class="print-note"
+              :class="f.severity === 'error' ? 'print-note--error' : 'print-note--warn'"
+              style="margin-bottom: 2mm"
+            >
               <strong>{{ t(`${f.key}.title`, f.params) }}</strong> – {{ t(`${f.key}.message`, f.params) }}
             </div>
           </div>
@@ -308,12 +373,23 @@ function print() {
             <h2 class="print-h2">{{ t('print.amps') }}</h2>
             <table class="print-table">
               <thead>
-                <tr><th>{{ t('print.model') }}</th><th>{{ t('print.channels') }}</th><th>{{ t('print.powerRms') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.mounting') }}</th><th>{{ t('print.fuse') }}</th></tr>
+                <tr>
+                  <th>{{ t('print.model') }}</th>
+                  <th>{{ t('print.channels') }}</th>
+                  <th>{{ t('print.powerRms') }}</th>
+                  <th>{{ t('print.location') }}</th>
+                  <th>{{ t('print.mounting') }}</th>
+                  <th>{{ t('print.fuse') }}</th>
+                </tr>
               </thead>
               <tbody>
                 <tr v-for="a in p.hardware.amps" :key="a.id">
-                  <td>{{ a.brand || '—' }}</td><td>{{ a.channels }}</td><td>{{ a.power }}</td>
-                  <td>{{ a.location }}</td><td>{{ a.mounting }}</td><td>{{ a.fuse }}</td>
+                  <td>{{ a.brand || '—' }}</td>
+                  <td>{{ a.channels }}</td>
+                  <td>{{ a.power }}</td>
+                  <td>{{ a.location }}</td>
+                  <td>{{ a.mounting }}</td>
+                  <td>{{ a.fuse }}</td>
                 </tr>
               </tbody>
             </table>
@@ -322,11 +398,22 @@ function print() {
           <template v-if="p.hardware.dsp.length">
             <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.dsp') }}</h2>
             <table class="print-table">
-              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.io') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.mounting') }}</th><th>{{ t('print.signalSource') }}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{{ t('print.model') }}</th>
+                  <th>{{ t('print.io') }}</th>
+                  <th>{{ t('print.location') }}</th>
+                  <th>{{ t('print.mounting') }}</th>
+                  <th>{{ t('print.signalSource') }}</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="d in p.hardware.dsp" :key="d.id">
-                  <td>{{ d.brand || '—' }}</td><td>{{ d.channels }}</td><td>{{ d.location }}</td>
-                  <td>{{ d.mounting }}</td><td>{{ d.input }}</td>
+                  <td>{{ d.brand || '—' }}</td>
+                  <td>{{ d.channels }}</td>
+                  <td>{{ d.location }}</td>
+                  <td>{{ d.mounting }}</td>
+                  <td>{{ d.input }}</td>
                 </tr>
               </tbody>
             </table>
@@ -335,11 +422,22 @@ function print() {
           <template v-if="p.hardware.speakers.length">
             <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.speakers') }}</h2>
             <table class="print-table">
-              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.position') }}</th><th>{{ t('print.size') }}</th><th>{{ t('print.mountingAdapter') }}</th><th>{{ t('print.cable') }}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{{ t('print.model') }}</th>
+                  <th>{{ t('print.position') }}</th>
+                  <th>{{ t('print.size') }}</th>
+                  <th>{{ t('print.mountingAdapter') }}</th>
+                  <th>{{ t('print.cable') }}</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="s in p.hardware.speakers" :key="s.id">
-                  <td>{{ s.brand || '—' }}</td><td>{{ s.position }}</td><td>{{ s.size }}</td>
-                  <td>{{ s.mounting }}</td><td>{{ s.wiring }}</td>
+                  <td>{{ s.brand || '—' }}</td>
+                  <td>{{ s.position }}</td>
+                  <td>{{ s.size }}</td>
+                  <td>{{ s.mounting }}</td>
+                  <td>{{ s.wiring }}</td>
                 </tr>
               </tbody>
             </table>
@@ -348,11 +446,22 @@ function print() {
           <template v-if="p.hardware.subs.length">
             <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.subs') }}</h2>
             <table class="print-table">
-              <thead><tr><th>{{ t('print.model') }}</th><th>{{ t('print.enclosure') }}</th><th>{{ t('print.volume') }}</th><th>{{ t('print.location') }}</th><th>{{ t('print.securing') }}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{{ t('print.model') }}</th>
+                  <th>{{ t('print.enclosure') }}</th>
+                  <th>{{ t('print.volume') }}</th>
+                  <th>{{ t('print.location') }}</th>
+                  <th>{{ t('print.securing') }}</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="s in p.hardware.subs" :key="s.id">
-                  <td>{{ s.brand || '—' }}</td><td>{{ s.enclosure }}</td><td>{{ s.volume }}</td>
-                  <td>{{ s.location }}</td><td>{{ s.securing }}</td>
+                  <td>{{ s.brand || '—' }}</td>
+                  <td>{{ s.enclosure }}</td>
+                  <td>{{ s.volume }}</td>
+                  <td>{{ s.location }}</td>
+                  <td>{{ s.securing }}</td>
                 </tr>
               </tbody>
             </table>
@@ -368,19 +477,37 @@ function print() {
           <h2 class="print-h2">{{ t('print.damping') }}</h2>
           <table class="print-table">
             <tbody>
-              <tr v-if="p.craft.dampingDoors"><th style="width: 40mm">{{ t('print.doors') }}</th><td>{{ p.craft.dampingDoors }}</td></tr>
-              <tr v-if="p.craft.dampingFloor"><th>{{ t('print.floor') }}</th><td>{{ p.craft.dampingFloor }}</td></tr>
-              <tr v-if="p.craft.dampingTrunk"><th>{{ t('print.trunk') }}</th><td>{{ p.craft.dampingTrunk }}</td></tr>
+              <tr v-if="p.craft.dampingDoors">
+                <th style="width: 40mm">{{ t('print.doors') }}</th>
+                <td>{{ p.craft.dampingDoors }}</td>
+              </tr>
+              <tr v-if="p.craft.dampingFloor">
+                <th>{{ t('print.floor') }}</th>
+                <td>{{ p.craft.dampingFloor }}</td>
+              </tr>
+              <tr v-if="p.craft.dampingTrunk">
+                <th>{{ t('print.trunk') }}</th>
+                <td>{{ p.craft.dampingTrunk }}</td>
+              </tr>
             </tbody>
           </table>
 
           <template v-if="p.craft.customParts.length">
             <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.customParts') }}</h2>
             <table class="print-table">
-              <thead><tr><th>{{ t('print.part') }}</th><th>{{ t('print.technique') }}</th><th>{{ t('print.material') }}</th><th>{{ t('print.purpose') }}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{{ t('print.part') }}</th>
+                  <th>{{ t('print.technique') }}</th>
+                  <th>{{ t('print.material') }}</th>
+                  <th>{{ t('print.purpose') }}</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="c in p.craft.customParts" :key="c.id">
-                  <td>{{ c.name || '—' }}</td><td>{{ c.technique }}</td><td>{{ c.material }}</td>
+                  <td>{{ c.name || '—' }}</td>
+                  <td>{{ c.technique }}</td>
+                  <td>{{ c.material }}</td>
                   <td>{{ [c.purpose, c.notes].filter(Boolean).join(' – ') }}</td>
                 </tr>
               </tbody>
@@ -390,10 +517,20 @@ function print() {
           <template v-if="p.craft.measurements.length">
             <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.measurements') }}</h2>
             <table class="print-table">
-              <thead><tr><th>{{ t('print.measurement') }}</th><th>{{ t('print.system') }}</th><th>{{ t('print.position') }}</th><th>{{ t('print.result') }}</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>{{ t('print.measurement') }}</th>
+                  <th>{{ t('print.system') }}</th>
+                  <th>{{ t('print.position') }}</th>
+                  <th>{{ t('print.result') }}</th>
+                </tr>
+              </thead>
               <tbody>
                 <tr v-for="m in p.craft.measurements" :key="m.id">
-                  <td>{{ m.name || '—' }}</td><td>{{ m.tool }}</td><td>{{ m.position }}</td><td>{{ m.result }}</td>
+                  <td>{{ m.name || '—' }}</td>
+                  <td>{{ m.tool }}</td>
+                  <td>{{ m.position }}</td>
+                  <td>{{ m.result }}</td>
                 </tr>
               </tbody>
             </table>
@@ -437,12 +574,19 @@ function print() {
           </p>
           <table class="print-table">
             <thead>
-              <tr><th style="width: 10mm">#</th><th style="width: 55mm">{{ t('print.bonusElement') }}</th><th style="width: 30mm">{{ t('print.bonusArea') }}</th><th>{{ t('print.bonusReason') }}</th></tr>
+              <tr>
+                <th style="width: 10mm">#</th>
+                <th style="width: 55mm">{{ t('print.bonusElement') }}</th>
+                <th style="width: 30mm">{{ t('print.bonusArea') }}</th>
+                <th>{{ t('print.bonusReason') }}</th>
+              </tr>
             </thead>
             <tbody>
-              <tr v-for="(req, i) in page.items" :key="req.id">
-                <td>{{ page.offset + i + 1 }}</td>
-                <td><strong>{{ req.title }}</strong></td>
+              <tr v-for="(req, idx) in page.items" :key="req.id">
+                <td>{{ page.offset + idx + 1 }}</td>
+                <td>
+                  <strong>{{ req.title }}</strong>
+                </td>
                 <td>{{ req.area }}</td>
                 <td>{{ req.description }}</td>
               </tr>
@@ -457,18 +601,35 @@ function print() {
           </p>
           <table class="print-table">
             <thead>
-              <tr><th>{{ t('print.criterion') }}</th><th style="width: 22mm">{{ t('print.points') }}</th><th style="width: 20mm">{{ t('print.basis') }}</th><th>{{ t('print.remark') }}</th></tr>
+              <tr>
+                <th>{{ t('print.criterion') }}</th>
+                <th style="width: 22mm">{{ t('print.points') }}</th>
+                <th style="width: 20mm">{{ t('print.basis') }}</th>
+                <th>{{ t('print.remark') }}</th>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="c in assessment.criteria" :key="c.id">
                 <td>{{ tx(c.label) }}</td>
                 <td>{{ c.earned }} / {{ c.max }}</td>
-                <td>{{ c.basis === 'auto' ? t('matrix.basisAuto') : c.basis === 'self' ? t('matrix.basisSelf') : t('matrix.basisOpen') }}</td>
+                <td>
+                  {{
+                    c.basis === 'auto'
+                      ? t('matrix.basisAuto')
+                      : c.basis === 'self'
+                        ? t('matrix.basisSelf')
+                        : t('matrix.basisOpen')
+                  }}
+                </td>
                 <td>{{ c.note || c.detail }}</td>
               </tr>
               <tr>
-                <td><strong>{{ t('print.total') }}</strong></td>
-                <td><strong>{{ assessment.earned }} / {{ assessment.max }}</strong></td>
+                <td>
+                  <strong>{{ t('print.total') }}</strong>
+                </td>
+                <td>
+                  <strong>{{ assessment.earned }} / {{ assessment.max }}</strong>
+                </td>
                 <td colspan="2"></td>
               </tr>
             </tbody>

@@ -41,9 +41,7 @@ export const useProjectStore = defineStore('project', () => {
 
   /** Alle Bild-IDs, die aktuell irgendwo referenziert werden. */
   const allMediaIds = computed(() =>
-    Object.values(project.value.media || {}).flatMap((list) =>
-      (list || []).map((item) => item.id),
-    ),
+    Object.values(project.value.media || {}).flatMap((list) => (list || []).map((item) => item.id)),
   )
 
   // ---------------------------------------------------------------- Medien
@@ -174,9 +172,7 @@ export const useProjectStore = defineStore('project', () => {
     for (const entry of projects.value) {
       if (entry.id === excludeId) continue
       const data = entry.id === activeId.value ? project.value : await stateDb.getItem(projectKey(entry.id))
-      Object.values(data?.media || {}).forEach((list) =>
-        (list || []).forEach((item) => ids.add(item.id)),
-      )
+      Object.values(data?.media || {}).forEach((list) => (list || []).forEach((item) => ids.add(item.id)))
     }
     return ids
   }
@@ -282,9 +278,10 @@ export const useProjectStore = defineStore('project', () => {
 
       if (index?.projects?.length) {
         projects.value = index.projects
-        const wanted = index.activeId && index.projects.some((p) => p.id === index.activeId)
-          ? index.activeId
-          : index.projects[0].id
+        const wanted =
+          index.activeId && index.projects.some((p) => p.id === index.activeId)
+            ? index.activeId
+            : index.projects[0].id
         const data = await stateDb.getItem(projectKey(wanted))
         if (data) {
           activeId.value = wanted

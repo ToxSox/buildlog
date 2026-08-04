@@ -36,7 +36,9 @@ export function setLang(next) {
 }
 
 function lookup(catalog, key) {
-  return key.split('.').reduce((acc, part) => (acc && typeof acc === 'object' ? acc[part] : undefined), catalog)
+  return key
+    .split('.')
+    .reduce((acc, part) => (acc && typeof acc === 'object' ? acc[part] : undefined), catalog)
 }
 
 function interpolate(text, params) {

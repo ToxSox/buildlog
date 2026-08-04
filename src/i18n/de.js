@@ -26,6 +26,7 @@ export default {
     none: 'keine',
     yes: 'Ja',
     no: 'Nein',
+    close: 'Schließen',
     understood: 'Verstanden',
     refresh: 'aktualisieren',
     choose: 'bitte wählen …',
@@ -57,8 +58,7 @@ export default {
     kicker: 'EMMA Build Log Creator',
     headline: 'Deine Einbaudokumentation.',
     headline2: 'Geführt, regelkonform, druckfertig.',
-    lead:
-      'Der Assistent fragt genau das ab, was die Richter sehen wollen – prüft deine Absicherung live gegen das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem Browser: keine Uploads, kein Konto, kein Server.',
+    lead: 'Der Assistent fragt genau das ab, was die Richter sehen wollen – prüft deine Absicherung live gegen das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem Browser: keine Uploads, kein Konto, kein Server.',
     badgeOffline: '100 % offline',
     badgeAutosave: 'Autosave im Browser',
     badgeCamera: 'Handy-Kamera direkt nutzbar',
@@ -66,7 +66,8 @@ export default {
     yourProjects: 'Deine Mappen',
     active: 'aktiv',
     changedAt: 'geändert {date}',
-    duplicateHint: 'Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.',
+    duplicateHint:
+      'Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.',
     newProject: 'Neue Mappe anlegen',
     chooseStart: 'Womit möchtest du starten?',
     startMode: 'Modus starten →',
@@ -93,7 +94,8 @@ export default {
   },
 
   vehicle: {
-    subtitle: 'Stammdaten der Mappe. Diese Angaben erscheinen später in der Kopfzeile jeder gedruckten Seite.',
+    subtitle:
+      'Stammdaten der Mappe. Diese Angaben erscheinen später in der Kopfzeile jeder gedruckten Seite.',
     participantSection: 'Teilnehmer & Fahrzeug',
     participantName: 'Name des Teilnehmers',
     team: 'Team / Club',
@@ -148,7 +150,8 @@ export default {
   power: {
     subtitle:
       'Der Block, an dem die meisten Punkte verloren gehen. Die Eingaben werden live gegen das Regelwerk geprüft.',
-    source: 'Geprüft gegen das {edition}. Grundlage der Absicherungswerte ist die dort abgedruckte Fuse Size Matrix (nach VW75212, Rechenspannung U = 12 V).',
+    source:
+      'Geprüft gegen das {edition}. Grundlage der Absicherungswerte ist die dort abgedruckte Fuse Size Matrix (nach VW75212, Rechenspannung U = 12 V).',
     battery: 'Batterie',
     location: 'Einbauort',
     type: 'Typ / Modell',
@@ -348,6 +351,7 @@ export default {
     caption: 'Bildunterschrift (erscheint im Ausdruck)',
     rotate: '↻ 90°',
     rotating: 'dreht …',
+    photo: 'Foto',
     loading: 'Bild wird geladen …',
     deleteConfirm: 'Dieses Foto aus der Mappe entfernen?',
     paysInto: 'zahlt ein auf „{criterion}“ ({points} P.)',
@@ -426,7 +430,8 @@ export default {
     createdWith: 'Erstellt mit dem EMMA Build Log Creator · {date}',
     page: 'Seite {current} von {total}',
     signal: 'Signalweg',
-    signalLead: 'Quelle → Verarbeitung → Verstärkung → Wandler. Automatisch aus der Komponentenliste erzeugt.',
+    signalLead:
+      'Quelle → Verarbeitung → Verstärkung → Wandler. Automatisch aus der Komponentenliste erzeugt.',
     powerDiagram: 'Stromlaufplan',
     powerLead: 'Batterie → Hauptsicherung → Verteiler → Verbraucher, mit Querschnitt je Leitung.',
     powerData: 'Strom & Sicherheit',
@@ -572,7 +577,7 @@ export default {
       message:
         'Die Hauptsicherung liegt bei {fuse} A. Solange die OEM-Masseleitung des Fahrzeugs nicht verstärkt ist, begrenzt das Regelwerk die Hauptsicherung (bzw. die Summe mehrerer Hauptsicherungen) auf {max} A.',
       fix: 'Masseleitung Motor/Karosserie ↔ Batterie verstärken – oder eine Berechnung nach der Judge-Book-Formel mit dem OEM-Massequerschnitt beilegen.',
-      ref: '„If the car\'s OEM ground cable is not upgraded the biggest allowed size for the main fuse … is 100 A“',
+      ref: "„If the car's OEM ground cable is not upgraded the biggest allowed size for the main fuse … is 100 A“",
     },
     groundOemCapOk: {
       title: 'Hauptsicherung unter der {max}-A-Grenze',

@@ -8,7 +8,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/emmaRules.test.mjs"
+    "test": "node tests/emmaRules.test.mjs && node tests/matrix.test.mjs",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:e2e": "node tests/e2e/run.mjs"
   },
   "dependencies": {
     "compressorjs": "^1.2.1",
@@ -20,8 +25,14 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-vue": "^5.2.1",
+    "eslint": "^10.8.0",
+    "eslint-plugin-vue": "^10.10.0",
+    "globals": "^17.9.0",
+    "playwright": "^1.62.1",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4.0.0",
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^1.3.0"

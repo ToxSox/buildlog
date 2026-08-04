@@ -5,8 +5,11 @@ const { lang, setLang, t } = useI18n()
 </script>
 
 <template>
-  <div class="flex items-center gap-0.5 rounded-lg border border-slate-300 bg-white p-0.5" role="group"
-    :aria-label="t('app.language')">
+  <div
+    class="flex items-center gap-0.5 rounded-lg border border-slate-300 bg-white p-0.5"
+    role="group"
+    :aria-label="t('app.language')"
+  >
     <button
       v-for="l in LANGUAGES"
       :key="l.id"

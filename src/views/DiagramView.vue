@@ -12,10 +12,6 @@ const { t, tx } = useI18n()
 const store = useProjectStore()
 const system = computed(() => store.project.system)
 
-const componentLabel = (id) => {
-  const c = system.value.components.find((x) => x.id === id)
-  return c ? c.name || typeLabel(c.type) : '?'
-}
 const typeLabel = (type) => tx(COMPONENT_TYPES.find((x) => x.id === type)?.label) || type
 const typeIcon = (type) => COMPONENT_TYPES.find((x) => x.id === type)?.icon || '•'
 
@@ -52,11 +48,7 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
 </script>
 
 <template>
-  <WizardShell
-    step-key="diagram"
-    :title="t('steps.diagram')"
-    :subtitle="t('diagram.subtitle')"
-  >
+  <WizardShell step-key="diagram" :title="t('steps.diagram')" :subtitle="t('diagram.subtitle')">
     <div class="card">
       <div class="card-header">
         <div>
@@ -99,7 +91,9 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             <label class="field">{{ t('diagram.channels') }}</label>
             <input v-model="c.channels" class="input" placeholder="2 / 4 / 8" />
           </div>
-          <button type="button" class="btn-ghost btn-xs" @click="removeComponent(c.id)">{{ t('common.remove') }}</button>
+          <button type="button" class="btn-ghost btn-xs" @click="removeComponent(c.id)">
+            {{ t('common.remove') }}
+          </button>
         </div>
       </div>
     </div>
@@ -110,12 +104,19 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           <h2 class="section-title">{{ t('diagram.signal') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('diagram.signalHint') }}</p>
         </div>
-        <button type="button" class="btn-soft btn-xs" :disabled="system.components.length < 2" @click="addLink('signal')">
+        <button
+          type="button"
+          class="btn-soft btn-xs"
+          :disabled="system.components.length < 2"
+          @click="addLink('signal')"
+        >
           {{ t('diagram.addLink') }}
         </button>
       </div>
       <div class="card-body space-y-3">
-        <p v-if="!system.signalLinks.length" class="text-sm text-slate-500">{{ t('diagram.noSignalLink') }}</p>
+        <p v-if="!system.signalLinks.length" class="text-sm text-slate-500">
+          {{ t('diagram.noSignalLink') }}
+        </p>
         <div
           v-for="l in system.signalLinks"
           :key="l.id"
@@ -143,7 +144,9 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             <label class="field">{{ t('diagram.cableChannel') }}</label>
             <input v-model="l.label" class="input" placeholder="Cinch Ch 1-2" />
           </div>
-          <button type="button" class="btn-ghost btn-xs" @click="removeLink('signal', l.id)">{{ t('common.remove') }}</button>
+          <button type="button" class="btn-ghost btn-xs" @click="removeLink('signal', l.id)">
+            {{ t('common.remove') }}
+          </button>
         </div>
       </div>
     </div>
@@ -154,7 +157,12 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           <h2 class="section-title">{{ t('diagram.power') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('diagram.powerHint') }}</p>
         </div>
-        <button type="button" class="btn-soft btn-xs" :disabled="system.components.length < 2" @click="addLink('power')">
+        <button
+          type="button"
+          class="btn-soft btn-xs"
+          :disabled="system.components.length < 2"
+          @click="addLink('power')"
+        >
           {{ t('diagram.addLink') }}
         </button>
       </div>
@@ -190,7 +198,9 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
               <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
             </select>
           </div>
-          <button type="button" class="btn-ghost btn-xs" @click="removeLink('power', l.id)">{{ t('common.remove') }}</button>
+          <button type="button" class="btn-ghost btn-xs" @click="removeLink('power', l.id)">
+            {{ t('common.remove') }}
+          </button>
         </div>
       </div>
     </div>
@@ -204,11 +214,15 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
       </div>
       <div class="card-body space-y-6">
         <div>
-          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">{{ t('diagram.signal') }}</p>
+          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            {{ t('diagram.signal') }}
+          </p>
           <MermaidDiagram :definition="signalDef" id-prefix="signal-edit" />
         </div>
         <div>
-          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">{{ t('diagram.power') }}</p>
+          <p class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+            {{ t('diagram.power') }}
+          </p>
           <MermaidDiagram :definition="powerDef" id-prefix="power-edit" />
         </div>
       </div>

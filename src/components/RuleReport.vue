@@ -34,7 +34,12 @@ const styles = {
   error: { box: 'border-rose-300 bg-rose-50', title: 'text-rose-900', text: 'text-rose-800', icon: '⛔' },
   warn: { box: 'border-amber-300 bg-amber-50', title: 'text-amber-900', text: 'text-amber-800', icon: '⚠️' },
   info: { box: 'border-sky-200 bg-sky-50', title: 'text-sky-900', text: 'text-sky-800', icon: 'ℹ️' },
-  ok: { box: 'border-emerald-200 bg-emerald-50', title: 'text-emerald-900', text: 'text-emerald-800', icon: '✅' },
+  ok: {
+    box: 'border-emerald-200 bg-emerald-50',
+    title: 'text-emerald-900',
+    text: 'text-emerald-800',
+    icon: '✅',
+  },
 }
 </script>
 

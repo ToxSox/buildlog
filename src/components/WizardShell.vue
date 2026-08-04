@@ -60,7 +60,9 @@ function goPrev() {
 
     <slot />
 
-    <div class="wizard-ui sticky bottom-0 -mx-4 mt-8 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div
+      class="wizard-ui sticky bottom-0 -mx-4 mt-8 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur"
+    >
       <div class="flex items-center justify-between gap-3">
         <button type="button" class="btn-ghost" :disabled="!nav.prev" @click="goPrev">
           ← <span class="hidden sm:inline">{{ nav.prev ? t(nav.prev.labelKey) : t('common.back') }}</span>
@@ -71,17 +73,13 @@ function goPrev() {
         </p>
 
         <button v-if="nav.next" type="button" class="btn-primary" @click="goNext">
-          <span class="hidden sm:inline">{{ t(nav.next.labelKey) }}</span><span class="sm:hidden">{{ t('common.next') }}</span> →
+          <span class="hidden sm:inline">{{ t(nav.next.labelKey) }}</span
+          ><span class="sm:hidden">{{ t('common.next') }}</span> →
         </button>
         <router-link v-else to="/druck" class="btn-primary">{{ t('review.openPrint') }}</router-link>
       </div>
     </div>
 
-    <SkipDialog
-      :open="dialogOpen"
-      :missing="missing"
-      @close="dialogOpen = false"
-      @skip="skipAll"
-    />
+    <SkipDialog :open="dialogOpen" :missing="missing" @close="dialogOpen = false" @skip="skipAll" />
   </div>
 </template>

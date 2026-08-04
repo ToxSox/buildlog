@@ -26,11 +26,7 @@ function switchMode(mode) {
 </script>
 
 <template>
-  <WizardShell
-    step-key="vehicle"
-    :title="t('steps.vehicle')"
-    :subtitle="t('vehicle.subtitle')"
-  >
+  <WizardShell step-key="vehicle" :title="t('steps.vehicle')" :subtitle="t('vehicle.subtitle')">
     <div class="card">
       <div class="card-header">
         <h2 class="section-title">{{ t('vehicle.participantSection') }}</h2>
@@ -67,7 +63,12 @@ function switchMode(mode) {
         </div>
         <div>
           <label class="field" for="installer">{{ t('vehicle.installer') }}</label>
-          <input id="installer" v-model="meta.installerName" class="input" placeholder="Eigenbau / Fachbetrieb" />
+          <input
+            id="installer"
+            v-model="meta.installerName"
+            class="input"
+            placeholder="Eigenbau / Fachbetrieb"
+          />
         </div>
         <div class="sm:col-span-2">
           <label class="field" for="notes">{{ t('vehicle.notes') }}</label>
@@ -124,9 +125,7 @@ function switchMode(mode) {
           type="button"
           class="rounded-lg border px-4 py-3 text-left transition"
           :class="
-            store.mode === MODES.QUICK
-              ? 'border-sky-600 bg-sky-50'
-              : 'border-slate-200 hover:border-sky-300'
+            store.mode === MODES.QUICK ? 'border-sky-600 bg-sky-50' : 'border-slate-200 hover:border-sky-300'
           "
           @click="switchMode(MODES.QUICK)"
         >
@@ -137,9 +136,7 @@ function switchMode(mode) {
           type="button"
           class="rounded-lg border px-4 py-3 text-left transition"
           :class="
-            store.mode === MODES.MASTER
-              ? 'border-sky-600 bg-sky-50'
-              : 'border-slate-200 hover:border-sky-300'
+            store.mode === MODES.MASTER ? 'border-sky-600 bg-sky-50' : 'border-slate-200 hover:border-sky-300'
           "
           @click="switchMode(MODES.MASTER)"
         >

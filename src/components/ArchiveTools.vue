@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { exportArchive, importArchive } from '../utils/archive.js'
-import { useProjectStore } from '../stores/project.js'
 import { formatBytes } from '../utils/image.js'
 import { useI18n } from '../i18n/index.js'
 
@@ -14,7 +13,6 @@ const props = defineProps({
 })
 
 const router = useRouter()
-const store = useProjectStore()
 
 const busy = ref('')
 const message = ref('')
@@ -89,7 +87,12 @@ function onPick(event) {
       >
         <p class="text-sm font-bold text-slate-800">{{ t('archive.importTitle') }}</p>
         <p class="mt-0.5 text-xs text-slate-600">{{ t('archive.importHint') }}</p>
-        <button type="button" class="btn-soft btn-xs mt-3" :disabled="busy === 'import'" @click="fileInput?.click()">
+        <button
+          type="button"
+          class="btn-soft btn-xs mt-3"
+          :disabled="busy === 'import'"
+          @click="fileInput?.click()"
+        >
           {{ busy === 'import' ? t('archive.importing') : t('archive.importButton') }}
         </button>
         <input ref="fileInput" type="file" accept=".zip,application/zip" class="hidden" @change="onPick" />
