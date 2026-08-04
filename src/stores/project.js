@@ -312,7 +312,11 @@ export const useProjectStore = defineStore('project', () => {
     if (!activeId.value) return
     saving.value = true
     try {
-      project.value.updatedAt = new Date().toISOString()
+      // Zeitstempel bewusst am Rohobjekt setzen: eine Zuweisung über den reaktiven
+      // Proxy meldet eine Änderung an den Deep-Watcher unten, der daraufhin den
+      // nächsten Autosave plant – der wiederum den Zeitstempel setzt. Diese
+      // Endlosschleife ließ die Statusanzeige im Header dauerhaft flackern.
+      toRaw(project.value).updatedAt = new Date().toISOString()
       await stateDb.setItem(projectKey(activeId.value), plain(project.value))
       touchIndexEntry()
       await persistIndex()

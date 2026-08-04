@@ -123,6 +123,51 @@ try {
   await page.fill('#model', 'A3')
   await page.fill('#plate', 'M-AB 1234')
 
+  // ------------------------------------------------------ Autosave kommt zur Ruhe
+  // Regression: save() schrieb updatedAt in den beobachteten State und stieß damit
+  // den nächsten Autosave an – eine Endlosschleife, die die Statusanzeige oben
+  // rechts dauerhaft flackern ließ und ohne Unterlass in IndexedDB schrieb.
+  // Die Verbindung wird sofort wieder geschlossen: eine offene Verbindung
+  // blockiert sonst das Anlegen weiterer localforage-Tabellen (z. B. „media“).
+  const readUpdatedAt = () =>
+    page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const req = globalThis.indexedDB.open('emma-buildlog')
+          req.onerror = () => resolve('')
+          req.onblocked = () => resolve('')
+          req.onsuccess = () => {
+            const db = req.result
+            const done = (value) => {
+              db.close()
+              resolve(value)
+            }
+            try {
+              const all = db.transaction('state', 'readonly').objectStore('state').getAll()
+              all.onerror = () => done('')
+              all.onsuccess = () => done(all.result.find((v) => v?.updatedAt)?.updatedAt || '')
+            } catch {
+              done('')
+            }
+          }
+        }),
+    )
+
+  await page.waitForTimeout(1200)
+  const stampBefore = await readUpdatedAt()
+  const statusLabels = new Set()
+  for (let i = 0; i < 10; i++) {
+    statusLabels.add((await page.locator('[data-testid=save-status]').textContent()).trim())
+    await page.waitForTimeout(200)
+  }
+  const stampAfter = await readUpdatedAt()
+  check(
+    'Autosave stoppt nach der Eingabe',
+    Boolean(stampBefore) && stampBefore === stampAfter,
+    `${stampBefore} → ${stampAfter}`,
+  )
+  check('Statusanzeige flackert im Leerlauf nicht', statusLabels.size === 1, [...statusLabels].join(' | '))
+
   // ------------------------------------------------- Kategorie steuert den Umfang
   await page.getByRole('button', { name: 'SQ E – Entry', exact: true }).click()
   await page.waitForTimeout(400)
