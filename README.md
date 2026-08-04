@@ -16,7 +16,7 @@ npm run preview      # Build lokal testen
 
 npm run lint         # ESLint
 npm run format       # Prettier
-npm test             # Regel- und Matrix-Tests (Node, ohne Browser)
+npm test             # Regeln, Matrix, Datenbasis und Sprachkataloge (ohne Browser)
 npm run build && npm run test:e2e   # End-to-End gegen den echten Build
 ```
 
@@ -183,12 +183,21 @@ weiterschreiben.
 
 ## Tests
 
-- `npm test` – Regel-Engine gegen die Fuse Size Matrix und die Matrix-Summen
-  gegen die Sollwerte des Rulebooks (Node, kein Browser nötig).
+- `npm test` – vier Prüfungen ohne Browser:
+  - `tests/emmaRules.test.mjs` – Regel-Engine gegen die Fuse Size Matrix, dazu
+    die Bewertung der Hauptsicherung (ein geleertes Feld darf keine Punkte geben).
+  - `tests/matrix.test.mjs` – Matrix-Summen gegen die Sollwerte des Rulebooks.
+  - `tests/sections.test.mjs` – Zusammenhalt der Datenbasis: eindeutige
+    Schlüssel, bekannte Kriterien und Beispielbilder, kein Pflichtfoto ohne
+    sichtbares Feld.
+  - `tests/i18n.test.mjs` – beide Sprachkataloge deckungsgleich, gleiche
+    Platzhalter, jeder im Code benutzte Schlüssel übersetzt.
 - `npm run test:e2e` – fährt den Produktions-Build in Chromium durch: Kategorie-
   Steuerung, Regelverstöße, Bild-Pipeline inklusive Drehen, mermaid,
-  Sprachwechsel, ZIP-Roundtrip und eine Regression auf die PDF-Seitengröße
-  (297 × 210 mm). Braucht einen Chromium; ein eigener Pfad lässt sich über
+  Sprachwechsel, ZIP-Roundtrip (auch zweimal derselbe Import), Autosave ohne
+  Endlosschleife, Seitenumbruch und Inhalt des Ausdrucks, die PDF-Seitengröße
+  (297 × 210 mm), das Layout im Telefonformat und die Beschriftung aller
+  Eingabefelder. Braucht einen Chromium; ein eigener Pfad lässt sich über
   `CHROMIUM_PATH` setzen.
 
 `.github/workflows/ci.yml` führt Lint, Formatprüfung, Tests, Build und E2E aus.
