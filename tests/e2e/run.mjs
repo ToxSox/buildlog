@@ -509,6 +509,62 @@ try {
   await ctx4.close()
   check('jedes Eingabefeld hat eine Beschriftung', nameless.length === 0, nameless.slice(0, 5).join(' | '))
 
+  // --------------------------------------------------------- Betrieb ohne Netz
+  // Am Showplatz gibt es oft kein Netz – genau dort wird die Mappe gebraucht.
+  // Der Service Worker muss alles vorhalten, auch den nachgeladenen mermaid-Chunk.
+  const ctx5 = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const offline = await ctx5.newPage()
+  offline.on('pageerror', (e) => consoleErrors.push(`offline: ${e.message}`))
+  offline.on('console', (m) => m.type() === 'error' && consoleErrors.push(`offline: ${m.text()}`))
+
+  await offline.goto(BASE, { waitUntil: 'networkidle' })
+  await offline.locator('button.card').nth(1).click()
+  await offline.waitForURL('**/#/wizard/fahrzeug')
+  await offline.fill('#make', 'Opel')
+  await offline.fill('#model', 'Astra')
+  await offline.getByRole('button', { name: 'SQ M – Master', exact: true }).click()
+  await offline.waitForTimeout(800)
+  const swActive = await offline.evaluate(() =>
+    navigator.serviceWorker.ready.then((r) => Boolean(r.active)).catch(() => false),
+  )
+  await offline.waitForTimeout(2500) // Precache abwarten
+
+  await ctx5.setOffline(true)
+  await offline.reload({ waitUntil: 'load' }).catch(() => {})
+  await offline.waitForTimeout(2500)
+  const startsOffline = await offline
+    .locator('header')
+    .isVisible()
+    .catch(() => false)
+  const keepsProject = await offline
+    .locator('header')
+    .innerText()
+    .then((text) => text.includes('Opel Astra'))
+    .catch(() => false)
+
+  await offline.goto(`${BASE}#/wizard/diagramme`)
+  await offline.waitForTimeout(1000)
+  await offline
+    .getByRole('button', { name: /Signalquelle/ })
+    .first()
+    .click()
+  await offline
+    .getByRole('button', { name: /Endstufe/ })
+    .first()
+    .click()
+  await offline.waitForTimeout(3000)
+  const diagramsOffline = await offline.locator('.mermaid-host svg').count()
+
+  await offline.goto(`${BASE}#/druck`)
+  await offline.waitForTimeout(3000)
+  const printOffline = await offline.locator('.print-page').count()
+  await ctx5.close()
+
+  check('Service Worker übernimmt', swActive)
+  check('App startet ohne Netz und behält die Mappe', startsOffline && keepsProject)
+  check('Diagramme rendern ohne Netz', diagramsOffline === 2, `${diagramsOffline} Diagramme`)
+  check('Druckansicht baut ohne Netz auf', printOffline >= 3, `${printOffline} Seiten`)
+
   check('keine Konsolenfehler', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '))
 } finally {
   await browser?.close()
