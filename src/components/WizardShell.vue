@@ -16,7 +16,7 @@ const router = useRouter()
 const store = useProjectStore()
 const { missingForStep } = useScore()
 
-const nav = computed(() => neighbours(store.mode, props.stepKey))
+const nav = computed(() => neighbours(store.column, props.stepKey))
 const missing = computed(() => missingForStep(props.stepKey))
 const dialogOpen = ref(false)
 

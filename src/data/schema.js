@@ -4,10 +4,10 @@
  * Alles, was hier definiert ist, wird 1:1 als JSON in die IndexedDB gespeichert
  * (Autosave) und beim Projekt-Export in die ZIP-Datei geschrieben.
  * Bilder liegen NICHT in dieser Struktur, sondern als Blob im Media-Store –
- * hier steht nur die Metadaten-Referenz (id, caption, rotation, ...).
+ * hier steht nur die Metadaten-Referenz (id, caption, width, height, ...).
  */
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 export const MODES = {
   QUICK: 'QuickRescue',
@@ -18,28 +18,26 @@ export const MODES = {
  * Kategorien laut EMMA competition manual, edition 2026, Kapitel 2
  * („EMMA Categories & Classes overview“).
  *
- * `docPoints` ist die Punktzahl, die in dieser Kategorie auf die Rubrik
- * System documentation entfällt (Signal-Flowchart, Cable/Fuse-Diagramm,
- * Foto-Log nicht zugänglicher Verbindungen). In E und S gibt es stattdessen
- * nur 4 Punkte für „System/Wiring Diagram present“.
+ * Welche Bewertungskriterien und Maximalpunkte je Kategorie gelten, steht in
+ * `matrix.js` – das ist die einzige Quelle der Wahrheit dafür.
  */
 export const EMMA_CLASSES = [
-  { id: 'esql-inside', label: 'ESQL Inside (Einsteiger)', group: 'Einstieg', docPoints: 0 },
-  { id: 'sq-e', label: 'SQ E – Entry', group: 'Sound Quality', docPoints: 0 },
-  { id: 'sq-s', label: 'SQ S – Skilled', group: 'Sound Quality', docPoints: 0 },
-  { id: 'sq-m', label: 'SQ M – Master', group: 'Sound Quality', docPoints: 10 },
-  { id: 'sq-x-limited', label: 'SQ X – Expert Limited', group: 'Sound Quality', docPoints: 10 },
-  { id: 'sq-x-unlimited', label: 'SQ X – Expert Unlimited', group: 'Sound Quality', docPoints: 10 },
-  { id: 'mm', label: 'MM – Multimedia', group: 'Multimedia', docPoints: 10 },
-  { id: 'espl-trunk', label: 'ESPL Trunk', group: 'ESPL', docPoints: 0 },
-  { id: 'espl-br', label: 'ESPL B / R', group: 'ESPL', docPoints: 0 },
-  { id: 'espl-wall', label: 'ESPL Wall', group: 'ESPL', docPoints: 0 },
-  { id: 'espl-expert', label: 'ESPL Expert', group: 'ESPL', docPoints: 0 },
-  { id: 'esql-limited', label: 'ESQL Limited', group: 'ESQL', docPoints: 0 },
-  { id: 'esql-unlimited', label: 'ESQL Unlimited', group: 'ESQL', docPoints: 0 },
-  { id: 'tuning-stock', label: 'Tuning Stock', group: 'EMMA Tuning', docPoints: 0 },
-  { id: 'tuning-custom-trunk', label: 'Tuning Custom Trunk', group: 'EMMA Tuning', docPoints: 0 },
-  { id: 'tuning-custom-unlimited', label: 'Tuning Custom Unlimited', group: 'EMMA Tuning', docPoints: 0 },
+  { id: 'esql-inside', label: 'ESQL Inside (Einsteiger)', group: 'Einstieg' },
+  { id: 'sq-e', label: 'SQ E – Entry', group: 'Sound Quality' },
+  { id: 'sq-s', label: 'SQ S – Skilled', group: 'Sound Quality' },
+  { id: 'sq-m', label: 'SQ M – Master', group: 'Sound Quality' },
+  { id: 'sq-x-limited', label: 'SQ X – Expert Limited', group: 'Sound Quality' },
+  { id: 'sq-x-unlimited', label: 'SQ X – Expert Unlimited', group: 'Sound Quality' },
+  { id: 'mm', label: 'MM – Multimedia', group: 'Multimedia' },
+  { id: 'espl-trunk', label: 'ESPL Trunk', group: 'ESPL' },
+  { id: 'espl-br', label: 'ESPL B / R', group: 'ESPL' },
+  { id: 'espl-wall', label: 'ESPL Wall', group: 'ESPL' },
+  { id: 'espl-expert', label: 'ESPL Expert', group: 'ESPL' },
+  { id: 'esql-limited', label: 'ESQL Limited', group: 'ESQL' },
+  { id: 'esql-unlimited', label: 'ESQL Unlimited', group: 'ESQL' },
+  { id: 'tuning-stock', label: 'Tuning Stock', group: 'EMMA Tuning' },
+  { id: 'tuning-custom-trunk', label: 'Tuning Custom Trunk', group: 'EMMA Tuning' },
+  { id: 'tuning-custom-unlimited', label: 'Tuning Custom Unlimited', group: 'EMMA Tuning' },
 ]
 
 export const COMPONENT_TYPES = [
@@ -116,8 +114,6 @@ export function createEmptyProject() {
       chargingCableSection: null,
       distributionFuses: [],
       cableProtection: [],
-      remoteFuseAmps: null,
-      totalAmpFuseAmps: null,
     },
 
     hardware: {
@@ -138,8 +134,25 @@ export function createEmptyProject() {
     },
 
     /**
+     * Selbsteinschätzung je Matrix-Kriterium:
+     * assessment['cleanliness'] = { state: 'yes'|'partly'|'no'|null, note: '' }
+     */
+    assessment: {},
+
+    /** Bonus-Point-Anträge (X / X Unlimited), max. 50 laut Regelwerk. */
+    bonusRequests: [],
+
+    /** Vorbereitung der 7-Minuten-Erklärung an die Richter. */
+    presentation: {
+      goal: '',
+      story: '',
+      challenge: '',
+      highlights: [],
+    },
+
+    /**
      * Medien-Referenzen pro Slot:
-     * media['power.mainFuse'] = [{ id, caption, rotation, width, height, mime, name }]
+     * media['power.mainFuse'] = [{ id, caption, width, height, mime, name }]
      */
     media: {},
 
@@ -186,6 +199,9 @@ export function migrateProject(raw) {
     power: { ...base.power, ...(raw.power || {}) },
     hardware: { ...base.hardware, ...(raw.hardware || {}) },
     craft: { ...base.craft, ...(raw.craft || {}) },
+    assessment: { ...(raw.assessment || {}) },
+    bonusRequests: Array.isArray(raw.bonusRequests) ? raw.bonusRequests : [],
+    presentation: { ...base.presentation, ...(raw.presentation || {}) },
     media: { ...(raw.media || {}) },
     skipped: Array.isArray(raw.skipped) ? raw.skipped : [],
   }
@@ -203,6 +219,13 @@ export function migrateProject(raw) {
     ...b,
     section: sanitizeSection(b.section),
   }))
+
+  // 'rotation' wurde durch physisches Drehen abgelöst und wird nicht mehr geführt.
+  Object.values(merged.media).forEach((list) =>
+    (list || []).forEach((item) => {
+      delete item.rotation
+    }),
+  )
 
   merged.schemaVersion = SCHEMA_VERSION
   return merged

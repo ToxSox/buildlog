@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
+import PhotoSlot from './PhotoSlot.vue'
 
 const props = defineProps({
   /** Pfad im Store, z. B. 'hardware.amps' */
@@ -11,6 +12,13 @@ const props = defineProps({
   emptyLabel: { type: String, default: 'Noch nichts erfasst.' },
   /** [{ key, label, placeholder, type, options, span }] */
   fields: { type: Array, required: true },
+  /**
+   * Wenn gesetzt, bekommt jeder Eintrag einen eigenen Foto-Slot
+   * (z. B. 'craft.customParts' -> 'craft.customParts.<id>').
+   */
+  photoSlotPrefix: { type: String, default: '' },
+  photoLabel: { type: String, default: 'Fotos zu diesem Eintrag' },
+  photoExample: { type: String, default: '' },
 })
 
 const store = useProjectStore()
@@ -19,6 +27,20 @@ const items = computed(() => {
   const list = props.path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), store.project)
   return Array.isArray(list) ? list : []
 })
+
+function slotDefFor(item, index) {
+  return {
+    key: `${props.photoSlotPrefix}.${item.id}`,
+    label: `${props.photoLabel} #${index + 1}${item[props.fields[0].key] ? ` – ${item[props.fields[0].key]}` : ''}`,
+    shown: ['E', 'S', 'M', 'X', 'XUNL'],
+    required: [],
+    criterion: '',
+    multiple: true,
+    example: props.photoExample,
+    hint: '',
+    tip: '',
+  }
+}
 
 function add() {
   const blank = {}
@@ -71,6 +93,10 @@ function add() {
               :placeholder="f.placeholder"
             />
           </div>
+        </div>
+
+        <div v-if="photoSlotPrefix" class="mt-3">
+          <PhotoSlot :slot-def="slotDefFor(item, i)" />
         </div>
       </div>
     </div>

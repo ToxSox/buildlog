@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
-import { allSlots } from '../data/sections.js'
+import { allSlots, isSlotRequired } from '../data/sections.js'
 import { evaluateRules, summarize } from '../data/emmaRules.js'
 import { useScore } from '../composables/useScore.js'
 import WizardShell from '../components/WizardShell.vue'
@@ -9,17 +9,17 @@ import RuleReport from '../components/RuleReport.vue'
 import ArchiveTools from '../components/ArchiveTools.vue'
 
 const store = useProjectStore()
-const { percent, level, missingRequired } = useScore()
+const { percent, level, missingRequired, assessment, column, columnLabel } = useScore()
 
 const findings = computed(() => summarize(evaluateRules(store.project)))
 
 const checklist = computed(() =>
-  allSlots(store.mode).map((slot) => ({
+  allSlots(store.column, store.mode).map((slot) => ({
     key: slot.key,
     label: slot.label,
     step: slot.section.step,
     section: slot.section.title,
-    required: slot.required.includes(store.mode),
+    required: isSlotRequired(slot, store.column),
     count: store.mediaFor(slot.key).length,
     skipped: store.isSkipped(slot.key),
   })),
@@ -43,9 +43,13 @@ const grouped = computed(() => {
   >
     <div class="grid gap-4 sm:grid-cols-3">
       <div class="card card-body">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Fortschritt</p>
-        <p class="mt-1 text-3xl font-black text-slate-900">{{ percent }}<span class="text-lg">/100</span></p>
-        <p class="text-xs text-slate-500">{{ level }}</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+          {{ column ? 'Installationspunkte' : 'Pflichtfotos' }}
+        </p>
+        <p class="mt-1 text-3xl font-black text-slate-900">
+          {{ assessment.earned || percent }}<span class="text-lg text-slate-400">/{{ assessment.max || 100 }}</span>
+        </p>
+        <p class="text-xs text-slate-500">{{ columnLabel || level }}</p>
       </div>
       <div class="card card-body">
         <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Kritische Befunde</p>

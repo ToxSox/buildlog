@@ -2,16 +2,16 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
-import { stepsForMode } from '../data/steps.js'
+import { stepsForColumn } from '../data/steps.js'
 import { useScore } from '../composables/useScore.js'
 import ProgressBar from './ProgressBar.vue'
 
 const route = useRoute()
 const router = useRouter()
 const store = useProjectStore()
-const { score, maxScore, percent, level } = useScore()
+const { score, maxScore, percent, level, columnLabel } = useScore()
 
-const steps = computed(() => stepsForMode(store.mode))
+const steps = computed(() => stepsForColumn(store.column))
 const currentKey = computed(() => route.meta.step)
 const showWizard = computed(() => store.hasProject && Boolean(route.meta.step))
 
@@ -43,7 +43,8 @@ function go(step) {
       <div v-if="store.hasProject" class="min-w-0 flex-1">
         <p class="truncate text-sm font-semibold text-slate-800">{{ store.title }}</p>
         <p class="truncate text-[11px] text-slate-500">
-          {{ store.mode }}<span v-if="store.project.meta.plate"> · {{ store.project.meta.plate }}</span>
+          {{ columnLabel || store.mode
+          }}<span v-if="store.project.meta.plate"> · {{ store.project.meta.plate }}</span>
         </p>
       </div>
       <div v-else class="flex-1"></div>

@@ -9,7 +9,7 @@ const props = defineProps({
 })
 
 const store = useProjectStore()
-const sections = computed(() => sectionsForStep(props.step, store.mode))
+const sections = computed(() => sectionsForStep(props.step, store.column, store.mode))
 </script>
 
 <template>

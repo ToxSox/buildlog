@@ -6,6 +6,7 @@ const props = defineProps({
   score: { type: Number, default: 0 },
   max: { type: Number, default: 100 },
   level: { type: String, default: '' },
+  caption: { type: String, default: 'Install-Punkte (geschätzt)' },
 })
 
 const barClass = computed(() => {
@@ -19,7 +20,7 @@ const barClass = computed(() => {
 <template>
   <div>
     <div class="flex items-baseline justify-between text-[11px] font-semibold text-slate-600">
-      <span>Sichere Install-Punkte</span>
+      <span>{{ caption }}</span>
       <span class="tabular-nums">{{ score }}/{{ max }}</span>
     </div>
     <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">

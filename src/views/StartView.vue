@@ -17,7 +17,7 @@ const modes = [
     title: 'Quick Rescue',
     claim: 'Show ist morgen, Mappe ist leer.',
     bullets: [
-      'Nur die sicherheitsrelevanten Pflichtangaben',
+      'Zeigt nur, was in deiner EMMA-Kategorie Pflicht ist',
       'Strom, Absicherung, Befestigung, Blockdiagramm',
       'In ca. 20 Minuten druckfertig',
     ],
@@ -29,9 +29,9 @@ const modes = [
     title: 'SQ Masterclass',
     claim: 'Der komplette Bauprozess, lückenlos belegt.',
     bullets: [
-      'Alles aus Quick Rescue',
-      'Plus Türdämmung Schicht für Schicht, Terminierung unter dem Teppich',
-      'Plus Custom-Parts, GFK, 3D-Druck und REW-Messungen',
+      'Alles aus Quick Rescue plus jedes optionale Detailfoto',
+      'Türdämmung Schicht für Schicht, Terminierung unter dem Teppich',
+      'Custom-Parts, GFK, 3D-Druck, REW-Messungen, Bonuspunkte-Anträge',
     ],
     accent: 'from-sky-500 to-indigo-500',
   },
@@ -115,8 +115,9 @@ function resume() {
         </button>
       </div>
       <p class="mt-3 text-xs text-slate-500">
-        Der Modus lässt sich später im Schritt „Fahrzeug &amp; Klasse“ jederzeit wechseln – eingegebene Daten
-        bleiben dabei erhalten.
+        Der Modus steuert nur den Umfang der Abfrage. <strong>Was Pflicht ist, ergibt sich aus deiner
+        EMMA-Kategorie</strong> – die wählst du gleich im ersten Schritt. Beides lässt sich jederzeit
+        ändern, ohne dass Eingaben verloren gehen.
       </p>
     </section>
 

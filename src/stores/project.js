@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch, toRaw } from 'vue'
 import localforage from 'localforage'
 import { createEmptyProject, migrateProject, uid, MODES } from '../data/schema.js'
+import { columnForClass } from '../data/matrix.js'
 import { useMediaStore } from './media.js'
 
 const stateDb = localforage.createInstance({
@@ -23,6 +24,9 @@ export const useProjectStore = defineStore('project', () => {
   const isMasterclass = computed(() => project.value.mode === MODES.MASTER)
   const isQuick = computed(() => project.value.mode === MODES.QUICK)
   const hasProject = computed(() => Boolean(project.value.mode))
+
+  /** Matrix-Spalte der gewählten EMMA-Kategorie – steuert Pflichtfelder und Score. */
+  const column = computed(() => columnForClass(project.value.meta.emmaClass))
 
   const title = computed(() => {
     const m = project.value.meta
@@ -47,7 +51,6 @@ export const useProjectStore = defineStore('project', () => {
     project.value.media[slot].push({
       id: entry.id || uid('img'),
       caption: entry.caption || '',
-      rotation: entry.rotation || 0,
       width: entry.width || 0,
       height: entry.height || 0,
       mime: entry.mime || 'image/jpeg',
@@ -91,6 +94,26 @@ export const useProjectStore = defineStore('project', () => {
   }
   function isSkipped(slot) {
     return project.value.skipped.includes(slot)
+  }
+
+  // -------------------------------------------------------- Selbstbewertung
+  function setAssessment(criterionId, patch) {
+    const current = project.value.assessment[criterionId] || { state: null, note: '' }
+    project.value.assessment[criterionId] = { ...current, ...patch }
+  }
+
+  function assessmentFor(criterionId) {
+    return project.value.assessment[criterionId] || { state: null, note: '' }
+  }
+
+  // ----------------------------------------------------------- Bonuspunkte
+  function addBonusRequest() {
+    project.value.bonusRequests.push({ id: uid('bonus'), title: '', description: '', area: '' })
+  }
+
+  function removeBonusRequest(id) {
+    const idx = project.value.bonusRequests.findIndex((r) => r.id === id)
+    if (idx >= 0) project.value.bonusRequests.splice(idx, 1)
   }
 
   // ------------------------------------------------------------ Listenhelfer
@@ -178,6 +201,7 @@ export const useProjectStore = defineStore('project', () => {
     isMasterclass,
     isQuick,
     hasProject,
+    column,
     title,
     allMediaIds,
     mediaFor,
@@ -188,6 +212,10 @@ export const useProjectStore = defineStore('project', () => {
     skip,
     unskip,
     isSkipped,
+    setAssessment,
+    assessmentFor,
+    addBonusRequest,
+    removeBonusRequest,
     pushItem,
     removeItem,
     startProject,

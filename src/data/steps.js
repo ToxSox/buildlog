@@ -1,8 +1,11 @@
-import { MODES } from './schema.js'
+const ALL = ['E', 'S', 'M', 'X', 'XUNL']
+const FROM_M = ['M', 'X', 'XUNL']
+const X_ONLY = ['X', 'XUNL']
 
 /**
- * Reihenfolge des Assistenten. `modes` steuert, in welchem Pfad der Schritt
- * überhaupt auftaucht (Quick Rescue blendet Optik-/Klang-Schritte aus).
+ * Reihenfolge des Assistenten. `columns` steuert, in welchen EMMA-Kategorien
+ * der Schritt überhaupt auftaucht – solange keine Kategorie gewählt ist, werden
+ * alle Schritte gezeigt, damit nichts unsichtbar verloren geht.
  */
 export const STEPS = [
   {
@@ -11,7 +14,7 @@ export const STEPS = [
     label: 'Fahrzeug & Klasse',
     short: 'Fahrzeug',
     icon: '🚗',
-    modes: [MODES.QUICK, MODES.MASTER],
+    columns: ALL,
   },
   {
     key: 'diagram',
@@ -19,7 +22,7 @@ export const STEPS = [
     label: 'Blockdiagramme',
     short: 'Diagramme',
     icon: '🧩',
-    modes: [MODES.QUICK, MODES.MASTER],
+    columns: ALL,
   },
   {
     key: 'power',
@@ -27,7 +30,7 @@ export const STEPS = [
     label: 'Strom & Sicherheit',
     short: 'Strom',
     icon: '⚡',
-    modes: [MODES.QUICK, MODES.MASTER],
+    columns: ALL,
   },
   {
     key: 'hardware',
@@ -35,7 +38,7 @@ export const STEPS = [
     label: 'Hardware-Montage',
     short: 'Hardware',
     icon: '🔩',
-    modes: [MODES.QUICK, MODES.MASTER],
+    columns: ALL,
   },
   {
     key: 'craft',
@@ -43,7 +46,23 @@ export const STEPS = [
     label: 'Handwerk & Akustik',
     short: 'Handwerk',
     icon: '🎨',
-    modes: [MODES.MASTER],
+    columns: FROM_M,
+  },
+  {
+    key: 'presentation',
+    path: '/wizard/praesentation',
+    label: 'Erklärung an die Richter',
+    short: 'Vortrag',
+    icon: '🎤',
+    columns: FROM_M,
+  },
+  {
+    key: 'matrix',
+    path: '/wizard/punkte',
+    label: 'Punkte-Check',
+    short: 'Punkte',
+    icon: '🎯',
+    columns: ALL,
   },
   {
     key: 'review',
@@ -51,16 +70,18 @@ export const STEPS = [
     label: 'Prüfen & Export',
     short: 'Export',
     icon: '📄',
-    modes: [MODES.QUICK, MODES.MASTER],
+    columns: ALL,
   },
 ]
 
-export function stepsForMode(mode) {
-  return STEPS.filter((s) => !mode || s.modes.includes(mode))
+/** Schritte, die in dieser Kategorie relevant sind. */
+export function stepsForColumn(column) {
+  if (!column) return STEPS
+  return STEPS.filter((s) => s.columns.includes(column))
 }
 
-export function neighbours(mode, currentKey) {
-  const list = stepsForMode(mode)
+export function neighbours(column, currentKey) {
+  const list = stepsForColumn(column)
   const idx = list.findIndex((s) => s.key === currentKey)
   return {
     index: idx,
@@ -69,3 +90,5 @@ export function neighbours(mode, currentKey) {
     next: idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null,
   }
 }
+
+export { X_ONLY }

@@ -83,7 +83,10 @@ function switchMode(mode) {
       <div class="card-header">
         <div>
           <h2 class="section-title">EMMA-Klasse</h2>
-          <p class="mt-0.5 text-sm text-slate-600">In welcher Klasse trittst du an?</p>
+          <p class="mt-0.5 text-sm text-slate-600">
+            Bestimmt, welche Kriterien bei dir bewertet werden, welche Fotos Pflicht sind und wie viele
+            Punkte insgesamt zu holen sind.
+          </p>
         </div>
       </div>
       <div class="card-body space-y-4">
@@ -114,7 +117,8 @@ function switchMode(mode) {
         <div>
           <h2 class="section-title">Dokumentations-Modus</h2>
           <p class="mt-0.5 text-sm text-slate-600">
-            Bestimmt, wie tief der Assistent nachfragt. Ein Wechsel löscht keine Daten.
+            Nur ein Umfangsfilter: Quick Rescue blendet alles aus, was in deiner Kategorie nicht Pflicht
+            ist. Ein Wechsel löscht keine Daten.
           </p>
         </div>
       </div>
@@ -130,7 +134,7 @@ function switchMode(mode) {
           @click="switchMode(MODES.QUICK)"
         >
           <p class="text-sm font-bold text-slate-900">🚑 Quick Rescue</p>
-          <p class="text-xs text-slate-600">Nur Sicherheits-Pflichtfelder – schnellstmöglich abgabefertig.</p>
+          <p class="text-xs text-slate-600">Nur Pflichtfelder deiner Kategorie – schnellstmöglich abgabefertig.</p>
         </button>
         <button
           type="button"
@@ -143,7 +147,7 @@ function switchMode(mode) {
           @click="switchMode(MODES.MASTER)"
         >
           <p class="text-sm font-bold text-slate-900">🏆 SQ Masterclass</p>
-          <p class="text-xs text-slate-600">Kompletter Bauprozess inkl. Dämmung, Custom-Parts und Messungen.</p>
+          <p class="text-xs text-slate-600">Alle Felder inkl. optionaler Detailfotos, Dämmung und Custom-Parts.</p>
         </button>
       </div>
     </div>

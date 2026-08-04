@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useProjectStore } from '../stores/project.js'
+import { isSlotRequired } from '../data/sections.js'
+import { findCriterion } from '../data/matrix.js'
 import ImageUploader from './ImageUploader.vue'
 import ImageCard from './ImageCard.vue'
 import ExampleHint from './ExampleHint.vue'
@@ -11,7 +13,8 @@ const props = defineProps({
 
 const store = useProjectStore()
 const items = computed(() => store.mediaFor(props.slotDef.key))
-const isRequired = computed(() => props.slotDef.required.includes(store.mode))
+const isRequired = computed(() => isSlotRequired(props.slotDef, store.column))
+const criterion = computed(() => findCriterion(props.slotDef.criterion))
 const isMissing = computed(() => isRequired.value && items.value.length === 0)
 
 /** Weitere Detailfotos werden erst nach Klick eingeblendet, damit die Liste ruhig bleibt. */
@@ -35,6 +38,9 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
           />
         </p>
         <p v-if="slotDef.hint" class="text-xs text-slate-500">{{ slotDef.hint }}</p>
+        <p v-if="criterion && store.column" class="mt-0.5 text-[11px] text-sky-700">
+          zahlt ein auf „{{ criterion.label.de }}“ ({{ criterion.points[store.column] }} P.)
+        </p>
       </div>
       <span
         class="badge shrink-0"

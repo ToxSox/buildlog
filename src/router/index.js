@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
-import { stepsForMode } from '../data/steps.js'
+import { stepsForColumn } from '../data/steps.js'
 
 const routes = [
   { path: '/', name: 'start', component: () => import('../views/StartView.vue') },
@@ -35,6 +35,18 @@ const routes = [
     meta: { step: 'craft' },
   },
   {
+    path: '/wizard/praesentation',
+    name: 'presentation',
+    component: () => import('../views/PresentationView.vue'),
+    meta: { step: 'presentation' },
+  },
+  {
+    path: '/wizard/punkte',
+    name: 'matrix',
+    component: () => import('../views/MatrixView.vue'),
+    meta: { step: 'matrix' },
+  },
+  {
     path: '/wizard/pruefen',
     name: 'review',
     component: () => import('../views/ReviewView.vue'),
@@ -64,7 +76,7 @@ router.beforeEach(async (to) => {
   if (!store.hasProject) return { name: 'start' }
 
   if (to.meta.step) {
-    const allowed = stepsForMode(store.mode).some((s) => s.key === to.meta.step)
+    const allowed = stepsForColumn(store.column).some((s) => s.key === to.meta.step)
     if (!allowed) return { name: 'vehicle' }
   }
   return true

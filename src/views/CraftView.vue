@@ -70,6 +70,9 @@ const MEASURE_FIELDS = [
       add-label="+ Bauteil"
       empty-label="Noch keine Eigenbau-Teile erfasst."
       :fields="CUSTOM_FIELDS"
+      photo-slot-prefix="craft.customParts"
+      photo-label="Fotos"
+      photo-example="custom"
     />
 
     <ItemList
@@ -79,6 +82,9 @@ const MEASURE_FIELDS = [
       add-label="+ Messung"
       empty-label="Noch keine Messung erfasst."
       :fields="MEASURE_FIELDS"
+      photo-slot-prefix="craft.measurements"
+      photo-label="Screenshots"
+      photo-example="measurement"
     />
 
     <div class="card">

@@ -2,10 +2,12 @@
 import { computed, onMounted } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
-import { SECTIONS } from '../data/sections.js'
-import { EMMA_CLASSES, MODES } from '../data/schema.js'
+import { SECTIONS, isSlotVisible } from '../data/sections.js'
+import { EMMA_CLASSES } from '../data/schema.js'
 import { evaluateRules, summarize } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
+import { assessProject } from '../data/assessment.js'
+import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
 import PrintPage from '../components/PrintPage.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 
@@ -30,6 +32,9 @@ const headMeta = computed(() => {
 })
 
 const findings = computed(() => summarize(evaluateRules(p.value)))
+const column = computed(() => columnForClass(p.value.meta.emmaClass))
+const assessment = computed(() => assessProject(p.value, column.value))
+const bonusRequests = computed(() => p.value.bonusRequests.filter((r) => r.title))
 
 const signalDef = computed(() => signalDefinition(p.value.system) || '')
 const powerDef = computed(() => powerDefinition(p.value.system) || '')
@@ -63,11 +68,10 @@ const powerRows = computed(() => {
 /** Foto-Seiten: pro Abschnitt in Blöcke à 6 Bildern. */
 const photoPages = computed(() => {
   const pages = []
-  const mode = store.mode
   SECTIONS.forEach((section) => {
     const figures = []
     section.slots
-      .filter((slot) => !mode || slot.shown.includes(mode))
+      .filter((slot) => isSlotVisible(slot, column.value, store.mode))
       .forEach((slot) => {
         store.mediaFor(slot.key).forEach((item, i) => {
           figures.push({
@@ -88,6 +92,35 @@ const photoPages = computed(() => {
       })
     }
   })
+
+  // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen)
+  const perItem = [
+    { list: p.value.craft.customParts, prefix: 'craft.customParts', title: 'Eigenbau-Teile im Detail', nameKey: 'name' },
+    { list: p.value.craft.measurements, prefix: 'craft.measurements', title: 'Messungen im Detail', nameKey: 'name' },
+  ]
+  perItem.forEach(({ list, prefix, title, nameKey }) => {
+    const figures = []
+    ;(list || []).forEach((item) => {
+      store.mediaFor(`${prefix}.${item.id}`).forEach((media, i) => {
+        figures.push({
+          id: media.id,
+          title: `${item[nameKey] || 'Ohne Bezeichnung'}${i > 0 ? ` (${i + 1})` : ''}`,
+          caption: media.caption || '',
+        })
+      })
+    })
+    for (let i = 0; i < figures.length; i += 6) {
+      const chunk = figures.slice(i, i + 6)
+      pages.push({
+        kind: 'photos',
+        title,
+        intro: '',
+        figures: chunk,
+        cols: chunk.length === 1 ? 1 : chunk.length <= 4 ? 2 : 3,
+      })
+    }
+  })
+
   return pages
 })
 
@@ -103,11 +136,29 @@ const pages = computed(() => {
     list.push({ kind: 'hardware', title: 'Verbaute Komponenten' })
   }
 
-  if (store.mode === MODES.MASTER) {
-    const c = p.value.craft
-    if (c.dampingDoors || c.dampingFloor || c.dampingTrunk || c.customParts.length || c.measurements.length || c.tuningNotes) {
-      list.push({ kind: 'craft', title: 'Handwerk, Akustik & Abstimmung' })
+  const c = p.value.craft
+  if (c.dampingDoors || c.dampingFloor || c.dampingTrunk || c.customParts.length || c.measurements.length || c.tuningNotes) {
+    list.push({ kind: 'craft', title: 'Handwerk, Akustik & Abstimmung' })
+  }
+
+  const pr = p.value.presentation
+  if (column.value && ['M', 'X', 'XUNL'].includes(column.value) && (pr.goal || pr.challenge || pr.highlights.length)) {
+    list.push({ kind: 'presentation', title: 'Leitfaden für die Erklärung an die Richter' })
+  }
+
+  if (bonusRequests.value.length) {
+    for (let i = 0; i < bonusRequests.value.length; i += 8) {
+      list.push({
+        kind: 'bonus',
+        title: 'Bonuspunkte-Anträge',
+        items: bonusRequests.value.slice(i, i + 8),
+        offset: i,
+      })
     }
+  }
+
+  if (column.value && assessment.value.max) {
+    list.push({ kind: 'matrix', title: 'Selbsteinschätzung Installation' })
   }
 
   return [...list, ...photoPages.value]
@@ -350,6 +401,77 @@ function print() {
             <h2 class="print-h2" style="margin-top: 4mm">Abstimmung</h2>
             <p style="font-size: 9pt; white-space: pre-line">{{ p.craft.tuningNotes }}</p>
           </template>
+        </template>
+
+        <!-- --------------------------------------------- Vortragsleitfaden -->
+        <template v-else-if="page.kind === 'presentation'">
+          <p class="print-lead" style="margin-bottom: 3mm">
+            Persönlicher Spickzettel – nicht Teil der Bewertungsunterlagen.
+          </p>
+          <div class="print-kv" style="margin-bottom: 4mm">
+            <div v-if="p.presentation.goal">
+              <span class="print-kv__key">Ziel:</span> {{ p.presentation.goal }}
+            </div>
+            <div v-if="p.presentation.story">
+              <span class="print-kv__key">Schluss:</span> {{ p.presentation.story }}
+            </div>
+          </div>
+          <template v-if="p.presentation.challenge">
+            <h2 class="print-h2">Größte Herausforderung</h2>
+            <p style="font-size: 9pt; white-space: pre-line">{{ p.presentation.challenge }}</p>
+          </template>
+          <template v-if="p.presentation.highlights.filter((h) => h.text).length">
+            <h2 class="print-h2" style="margin-top: 4mm">Nicht vergessen zu zeigen</h2>
+            <ul style="margin-left: 5mm; list-style: disc; font-size: 9pt">
+              <li v-for="h in p.presentation.highlights.filter((x) => x.text)" :key="h.id">{{ h.text }}</li>
+            </ul>
+          </template>
+        </template>
+
+        <!-- --------------------------------------------------- Bonuspunkte -->
+        <template v-else-if="page.kind === 'bonus'">
+          <p class="print-lead" style="margin-bottom: 3mm">
+            Anträge auf Bonuspunkte gemäß Regelwerk – eingereicht zusammen mit der Erklärung an die Richter.
+          </p>
+          <table class="print-table">
+            <thead>
+              <tr><th style="width: 10mm">#</th><th style="width: 55mm">Element</th><th style="width: 30mm">Bereich</th><th>Begründung</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="(req, i) in page.items" :key="req.id">
+                <td>{{ page.offset + i + 1 }}</td>
+                <td><strong>{{ req.title }}</strong></td>
+                <td>{{ req.area }}</td>
+                <td>{{ req.description }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+
+        <!-- ------------------------------------------- Selbsteinschätzung -->
+        <template v-else-if="page.kind === 'matrix'">
+          <p class="print-lead" style="margin-bottom: 3mm">
+            Selbsteinschätzung gegen die Installation Matrix der Kategorie
+            <strong>{{ COLUMN_LABELS[column] }}</strong> – erstellt vom Teilnehmer, keine Wertung.
+          </p>
+          <table class="print-table">
+            <thead>
+              <tr><th>Kriterium</th><th style="width: 22mm">Punkte</th><th style="width: 20mm">Basis</th><th>Anmerkung</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="c in assessment.criteria" :key="c.id">
+                <td>{{ c.label.de }}</td>
+                <td>{{ c.earned }} / {{ c.max }}</td>
+                <td>{{ c.basis === 'auto' ? 'abgeleitet' : c.basis === 'self' ? 'selbst' : 'offen' }}</td>
+                <td>{{ c.note || c.detail }}</td>
+              </tr>
+              <tr>
+                <td><strong>Summe</strong></td>
+                <td><strong>{{ assessment.earned }} / {{ assessment.max }}</strong></td>
+                <td colspan="2"></td>
+              </tr>
+            </tbody>
+          </table>
         </template>
 
         <!-- ------------------------------------------------------ Fotoseiten -->

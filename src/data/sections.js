@@ -1,7 +1,12 @@
-import { MODES } from './schema.js'
-
-const BOTH = [MODES.QUICK, MODES.MASTER]
-const MASTER_ONLY = [MODES.MASTER]
+/**
+ * Sichtbarkeit und Pflicht ergeben sich aus der EMMA-Kategorie (Matrix-Spalte),
+ * nicht mehr aus dem Modus. Der Modus filtert nur noch den Umfang:
+ * Quick Rescue blendet alles aus, was in dieser Kategorie nicht Pflicht ist.
+ */
+const ALL = ['E', 'S', 'M', 'X', 'XUNL']
+const FROM_S = ['S', 'M', 'X', 'XUNL']
+const FROM_M = ['M', 'X', 'XUNL']
+const NONE = []
 
 /**
  * Manifest aller Foto-Slots.
@@ -12,10 +17,11 @@ const MASTER_ONLY = [MODES.MASTER]
  *  – die "Fehlt noch"-Warnungen,
  *  – und das Layout des DIN-A4-Ausdrucks.
  *
- * required : in welchen Modi das Foto Pflicht ist
- * shown    : in welchen Modi das Feld überhaupt auftaucht
- * points   : Gewicht für den Fortschrittsbalken
- * example  : Schlüssel der Ghost-Overlay-Illustration (siehe examples.js)
+ * required  : in welchen Kategorien (Matrix-Spalten) das Foto Pflicht ist
+ * shown     : in welchen Kategorien das Feld überhaupt auftaucht
+ * criterion : Bewertungskriterium der Installation Matrix, auf das es einzahlt
+ * points    : Gewicht innerhalb des Foto-Fortschritts
+ * example   : Schlüssel der Ghost-Overlay-Illustration (siehe examples.js)
  */
 export const SECTIONS = [
   // ------------------------------------------------------------- Fahrzeug
@@ -28,8 +34,9 @@ export const SECTIONS = [
       {
         key: 'vehicle.exterior',
         label: 'Fahrzeug Außenansicht',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'firstOptic',
         points: 4,
         multiple: true,
         example: 'vehicle',
@@ -39,8 +46,9 @@ export const SECTIONS = [
       {
         key: 'vehicle.interior',
         label: 'Innenraum / Hörplatz',
-        shown: BOTH,
-        required: MASTER_ONLY,
+        shown: ALL,
+        required: FROM_M,
+        criterion: 'interiorCables',
         points: 3,
         multiple: true,
         example: 'interior',
@@ -60,8 +68,9 @@ export const SECTIONS = [
       {
         key: 'power.battery',
         label: 'Batterie & Befestigung',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mounted',
         points: 6,
         multiple: true,
         example: 'battery',
@@ -71,8 +80,9 @@ export const SECTIONS = [
       {
         key: 'power.mainFuse',
         label: 'Hauptsicherung mit Maßstab',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mainFuse',
         points: 10,
         multiple: true,
         example: 'fuseRuler',
@@ -82,8 +92,9 @@ export const SECTIONS = [
       {
         key: 'power.secondBattery',
         label: 'Zweitbatterie / Powercap',
-        shown: BOTH,
-        required: [],
+        shown: ALL,
+        required: NONE,
+        criterion: 'fuseValue',
         points: 3,
         multiple: true,
         example: 'battery',
@@ -101,8 +112,9 @@ export const SECTIONS = [
       {
         key: 'power.routing',
         label: 'Kabelverlegung Motorraum',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: FROM_M,
+        criterion: 'cablesProtected',
         points: 6,
         multiple: true,
         example: 'routing',
@@ -112,8 +124,9 @@ export const SECTIONS = [
       {
         key: 'power.grommet',
         label: 'Blechdurchführung / Gummitülle',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: FROM_M,
+        criterion: 'cablesProtected',
         points: 8,
         multiple: true,
         example: 'grommet',
@@ -123,8 +136,9 @@ export const SECTIONS = [
       {
         key: 'power.terminals',
         label: 'Terminierung / Crimpungen',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: FROM_M,
+        criterion: 'terminationsProtected',
         points: 8,
         multiple: true,
         example: 'crimp',
@@ -134,8 +148,9 @@ export const SECTIONS = [
       {
         key: 'power.underCarpet',
         label: 'Terminierung unter dem Teppich',
-        shown: MASTER_ONLY,
-        required: MASTER_ONLY,
+        shown: FROM_M,
+        required: FROM_M,
+        criterion: 'terminated',
         points: 6,
         multiple: true,
         example: 'crimp',
@@ -145,8 +160,9 @@ export const SECTIONS = [
       {
         key: 'power.distribution',
         label: 'Verteiler & Sicherungshalter',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: FROM_S,
+        criterion: 'allFused',
         points: 6,
         multiple: true,
         example: 'distribution',
@@ -156,8 +172,9 @@ export const SECTIONS = [
       {
         key: 'power.ground',
         label: 'Massepunkt',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: FROM_S,
+        criterion: 'terminated',
         points: 8,
         multiple: true,
         example: 'ground',
@@ -177,8 +194,9 @@ export const SECTIONS = [
       {
         key: 'hardware.amps',
         label: 'Endstufen inkl. Verschraubung',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mounted',
         points: 7,
         multiple: true,
         example: 'mount',
@@ -188,8 +206,9 @@ export const SECTIONS = [
       {
         key: 'hardware.dsp',
         label: 'DSP / Signalprozessor',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mounted',
         points: 5,
         multiple: true,
         example: 'mount',
@@ -199,8 +218,9 @@ export const SECTIONS = [
       {
         key: 'hardware.speakersFront',
         label: 'Lautsprecher vorne',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mounted',
         points: 6,
         multiple: true,
         example: 'speaker',
@@ -210,8 +230,9 @@ export const SECTIONS = [
       {
         key: 'hardware.speakersRear',
         label: 'Lautsprecher hinten',
-        shown: BOTH,
-        required: [],
+        shown: ALL,
+        required: NONE,
+        criterion: 'mounted',
         points: 2,
         multiple: true,
         example: 'speaker',
@@ -221,8 +242,9 @@ export const SECTIONS = [
       {
         key: 'hardware.sub',
         label: 'Subwoofer & Gehäuse',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'mounted',
         points: 6,
         multiple: true,
         example: 'sub',
@@ -232,8 +254,9 @@ export const SECTIONS = [
       {
         key: 'hardware.signalRouting',
         label: 'Signalkabel-Verlegung (Cinch)',
-        shown: MASTER_ONLY,
-        required: MASTER_ONLY,
+        shown: FROM_M,
+        required: FROM_M,
+        criterion: 'craftsmanship',
         points: 5,
         multiple: true,
         example: 'routing',
@@ -243,8 +266,9 @@ export const SECTIONS = [
       {
         key: 'hardware.overview',
         label: 'Gesamtansicht Einbau',
-        shown: BOTH,
-        required: BOTH,
+        shown: ALL,
+        required: ALL,
+        criterion: 'firstOptic',
         points: 4,
         multiple: true,
         example: 'overview',
@@ -264,8 +288,9 @@ export const SECTIONS = [
       {
         key: 'craft.doorOuter',
         label: 'Tür: Außenblech gedämmt',
-        shown: MASTER_ONLY,
-        required: MASTER_ONLY,
+        shown: FROM_M,
+        required: FROM_M,
+        criterion: 'craftsmanship',
         points: 5,
         multiple: true,
         example: 'damping',
@@ -275,8 +300,9 @@ export const SECTIONS = [
       {
         key: 'craft.doorInner',
         label: 'Tür: Innenblech / Schallwand',
-        shown: MASTER_ONLY,
-        required: MASTER_ONLY,
+        shown: FROM_M,
+        required: FROM_M,
+        criterion: 'craftsmanship',
         points: 5,
         multiple: true,
         example: 'damping',
@@ -286,8 +312,9 @@ export const SECTIONS = [
       {
         key: 'craft.doorTrim',
         label: 'Tür: Verkleidung (TVK)',
-        shown: MASTER_ONLY,
-        required: [],
+        shown: FROM_M,
+        required: NONE,
+        criterion: 'craftsmanship',
         points: 3,
         multiple: true,
         example: 'damping',
@@ -297,8 +324,9 @@ export const SECTIONS = [
       {
         key: 'craft.floor',
         label: 'Boden / Kofferraum gedämmt',
-        shown: MASTER_ONLY,
-        required: [],
+        shown: FROM_M,
+        required: NONE,
+        criterion: 'craftsmanship',
         points: 3,
         multiple: true,
         example: 'damping',
@@ -316,8 +344,9 @@ export const SECTIONS = [
       {
         key: 'craft.customParts',
         label: '3D-Druck / GFK / Custom-Teile',
-        shown: MASTER_ONLY,
-        required: [],
+        shown: FROM_M,
+        required: NONE,
+        criterion: 'craftsmanship',
         points: 5,
         multiple: true,
         example: 'custom',
@@ -327,8 +356,9 @@ export const SECTIONS = [
       {
         key: 'craft.baffles',
         label: 'Adapterringe / Schallwände',
-        shown: MASTER_ONLY,
-        required: [],
+        shown: FROM_M,
+        required: NONE,
+        criterion: 'craftsmanship',
         points: 4,
         multiple: true,
         example: 'custom',
@@ -338,8 +368,9 @@ export const SECTIONS = [
       {
         key: 'craft.measurement',
         label: 'Messung (REW o. ä.)',
-        shown: MASTER_ONLY,
-        required: MASTER_ONLY,
+        shown: FROM_M,
+        required: FROM_M,
+        criterion: 'sysDoc',
         points: 5,
         multiple: true,
         example: 'measurement',
@@ -349,8 +380,9 @@ export const SECTIONS = [
       {
         key: 'craft.finish',
         label: 'Finish / Endergebnis',
-        shown: MASTER_ONLY,
-        required: [],
+        shown: FROM_M,
+        required: NONE,
+        criterion: 'designTrunk',
         points: 3,
         multiple: true,
         example: 'overview',
@@ -361,20 +393,49 @@ export const SECTIONS = [
   },
 ]
 
-export function sectionsForStep(step, mode) {
+import { MODES } from './schema.js'
+
+/**
+ * Ein Slot ist sichtbar, wenn er in dieser Kategorie überhaupt vorkommt.
+ * Quick Rescue reduziert zusätzlich auf das, was Pflicht ist – der Modus ist
+ * damit reiner Umfangsfilter, die Anforderung kommt aus der Kategorie.
+ */
+export function isSlotVisible(slot, column, mode) {
+  if (!column) return true
+  if (!slot.shown.includes(column)) return false
+  if (mode === MODES.QUICK) return slot.required.includes(column)
+  return true
+}
+
+export function isSlotRequired(slot, column) {
+  return Boolean(column) && slot.required.includes(column)
+}
+
+export function sectionsForStep(step, column, mode) {
   return SECTIONS.filter((s) => s.step === step)
-    .map((s) => ({ ...s, slots: s.slots.filter((slot) => !mode || slot.shown.includes(mode)) }))
+    .map((s) => ({ ...s, slots: s.slots.filter((slot) => isSlotVisible(slot, column, mode)) }))
     .filter((s) => s.slots.length)
 }
 
-export function allSlots(mode) {
+export function allSlots(column, mode) {
   return SECTIONS.flatMap((s) =>
-    s.slots.filter((slot) => !mode || slot.shown.includes(mode)).map((slot) => ({ ...slot, section: s })),
+    s.slots.filter((slot) => isSlotVisible(slot, column, mode)).map((slot) => ({ ...slot, section: s })),
   )
 }
 
-export function requiredSlots(mode) {
-  return allSlots(mode).filter((slot) => slot.required.includes(mode))
+export function requiredSlots(column) {
+  return SECTIONS.flatMap((s) =>
+    s.slots.filter((slot) => isSlotRequired(slot, column)).map((slot) => ({ ...slot, section: s })),
+  )
+}
+
+/** Alle Slots, die auf ein bestimmtes Matrix-Kriterium einzahlen. */
+export function slotsForCriterion(criterionId, column) {
+  return SECTIONS.flatMap((s) =>
+    s.slots
+      .filter((slot) => slot.criterion === criterionId && slot.shown.includes(column))
+      .map((slot) => ({ ...slot, section: s })),
+  )
 }
 
 export function findSlot(key) {
