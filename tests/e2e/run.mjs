@@ -8,7 +8,7 @@
  *
  *   npm run build && npm run test:e2e
  */
-import { chromium } from 'playwright'
+import { chromium, devices } from 'playwright'
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync, readFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -392,6 +392,43 @@ try {
   const boxes = [...new Set(pdf.toString('latin1').match(/\/MediaBox\s*\[[^\]]*\]/g) || [])]
   const a4Landscape = boxes.every((b) => /841\.9|842/.test(b) && /594\.9|595/.test(b))
   check('PDF ist DIN A4 quer', boxes.length === 1 && a4Landscape, boxes.join(' '))
+
+  // ------------------------------------------------------------ Handy-Layout
+  // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
+  // und lange Eingaben schoben die Seite dort seitlich aus dem Bild.
+  const ctx3 = await browser.newContext({ ...devices['Pixel 5'], locale: 'de-DE' })
+  const phone = await ctx3.newPage()
+  phone.on('pageerror', (e) => consoleErrors.push(`mobil: ${e.message}`))
+  phone.on('console', (m) => m.type() === 'error' && consoleErrors.push(`mobil: ${m.text()}`))
+  const sideways = () =>
+    phone.evaluate(() => {
+      const el = globalThis.document.documentElement
+      return el.scrollWidth > el.clientWidth + 1 ? `${el.scrollWidth} > ${el.clientWidth}` : ''
+    })
+
+  await phone.goto(BASE, { waitUntil: 'networkidle' })
+  const wideStart = await sideways()
+  await phone.locator('button.card').first().click()
+  await phone.waitForURL('**/#/wizard/fahrzeug')
+  await phone.waitForTimeout(500)
+  await phone.fill('#participant', 'Maximilian Mustermann-Sonnenschein')
+  await phone.fill('#model', 'Kompressor-Sondermodell-Langstreckenausfuehrung')
+  await phone.getByRole('button', { name: 'SQ M – Master', exact: true }).click()
+  await phone.waitForTimeout(700)
+
+  const wideSteps = []
+  for (const step of ['fahrzeug', 'diagramme', 'strom', 'hardware', 'handwerk', 'punkte', 'pruefen']) {
+    await phone.goto(`${BASE}#/wizard/${step}`)
+    await phone.waitForTimeout(700)
+    const wide = await sideways()
+    if (wide) wideSteps.push(`${step} (${wide})`)
+  }
+  await ctx3.close()
+  check(
+    'Handy: keine Seite scrollt seitlich',
+    !wideStart && wideSteps.length === 0,
+    [wideStart && `Start (${wideStart})`, ...wideSteps].filter(Boolean).join(', '),
+  )
 
   check('keine Konsolenfehler', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '))
 } finally {

@@ -19,6 +19,26 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * Lange deutsche Komposita („Einbaudokumentation“) und ungebrochene Eingaben
+ * (Modellbezeichnungen, Notizen) schoben auf dem Handy die ganze Seite seitlich
+ * aus dem Bild. Sie brechen jetzt um, statt den Kasten zu sprengen.
+ */
+h1,
+h2,
+h3,
+p,
+li,
+td,
+th,
+figcaption,
+label {
+  overflow-wrap: break-word;
+}
+h1 {
+  hyphens: auto;
+}
+
 /* ------------------------------------------------------------------ Formulare */
 .field {
   @apply block text-sm font-medium text-slate-700 mb-1;
