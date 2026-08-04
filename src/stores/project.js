@@ -338,6 +338,7 @@ export const useProjectStore = defineStore('project', () => {
 
   async function save() {
     if (!activeId.value) return
+    pending = false
     saving.value = true
     try {
       // Zeitstempel bewusst am Rohobjekt setzen: eine Zuweisung über den reaktiven
@@ -362,10 +363,33 @@ export const useProjectStore = defineStore('project', () => {
 
   // Debounced Autosave: jede Änderung am State landet nach 400ms in IndexedDB.
   let timer = null
+  /** Es liegt eine Änderung an, die noch nicht geschrieben wurde. */
+  let pending = false
+
+  /**
+   * Sofort schreiben statt die 400 ms abzuwarten. Am Auto wird fotografiert,
+   * getippt und sofort die App gewechselt – dann beendet das Betriebssystem
+   * die Seite unter Umständen, bevor der Timer abläuft.
+   */
+  function flush() {
+    if (!pending) return
+    clearTimeout(timer)
+    return save()
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush()
+    })
+    // pagehide feuert auch dort, wo unload nicht mehr zuverlässig ist (iOS).
+    globalThis.addEventListener?.('pagehide', flush)
+  }
+
   watch(
     project,
     () => {
       if (!ready.value) return
+      pending = true
       clearTimeout(timer)
       timer = setTimeout(save, 400)
     },
@@ -380,6 +404,7 @@ export const useProjectStore = defineStore('project', () => {
     saving,
     lastSavedAt,
     storageError,
+    flush,
     mode,
     isMasterclass,
     isQuick,

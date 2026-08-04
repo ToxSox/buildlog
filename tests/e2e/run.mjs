@@ -423,6 +423,41 @@ try {
     const wide = await sideways()
     if (wide) wideSteps.push(`${step} (${wide})`)
   }
+  // Am Auto tippt man und wechselt sofort die App. Ohne sofortiges Schreiben
+  // beendet das Betriebssystem die Seite womoeglich vor Ablauf der 400 ms.
+  await phone.goto(`${BASE}#/wizard/fahrzeug`)
+  await phone.waitForTimeout(700)
+  await phone.fill('#plate', 'B-XY 9876')
+  await phone.evaluate(() => {
+    const doc = globalThis.document
+    Object.defineProperty(doc, 'visibilityState', { value: 'hidden', configurable: true })
+    doc.dispatchEvent(new Event('visibilitychange'))
+  })
+  await phone.waitForTimeout(150)
+  const savedPlate = await phone.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const req = globalThis.indexedDB.open('emma-buildlog')
+        req.onerror = () => resolve('')
+        req.onblocked = () => resolve('')
+        req.onsuccess = () => {
+          const db = req.result
+          const done = (value) => {
+            db.close()
+            resolve(value)
+          }
+          try {
+            const all = db.transaction('state', 'readonly').objectStore('state').getAll()
+            all.onerror = () => done('')
+            all.onsuccess = () => done(all.result.find((v) => v?.meta)?.meta?.plate || '')
+          } catch {
+            done('')
+          }
+        }
+      }),
+  )
+  check('Eingabe ist beim App-Wechsel sofort gesichert', savedPlate === 'B-XY 9876', savedPlate)
+
   await ctx3.close()
   check(
     'Handy: keine Seite scrollt seitlich',

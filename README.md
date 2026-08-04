@@ -118,6 +118,26 @@ abgetippten Sollwerte (`tests/emmaRules.test.mjs`).
 > `EMMA_CLASSES` in `schema.js` gegen Kapitel 2 abgleichen. Maßgeblich ist immer
 > das aktuelle offizielle Rulebook.
 
+#### Woher die Zahlen stammen
+
+| Datei                        | Quelle                                    | Abgesichert durch          |
+| ---------------------------- | ----------------------------------------- | -------------------------- |
+| `emmaRules.js` (Grenzwerte)  | Manual 2026, Kapitel 3 + Fuse Size Matrix | `tests/emmaRules.test.mjs` |
+| `matrix.js` (Punkte)         | Manual 2026, Kapitel 10                   | `tests/matrix.test.mjs`    |
+| `schema.js` (`EMMA_CLASSES`) | Manual 2026, Kapitel 2                    | –                          |
+
+Die Tests rechnen die abgetippten Werte gegen die Sollwerte des Regelwerks
+(Fuse Size Matrix Zeile für Zeile, Spaltensummen E 69 · S 115 · M 161 · X 231 ·
+X Unlimited 325). Sie sichern damit ab, dass die Werte nicht unbemerkt
+verrutschen – ob sie inhaltlich zur jeweils gültigen Edition passen, kann nur
+ein Abgleich mit dem offiziellen Dokument beantworten.
+
+Die App prüft ausschließlich, was in diesen Dateien steht: Installationsregeln
+zu Strom, Absicherung, Befestigung und Dokumentation. Kategorie-spezifische
+Sonderregeln, Klassen-Limits und die eigentliche Klangbewertung sind **nicht**
+abgebildet. Die Punktanzeige ist eine Selbsteinschätzung, keine Wertung – das
+letzte Wort hat der Richter am Fahrzeug.
+
 ### Kategorien und Dokumentationspflicht
 
 `EMMA_CLASSES` in `schema.js` bildet die Kategorien aus Kapitel 2 des Rulebooks ab
