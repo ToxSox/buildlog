@@ -3,6 +3,8 @@ export default {
     name: 'EMMA Build Log',
     sub: 'Creator',
     footer: 'EMMA Build Log Creator · runs entirely offline in your browser · no data leaves your device',
+    disclaimer:
+      'Independent tool, not authorised or endorsed by EMMA. The official rulebook always takes precedence.',
     autosave: 'Autosave active',
     saving: 'saving …',
     savedAt: 'saved {time}',

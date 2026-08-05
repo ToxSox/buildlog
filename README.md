@@ -6,6 +6,11 @@ keine Uploads. Alle Daten bleiben im Browser des Nutzers und lassen sich als ZIP
 sichern. Am Ende steht ein druckfertiges **DIN-A4-Querformat-Dokument**, das der
 Browser selbst als PDF rendert.
 
+> **Unabhängiges Hilfsmittel.** Dieses Projekt steht in keiner Verbindung zu EMMA,
+> ist von dort weder autorisiert noch geprüft. Die abgetippten Werte und die
+> Punkteschätzung sind eine Arbeitshilfe – maßgeblich ist immer das offizielle
+> Regelwerk und die Bewertung der Juroren vor Ort.
+
 ## Schnellstart
 
 ```bash
@@ -252,3 +257,12 @@ Hash-URLs (`/#/wizard`), es braucht also keine Server-Rewrites.
 
 Für den Service Worker (Offline-Betrieb) und die Kamera-Aufnahme muss die Seite
 über **HTTPS** laufen; alle genannten Hoster liefern das Zertifikat mit.
+
+## Lizenz
+
+[MIT](LICENSE) – Nutzung, Änderung und Weitergabe sind erlaubt, solange der
+Copyright- und Lizenzhinweis erhalten bleibt. Die Software kommt ohne Gewähr.
+
+Der Name EMMA sowie das Regelwerk gehören ihren jeweiligen Rechteinhabern; die
+Lizenz dieses Projekts erstreckt sich ausschließlich auf den hier enthaltenen
+Quelltext.

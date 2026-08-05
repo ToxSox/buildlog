@@ -431,6 +431,9 @@ function print() {
 
             <p style="margin-top: auto; font-size: 7.5pt; color: #64748b">
               {{ t('print.createdWith', { date: new Date(p.updatedAt).toLocaleDateString(locale) }) }}
+              <!-- Auch auf dem Deckblatt: Der Juror soll wissen, dass die Mappe
+                   mit einem unabhängigen Werkzeug entstanden ist. -->
+              <br />{{ t('app.disclaimer') }}
             </p>
           </div>
         </template>
