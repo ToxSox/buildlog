@@ -35,6 +35,7 @@ const CLASS_DEFS = `
   classDef sub fill:#d1fae5,stroke:#059669,color:#064e3b;
   classDef battery fill:#fee2e2,stroke:#dc2626,color:#7f1d1d;
   classDef fuse fill:#ffe4e6,stroke:#e11d48,color:#881337;
+  classDef ground fill:#f1f5f9,stroke:#475569,color:#0f172a;
 `
 
 function buildFlowchart(components, links, edgeLabel) {
@@ -67,13 +68,19 @@ function buildFlowchart(components, links, edgeLabel) {
 
 /** Signalweg: alles außer reinen Strom-Komponenten. */
 export function signalDefinition(system) {
-  const components = (system.components || []).filter((c) => !['battery', 'fuse'].includes(c.type))
+  const components = (system.components || []).filter((c) => !['battery', 'fuse', 'ground'].includes(c.type))
   return buildFlowchart(components, system.signalLinks || [], (l) => l.label)
 }
 
-/** Stromlaufplan: Batterie, Sicherung, Verbraucher. */
-export function powerDefinition(system) {
-  const components = (system.components || []).filter((c) => !['speaker', 'sub'].includes(c.type))
+/** Stromlaufplan: Batterie, Sicherung, Verbraucher – und der Massepunkt. */
+export function powerDefinition(system, power = {}) {
+  const components = (system.components || [])
+    .filter((c) => !['speaker', 'sub'].includes(c.type))
+    // Massepunkt-Beschreibung aus „Strom & Sicherheit“ übernehmen, solange am
+    // Knoten selbst kein Detail steht – eine Eingabe, beide Stellen aktuell.
+    .map((c) =>
+      c.type === 'ground' && !c.detail && power.groundPoint ? { ...c, detail: power.groundPoint } : c,
+    )
   return buildFlowchart(components, system.powerLinks || [], (l) =>
     l.oem ? 'OEM' : l.section ? `${l.section} mm²` : '',
   )

@@ -114,7 +114,9 @@ const remove = (entry) => {
               }}</span>
             </p>
             <p class="truncate text-xs text-slate-500">
-              {{ className(entry.emmaClass) }} · {{ t('common.photos', { n: entry.photos }) }} ·
+              {{ className(entry.emmaClass)
+              }}<template v-if="entry.emmaSubclass"> · {{ entry.emmaSubclass }}</template> ·
+              {{ t('common.photos', { n: entry.photos }) }} ·
               {{ t('start.changedAt', { date: formatDate(entry.updatedAt) }) }}
             </p>
           </div>

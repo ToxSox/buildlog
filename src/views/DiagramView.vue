@@ -51,7 +51,20 @@ function removeLink(kind, id) {
 }
 
 const signalDef = computed(() => signalDefinition(system.value) || '')
-const powerDef = computed(() => powerDefinition(system.value) || '')
+const powerDef = computed(() => powerDefinition(system.value, store.project.power) || '')
+
+/** Beim Massepunkt zeigt der Platzhalter die geerbte Beschreibung aus „Strom & Sicherheit“. */
+function detailPlaceholder(component) {
+  if (component.type === 'ground' && store.project.power.groundPoint) {
+    return store.project.power.groundPoint
+  }
+  return t('diagram.detailPlaceholder')
+}
+
+/** Ein Stromlaufplan ohne Rückweg ist unvollständig – daran erinnern, solange die Masse fehlt. */
+const groundMissing = computed(
+  () => system.value.powerLinks.length > 0 && !system.value.components.some((c) => c.type === 'ground'),
+)
 </script>
 
 <template>
@@ -96,7 +109,7 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
               :id="`${c.id}-detail`"
               v-model="c.detail"
               class="input"
-              :placeholder="t('diagram.detailPlaceholder')"
+              :placeholder="detailPlaceholder(c)"
             />
           </div>
           <div>
@@ -184,6 +197,12 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
       </div>
       <div class="card-body space-y-3">
         <p v-if="!system.powerLinks.length" class="text-sm text-slate-500">{{ t('diagram.noPowerLink') }}</p>
+        <p
+          v-if="groundMissing"
+          class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"
+        >
+          ⚠️ {{ t('diagram.groundMissing') }}
+        </p>
         <div
           v-for="l in system.powerLinks"
           :key="l.id"

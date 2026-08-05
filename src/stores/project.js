@@ -182,6 +182,7 @@ export const useProjectStore = defineStore('project', () => {
       title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || '',
       participant: m.participantName || '',
       emmaClass: m.emmaClass || '',
+      emmaSubclass: m.emmaSubclass || '',
       mode: data.mode || '',
       updatedAt: data.updatedAt || new Date().toISOString(),
       photos: Object.values(data.media || {}).reduce((n, list) => n + (list?.length || 0), 0),

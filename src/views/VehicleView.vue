@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
-import { EMMA_CLASSES, MODES } from '../data/schema.js'
+import { EMMA_CLASSES, EMMA_SUBCLASSES, MODES } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
 import SlotGrid from '../components/SlotGrid.vue'
 import { useI18n } from '../i18n/index.js'
@@ -19,6 +19,16 @@ const groupedClasses = computed(() => {
   })
   return groups
 })
+
+/** Schnellauswahl bekannter Unterklassen – die Eingabe bleibt trotzdem Freitext. */
+const subclassSuggestions = computed(() => EMMA_SUBCLASSES[meta.value.emmaClass] || [])
+
+function selectClass(id) {
+  if (meta.value.emmaClass === id) return
+  meta.value.emmaClass = id
+  // Die Unterklasse gehört zur Kategorie – „Master 8000“ passt nicht zu SQ S.
+  meta.value.emmaSubclass = ''
+}
 
 function switchMode(mode) {
   store.setMode(mode)
@@ -104,11 +114,40 @@ function switchMode(mode) {
                   ? 'border-sky-600 bg-sky-600 text-white'
                   : 'border-slate-300 bg-white text-slate-700 hover:border-sky-400'
               "
-              @click="meta.emmaClass = c.id"
+              :aria-pressed="meta.emmaClass === c.id"
+              @click="selectClass(c.id)"
             >
               {{ c.label }}
             </button>
           </div>
+        </div>
+
+        <div v-if="meta.emmaClass" class="border-t border-slate-100 pt-4">
+          <label class="field" for="subclass">{{ t('vehicle.subclass') }}</label>
+          <div v-if="subclassSuggestions.length" class="mb-2 flex flex-wrap gap-2">
+            <button
+              v-for="s in subclassSuggestions"
+              :key="s"
+              type="button"
+              class="rounded-lg border px-3 py-1.5 text-sm font-semibold transition"
+              :class="
+                meta.emmaSubclass === s
+                  ? 'border-sky-600 bg-sky-600 text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-sky-400'
+              "
+              :aria-pressed="meta.emmaSubclass === s"
+              @click="meta.emmaSubclass = meta.emmaSubclass === s ? '' : s"
+            >
+              {{ s }}
+            </button>
+          </div>
+          <input
+            id="subclass"
+            v-model="meta.emmaSubclass"
+            class="input sm:max-w-sm"
+            :placeholder="t('vehicle.subclassPlaceholder')"
+          />
+          <p class="hint">{{ t('vehicle.subclassHint') }}</p>
         </div>
       </div>
     </div>
@@ -127,6 +166,7 @@ function switchMode(mode) {
           :class="
             store.mode === MODES.QUICK ? 'border-sky-600 bg-sky-50' : 'border-slate-200 hover:border-sky-300'
           "
+          :aria-pressed="store.mode === MODES.QUICK"
           @click="switchMode(MODES.QUICK)"
         >
           <p class="text-sm font-bold text-slate-900">🚑 {{ t('start.quick.title') }}</p>
@@ -138,6 +178,7 @@ function switchMode(mode) {
           :class="
             store.mode === MODES.MASTER ? 'border-sky-600 bg-sky-50' : 'border-slate-200 hover:border-sky-300'
           "
+          :aria-pressed="store.mode === MODES.MASTER"
           @click="switchMode(MODES.MASTER)"
         >
           <p class="text-sm font-bold text-slate-900">🏆 {{ t('start.master.title') }}</p>

@@ -26,9 +26,12 @@ const p = computed(() => store.project)
 
 const headMeta = computed(() => {
   const m = p.value.meta
+  const classLabel = EMMA_CLASSES.find((c) => c.id === m.emmaClass)?.label || ''
   return {
     name: [m.participantName, m.teamName].filter(Boolean).join(' · '),
-    className: EMMA_CLASSES.find((c) => c.id === m.emmaClass)?.label || '',
+    // Die Unterklasse (Budget-/OEM-Variante) entscheidet mit, wogegen gewertet
+    // wird – sie gehört deshalb auf jede Seite neben die Kategorie.
+    className: [classLabel, m.emmaSubclass].filter(Boolean).join(' · '),
     plate: m.plate,
     vehicle: [m.vehicleMake, m.vehicleModel, m.vehicleYear].filter(Boolean).join(' '),
     event: m.eventName,
@@ -55,7 +58,7 @@ const assessment = computed(() => assessProject(p.value, column.value))
 const bonusRequests = computed(() => p.value.bonusRequests.filter((r) => r.title))
 
 const signalDef = computed(() => signalDefinition(p.value.system) || '')
-const powerDef = computed(() => powerDefinition(p.value.system) || '')
+const powerDef = computed(() => powerDefinition(p.value.system, p.value.power) || '')
 
 const powerRows = computed(() => {
   const pw = p.value.power

@@ -116,6 +116,10 @@ export default {
     classSection: 'EMMA-Klasse',
     classHint:
       'Bestimmt, welche Kriterien bei dir bewertet werden, welche Fotos Pflicht sind und wie viele Punkte insgesamt zu holen sind.',
+    subclass: 'Unterklasse',
+    subclassPlaceholder: 'z. B. Master OEM Unlimited',
+    subclassHint:
+      'Budget-/OEM-Variante deiner Kategorie laut Anmeldung – erscheint in der Kopfzeile jeder Seite des Ausdrucks. Freitext, falls deine Variante nicht in der Schnellauswahl steht.',
     modeSection: 'Dokumentations-Modus',
     modeHint:
       'Nur ein Umfangsfilter: Quick Rescue blendet alles aus, was in deiner Kategorie nicht Pflicht ist. Ein Wechsel löscht keine Daten.',
@@ -138,7 +142,7 @@ export default {
     signalHint: 'Quelle → DSP → Endstufe → Lautsprecher.',
     power: 'Stromlaufplan',
     powerHint:
-      'Batterie → Sicherung → Verteiler → Verbraucher. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
+      'Batterie → Sicherung → Verteiler → Verbraucher – und zurück über den Massepunkt. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
     addLink: '+ Verbindung',
     noSignalLink: 'Noch keine Signalverbindung.',
     noPowerLink: 'Noch keine Stromverbindung.',
@@ -148,6 +152,8 @@ export default {
     section: 'Querschnitt',
     oemComponent: 'Werksseitig verbaut (OEM) – Sicherungswerte und Querschnitte gelten als ab Werk korrekt',
     oemWiring: 'OEM-Verkabelung (original, kein Querschnitts-Nachweis nötig)',
+    groundMissing:
+      'Der Stromlaufplan hat noch keine Masse: Lege einen „Massepunkt (Karosserie)“ an und verbinde die Verbraucher dorthin – mit Querschnitt, idealerweise wie beim Pluskabel.',
     generated: 'Automatisch generierte Diagramme',
     generatedHint: 'Genau diese Grafiken landen später im Ausdruck – du musst nichts zeichnen.',
     empty2: 'Lege Komponenten an und verbinde sie – das Diagramm entsteht automatisch.',
