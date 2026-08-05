@@ -2,7 +2,7 @@ import { translateInline } from '../i18n/index.js'
 
 /**
  * "Ghost-Overlays": schematische Beispielbilder, die zeigen, WIE ein Foto
- * aufgebaut sein muss, damit der Richter es werten kann.
+ * aufgebaut sein muss, damit der Juror es werten kann.
  * Bewusst als Inline-SVG – so bleibt die App ohne externe Assets lauffähig.
  */
 
@@ -53,7 +53,7 @@ export const EXAMPLES = {
     },
     tips: [
       {
-        de: 'Kein angeschnittenes Fahrzeug – der Richter will es wiedererkennen.',
+        de: 'Kein angeschnittenes Fahrzeug – der Juror will es wiedererkennen.',
         en: 'Do not crop the vehicle – the judge wants to recognise it.',
       },
       {
@@ -126,7 +126,7 @@ export const EXAMPLES = {
     },
     tips: [
       {
-        de: 'Richter können keine Entfernungen raten. Lege einen Zollstock ins Bild!',
+        de: 'Juroren können keine Entfernungen raten. Lege einen Zollstock ins Bild!',
         en: 'Judges cannot guess distances. Put a folding rule in the shot!',
       },
       {
@@ -186,7 +186,7 @@ export const EXAMPLES = {
     },
     tips: [
       {
-        de: 'Pro ungeschütztem Kabel zieht der Richter 1 Punkt ab (Kriterium "Cables protected from damage").',
+        de: 'Pro ungeschütztem Kabel zieht der Juror 1 Punkt ab (Kriterium "Cables protected from damage").',
         en: 'The judge deducts 1 point per unprotected cable (criterion "Cables protected from damage").',
       },
       {

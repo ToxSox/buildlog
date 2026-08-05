@@ -144,7 +144,7 @@ export function createEmptyProject() {
     /** Bonus-Point-Anträge (X / X Unlimited), max. 50 laut Regelwerk. */
     bonusRequests: [],
 
-    /** Vorbereitung der 7-Minuten-Erklärung an die Richter. */
+    /** Vorbereitung der 7-Minuten-Erklärung an die Juroren. */
     presentation: {
       goal: '',
       story: '',

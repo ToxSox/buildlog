@@ -136,7 +136,7 @@ Die App prüft ausschließlich, was in diesen Dateien steht: Installationsregeln
 zu Strom, Absicherung, Befestigung und Dokumentation. Kategorie-spezifische
 Sonderregeln, Klassen-Limits und die eigentliche Klangbewertung sind **nicht**
 abgebildet. Die Punktanzeige ist eine Selbsteinschätzung, keine Wertung – das
-letzte Wort hat der Richter am Fahrzeug.
+letzte Wort hat der Juror am Fahrzeug.
 
 ### Kategorien und Dokumentationspflicht
 
@@ -158,7 +158,7 @@ Die App rechnet gegen die **Installation Matrix** der gewählten Kategorie
 Teilnehmer selbst ein. Das Ergebnis ist ausdrücklich eine Schätzung, keine
 Wertung – und wird im Ausdruck auch so bezeichnet.
 
-Eigene Schritte gibt es für die **Erklärung an die Richter** (7 bzw. 15 Minuten,
+Eigene Schritte gibt es für die **Erklärung an die Juroren** (7 bzw. 15 Minuten,
 mit aus den Daten generiertem Leitfaden) und für die **Bonuspunkte-Anträge**
 (bis zu 50 Stück; in X Unlimited 100 von 325 Punkten).
 

@@ -9,7 +9,7 @@ const d = (key, params) => translate(`assessment.${key}`, params)
  *
  * WICHTIG: Das Ergebnis ist eine Schätzung, keine Wertung. Die App kann nur
  * prüfen, was sie sieht – ob eine Crimpung wirklich sauber ist, entscheidet der
- * Richter am Auto. Kriterien mit `assess: 'auto'` werden aus Eingaben und Fotos
+ * Juror am Auto. Kriterien mit `assess: 'auto'` werden aus Eingaben und Fotos
  * abgeleitet, alle anderen schätzt der Teilnehmer selbst ein.
  */
 

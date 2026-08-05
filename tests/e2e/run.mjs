@@ -338,7 +338,7 @@ try {
   const printTitles = await page.locator('.print-head__title').allInnerTexts()
   check(
     'Vortragsseite erscheint auch nur mit Abschluss-Text',
-    printTitles.some((tt) => tt.includes('Erklärung an die Richter')),
+    printTitles.some((tt) => tt.includes('Erklärung an die Juroren')),
     printTitles.join(' | ').slice(0, 160),
   )
 
