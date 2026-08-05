@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
-import { COMPONENT_TYPES, uid, CABLE_SECTIONS, INSTALL_DEFAULTS } from '../data/schema.js'
+import { COMPONENT_TYPES, uid, CABLE_SECTIONS } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
@@ -15,28 +15,15 @@ const system = computed(() => store.project.system)
 const typeLabel = (type) => tx(COMPONENT_TYPES.find((x) => x.id === type)?.label) || type
 const typeIcon = (type) => COMPONENT_TYPES.find((x) => x.id === type)?.icon || '•'
 
-function addComponent(type) {
-  system.value.components.push({
-    id: uid('cmp'),
-    type,
-    name: '',
-    detail: '',
-    channels: '',
-    oem: false,
-    install: { ...INSTALL_DEFAULTS },
-  })
-}
-
-function removeComponent(id) {
-  const idx = system.value.components.findIndex((c) => c.id === id)
-  if (idx >= 0) system.value.components.splice(idx, 1)
-  system.value.signalLinks = system.value.signalLinks.filter((l) => l.from !== id && l.to !== id)
-  system.value.powerLinks = system.value.powerLinks.filter((l) => l.from !== id && l.to !== id)
-}
+const addComponent = (type) => store.addComponent(type)
+const removeComponent = (id) => store.removeComponent(id)
 
 function addLink(kind) {
-  const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
-  list.push({
+  if (kind === 'power') {
+    store.addPowerLink()
+    return
+  }
+  system.value.signalLinks.push({
     id: uid('lnk'),
     from: '',
     to: '',

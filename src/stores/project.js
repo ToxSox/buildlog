@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch, toRaw } from 'vue'
 import localforage from 'localforage'
-import { createEmptyProject, migrateProject, uid, MODES } from '../data/schema.js'
+import { createEmptyProject, migrateProject, uid, MODES, INSTALL_DEFAULTS } from '../data/schema.js'
 import { columnForClass } from '../data/matrix.js'
 import { isQuotaError } from '../utils/storage.js'
 import { translate } from '../i18n/index.js'
@@ -148,6 +148,52 @@ export const useProjectStore = defineStore('project', () => {
   function removeBonusRequest(id) {
     const idx = project.value.bonusRequests.findIndex((r) => r.id === id)
     if (idx >= 0) project.value.bonusRequests.splice(idx, 1)
+  }
+
+  // ------------------------------------------------------------ Systemaufbau
+  /**
+   * Die Komponentenliste des Blockdiagramms ist die einzige Quelle für alle
+   * Seiten – auch „Hardware-Montage“ und „Strom & Sicherheit“ legen hierüber an.
+   */
+  function addComponent(type, patch = {}) {
+    const component = {
+      id: uid('cmp'),
+      type,
+      name: '',
+      detail: '',
+      channels: '',
+      oem: false,
+      ...patch,
+      install: { ...INSTALL_DEFAULTS, ...(patch.install || {}) },
+    }
+    project.value.system.components.push(component)
+    return component
+  }
+
+  /** Entfernt die Komponente überall – inklusive aller Verbindungen an ihr. */
+  function removeComponent(id) {
+    const system = project.value.system
+    const idx = system.components.findIndex((c) => c.id === id)
+    if (idx >= 0) system.components.splice(idx, 1)
+    system.signalLinks = system.signalLinks.filter((l) => l.from !== id && l.to !== id)
+    system.powerLinks = system.powerLinks.filter((l) => l.from !== id && l.to !== id)
+  }
+
+  function addPowerLink(patch = {}) {
+    const link = {
+      id: uid('lnk'),
+      from: '',
+      to: '',
+      label: '',
+      section: null,
+      fuseAmps: null,
+      polarity: null,
+      oem: false,
+      remote: false,
+      ...patch,
+    }
+    project.value.system.powerLinks.push(link)
+    return link
   }
 
   // ------------------------------------------------------------ Listenhelfer
@@ -446,6 +492,9 @@ export const useProjectStore = defineStore('project', () => {
     assessmentFor,
     addBonusRequest,
     removeBonusRequest,
+    addComponent,
+    removeComponent,
+    addPowerLink,
     pushItem,
     removeItem,
     startProject,
