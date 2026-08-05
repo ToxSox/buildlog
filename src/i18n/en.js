@@ -448,7 +448,7 @@ export default {
     aboutProject: 'About this project',
     openFindings: 'Open safety findings ({n}):',
     allClear: 'All checked safety rules (fusing, cross-section, distances) are met.',
-    createdWith: 'Created with the EMMA Build Log Creator · {date}',
+    createdWith: 'Created with the EMMA Build Log Creator v{version} · {date}',
     page: 'Page {current} of {total}',
     signal: 'Signal path',
     signalLead: 'Source → processing → amplification → transducers. Generated from the component list.',

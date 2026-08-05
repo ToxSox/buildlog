@@ -116,6 +116,13 @@ try {
   await page.goto(BASE, { waitUntil: 'networkidle' })
   check('Startseite lädt', (await page.title()).includes('EMMA'))
 
+  const pkgVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version
+  check(
+    'Versionsnummer steht im Seitenfuß',
+    (await page.locator('footer').innerText()).includes(`v${pkgVersion}`),
+    `v${pkgVersion}`,
+  )
+
   await page.getByRole('button', { name: /SQ Masterclass/ }).click()
   await page.waitForURL('**/#/wizard/fahrzeug')
   await page.fill('#participant', 'Max Mustermann')

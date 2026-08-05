@@ -28,6 +28,10 @@ npm run build && npm run test:e2e   # End-to-End gegen den echten Build
 Der Build ist relativ verlinkt (`base: './'`) und kann aus jedem statischen
 Verzeichnis heraus ausgeliefert werden.
 
+Die Versionsnummer wird aus `package.json` (`version`) in den Build injiziert
+und erscheint im Seitenfuß der App, auf dem Deckblatt des Ausdrucks und in der
+LIESMICH des ZIP-Archivs – bei Releases dort pflegen.
+
 ## Tech-Stack
 
 | Baustein        | Einsatz                                                 |

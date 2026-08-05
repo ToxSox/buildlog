@@ -59,7 +59,7 @@ export async function exportArchive() {
       'bilder-index.json : Zuordnung Bild -> Abschnitt',
       '',
       'Diese ZIP kann in der App per Drag & Drop wieder importiert werden.',
-      `Erstellt am ${new Date().toLocaleString('de-DE')}`,
+      `Erstellt am ${new Date().toLocaleString('de-DE')} mit App-Version ${__APP_VERSION__}`,
     ].join('\n'),
   )
 

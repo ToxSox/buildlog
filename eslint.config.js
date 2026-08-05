@@ -15,7 +15,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...globals.browser, ...globals.node, __APP_VERSION__: 'readonly' },
     },
     rules: {
       // Die App ist bewusst deutschsprachig kommentiert; Formatierung macht Prettier.

@@ -451,7 +451,7 @@ export default {
     aboutProject: 'Über dieses Projekt',
     openFindings: 'Offene Sicherheitshinweise ({n}):',
     allClear: 'Alle geprüften Sicherheitsregeln (Absicherung, Querschnitt, Abstände) sind eingehalten.',
-    createdWith: 'Erstellt mit dem EMMA Build Log Creator · {date}',
+    createdWith: 'Erstellt mit dem EMMA Build Log Creator v{version} · {date}',
     page: 'Seite {current} von {total}',
     signal: 'Signalweg',
     signalLead:

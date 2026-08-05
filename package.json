@@ -1,7 +1,7 @@
 {
   "name": "emma-build-log-creator",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.5.0",
   "license": "MIT",
   "type": "module",
   "description": "Clientseitiger Assistent zur Erstellung EMMA-konformer Car-HiFi Build Logs (DIN A4 quer).",
