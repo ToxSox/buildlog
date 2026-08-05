@@ -137,7 +137,8 @@ export default {
     signal: 'Signalweg',
     signalHint: 'Quelle → DSP → Endstufe → Lautsprecher.',
     power: 'Stromlaufplan',
-    powerHint: 'Batterie → Sicherung → Verteiler → Verbraucher.',
+    powerHint:
+      'Batterie → Sicherung → Verteiler → Verbraucher. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
     addLink: '+ Verbindung',
     noSignalLink: 'Noch keine Signalverbindung.',
     noPowerLink: 'Noch keine Stromverbindung.',
@@ -145,6 +146,8 @@ export default {
     to: 'nach',
     cableChannel: 'Kabel / Kanal',
     section: 'Querschnitt',
+    oemComponent: 'Werksseitig verbaut (OEM) – Sicherungswerte und Querschnitte gelten als ab Werk korrekt',
+    oemWiring: 'OEM-Verkabelung (original, kein Querschnitts-Nachweis nötig)',
     generated: 'Automatisch generierte Diagramme',
     generatedHint: 'Genau diese Grafiken landen später im Ausdruck – du musst nichts zeichnen.',
     empty2: 'Lege Komponenten an und verbinde sie – das Diagramm entsteht automatisch.',
@@ -304,6 +307,7 @@ export default {
     selfHint: 'Das prüft der Juror am Fahrzeug – schätze ehrlich, dann weißt du vor dem Event, wo du stehst.',
     provableVia: 'Belegbar über: {slots}',
     maxPoints: 'max. {n} P.',
+    jumpTo: 'Prüfen im Schritt „{step}“',
     notePlaceholder: 'Notiz für dich selbst (z. B. was noch fehlt)',
     stateYes: 'erfüllt',
     statePartly: 'teilweise',
@@ -358,6 +362,9 @@ export default {
     loading: 'Bild wird geladen …',
     deleteConfirm: 'Dieses Foto aus der Mappe entfernen?',
     paysInto: 'zahlt ein auf „{criterion}“ ({points} P.)',
+    visibleNoPhoto:
+      'Sichtbar verbaut – kein Foto nötig. Der Juror prüft es direkt am Fahrzeug; Fotos sind nur für Verdecktes Pflicht.',
+    visibleBadge: 'Sichtbar verbaut',
   },
 
   archive: {
@@ -663,7 +670,8 @@ export default {
     mainFuseOkNoPhoto: 'Regel erfüllt – ein Foto mit Maßstab macht es beweisbar',
     mainFuseOk: 'Regel erfüllt und fotografisch belegt',
     allFusedNoComponents: 'noch keine Komponenten erfasst',
-    allFusedUnfused: '{n} Komponente(n) ohne erfassten Abgang',
+    allFusedUnfused:
+      '{needed} abzusichernde Leitungen erwartet (Endstufen, DSP, Nicht-OEM-Quellen), aber nur {fuses} Abgänge unter „Strom & Sicherheit“ erfasst – {n} fehlt/fehlen',
     allFusedOk: '{n} Komponenten abgesichert',
     fuseValueBad: '{n} unpassende Absicherung(en)',
     fuseValueOk: 'alle erfassten Sicherungen passen zum Querschnitt',

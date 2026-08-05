@@ -134,7 +134,8 @@ export default {
     signal: 'Signal path',
     signalHint: 'Source → DSP → amplifier → speakers.',
     power: 'Power diagram',
-    powerHint: 'Battery → fuse → distribution → consumers.',
+    powerHint:
+      'Battery → fuse → distribution → consumers. Mark factory-wired devices as OEM – judges do not require proof for those.',
     addLink: '+ Connection',
     noSignalLink: 'No signal connection yet.',
     noPowerLink: 'No power connection yet.',
@@ -142,6 +143,9 @@ export default {
     to: 'to',
     cableChannel: 'Cable / channel',
     section: 'Cross-section',
+    oemComponent:
+      'Factory-installed (OEM) – fuse values and cross-sections count as correct from the factory',
+    oemWiring: 'OEM wiring (original, no cross-section proof needed)',
     generated: 'Automatically generated diagrams',
     generatedHint: 'These exact graphics go into the printout – you do not have to draw anything.',
     empty2: 'Add components and connect them – the diagram appears automatically.',
@@ -301,6 +305,7 @@ export default {
       'The judge checks this at the vehicle – be honest and you will know where you stand before the event.',
     provableVia: 'Can be evidenced by: {slots}',
     maxPoints: 'max. {n} pts',
+    jumpTo: 'Check in step “{step}”',
     notePlaceholder: 'Note to yourself (e.g. what is still missing)',
     stateYes: 'met',
     statePartly: 'partly',
@@ -355,6 +360,9 @@ export default {
     loading: 'Loading image …',
     deleteConfirm: 'Remove this photo from the build log?',
     paysInto: 'counts towards “{criterion}” ({points} pts)',
+    visibleNoPhoto:
+      'Visibly installed – no photo needed. The judge checks it on the car; photos are only mandatory for hidden installs.',
+    visibleBadge: 'Visibly installed',
   },
 
   archive: {
@@ -655,7 +663,8 @@ export default {
     mainFuseOkNoPhoto: 'rule met – a photo with a ruler makes it provable',
     mainFuseOk: 'rule met and documented photographically',
     allFusedNoComponents: 'no components recorded yet',
-    allFusedUnfused: '{n} component(s) without a recorded branch',
+    allFusedUnfused:
+      '{needed} fused feeds expected (amplifiers, DSP, non-OEM sources) but only {fuses} branches recorded under “Power & safety” – {n} missing',
     allFusedOk: '{n} components fused',
     fuseValueBad: '{n} inappropriate fuse(s)',
     fuseValueOk: 'all recorded fuses match their cross-section',

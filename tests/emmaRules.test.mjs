@@ -136,5 +136,39 @@ check('fehlender Abstand gibt keine Punkte', nullDistance && nullDistance.earned
 const farDistance = mainFuseFor(80)
 check('80 cm gibt keine Punkte', farDistance && farDistance.earned === 0)
 
+// Fall 8: OEM-Komponenten brauchen keinen Absicherungs-Nachweis.
+// Für Originalteile gilt die Dimensionierung des Herstellers als akzeptiert.
+const allFusedFor = (project) => assessProject(project, 'M').criteria.find((c) => c.id === 'allFused')
+p = createEmptyProject()
+p.meta.emmaClass = 'sq-m'
+p.system.components = [
+  { id: 'src', type: 'source', oem: true },
+  { id: 'amp1', type: 'amp' },
+]
+p.hardware.amps = [{ id: 'hw1', brand: 'Amp' }]
+p.power.distributionFuses = [{ id: 'd1', section: 10, amps: 60 }]
+let allFused = allFusedFor(p)
+check('OEM-Headunit zaehlt nicht als abzusichernde Leitung', allFused && allFused.earned === allFused.max)
+
+p.system.components[0].oem = false
+allFused = allFusedFor(p)
+check('Nicht-OEM-Headunit verlangt einen eigenen Abgang', allFused && allFused.earned < allFused.max)
+
+p.system.powerLinks = [{ id: 'l1', from: 'bat', to: 'src', oem: true }]
+allFused = allFusedFor(p)
+check('OEM-Verkabelung zur Quelle ersetzt den Nachweis', allFused && allFused.earned === allFused.max)
+
+// Fall 9: „Sichtbar verbaut" ersetzt das Pflichtfoto – Fotos sind laut
+// Regelwerk nur für Verdecktes Pflicht, Sichtbares prüft der Juror am Auto.
+p = createEmptyProject()
+p.meta.emmaClass = 'sq-m'
+const terminationsFor = (project) =>
+  assessProject(project, 'M').criteria.find((c) => c.id === 'terminationsProtected')
+let tp = terminationsFor(p)
+check('ohne Foto und ohne Markierung 0 Punkte', tp && tp.earned === 0)
+p.visibleNoPhoto = ['power.terminals']
+tp = terminationsFor(p)
+check('sichtbar verbaut ersetzt das Foto', tp && tp.earned === tp.max)
+
 console.log(fail === 0 ? `\nAlle Checks bestanden.` : `\n${fail} Check(s) fehlgeschlagen.`)
 process.exit(fail ? 1 : 0)

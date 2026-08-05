@@ -114,6 +114,22 @@ export const useProjectStore = defineStore('project', () => {
     return project.value.skipped.includes(slot)
   }
 
+  // ------------------------------------------------- Sichtbar-verbaut-Liste
+  /** Fotos sind nur für Verdecktes Pflicht – Sichtbares prüft der Juror am Auto. */
+  function setVisibleNoPhoto(slot, on) {
+    const list = project.value.visibleNoPhoto
+    const idx = list.indexOf(slot)
+    if (on && idx < 0) {
+      list.push(slot)
+      unskip(slot)
+    } else if (!on && idx >= 0) {
+      list.splice(idx, 1)
+    }
+  }
+  function isVisibleNoPhoto(slot) {
+    return project.value.visibleNoPhoto.includes(slot)
+  }
+
   // -------------------------------------------------------- Selbstbewertung
   function setAssessment(criterionId, patch) {
     const current = project.value.assessment[criterionId] || { state: null, note: '' }
@@ -423,6 +439,8 @@ export const useProjectStore = defineStore('project', () => {
     skip,
     unskip,
     isSkipped,
+    setVisibleNoPhoto,
+    isVisibleNoPhoto,
     setAssessment,
     assessmentFor,
     addBonusRequest,

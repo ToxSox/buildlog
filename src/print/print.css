@@ -187,6 +187,12 @@
   display: flex;
   justify-content: center;
 }
+/* Ohne feste Breite fällt das SVG als Flex-Kind auf seine Mindestbreite
+   (~300 px) zurück und das gedruckte Diagramm wird winzig – der Wrapper muss
+   die volle Blattbreite vorgeben, damit das SVG hochskalieren kann. */
+.print-diagram > * {
+  width: 100%;
+}
 /* mermaid setzt eine inline max-width – die muss für die Seitenbreite weichen. */
 .print-diagram svg {
   width: 100% !important;

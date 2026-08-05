@@ -23,7 +23,7 @@ export function useScore() {
   /** Reiner Foto-Fortschritt – funktioniert auch ohne gewählte Kategorie. */
   const photos = computed(() => {
     const required = requiredSlots(column.value)
-    const done = required.filter((s) => store.mediaFor(s.key).length > 0)
+    const done = required.filter((s) => store.mediaFor(s.key).length > 0 || store.isVisibleNoPhoto(s.key))
     return {
       done: done.length,
       total: required.length,
@@ -47,7 +47,9 @@ export function useScore() {
   })
 
   const missingRequired = computed(() =>
-    requiredSlots(column.value).filter((s) => store.mediaFor(s.key).length === 0),
+    requiredSlots(column.value).filter(
+      (s) => store.mediaFor(s.key).length === 0 && !store.isVisibleNoPhoto(s.key),
+    ),
   )
 
   function missingForStep(step) {

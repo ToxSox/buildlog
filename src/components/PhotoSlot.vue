@@ -18,7 +18,10 @@ const store = useProjectStore()
 const items = computed(() => store.mediaFor(props.slotDef.key))
 const isRequired = computed(() => isSlotRequired(props.slotDef, store.column))
 const criterion = computed(() => findCriterion(props.slotDef.criterion))
-const isMissing = computed(() => isRequired.value && items.value.length === 0)
+/** Sichtbar Verbautes prüft der Juror am Auto – dann ist das Foto optional. */
+const isVisible = computed(() => store.isVisibleNoPhoto(props.slotDef.key))
+const showVisibleBadge = computed(() => isVisible.value && items.value.length === 0)
+const isMissing = computed(() => isRequired.value && items.value.length === 0 && !isVisible.value)
 
 /** Weitere Detailfotos werden erst nach Klick eingeblendet, damit die Liste ruhig bleibt. */
 const addMore = ref(false)
@@ -49,9 +52,21 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
       </div>
       <span
         class="badge shrink-0"
-        :class="isRequired ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-600'"
+        :class="
+          showVisibleBadge
+            ? 'bg-emerald-100 text-emerald-700'
+            : isRequired
+              ? 'bg-rose-100 text-rose-700'
+              : 'bg-slate-200 text-slate-600'
+        "
       >
-        {{ isRequired ? t('common.required') : t('common.optional') }}
+        {{
+          showVisibleBadge
+            ? t('uploader.visibleBadge')
+            : isRequired
+              ? t('common.required')
+              : t('common.optional')
+        }}
       </span>
     </div>
 
@@ -76,6 +91,16 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
     <button v-else-if="slotDef.multiple" type="button" class="btn-soft btn-xs w-full" @click="addMore = true">
       {{ t('uploader.addMore') }}
     </button>
+
+    <label v-if="isRequired && !items.length" class="mt-2 flex items-start gap-2 text-xs text-slate-600">
+      <input
+        type="checkbox"
+        class="mt-0.5 accent-emerald-600"
+        :checked="isVisible"
+        @change="store.setVisibleNoPhoto(slotDef.key, $event.target.checked)"
+      />
+      <span>{{ t('uploader.visibleNoPhoto') }}</span>
+    </label>
 
     <p v-if="tx(slotDef.tip)" class="mt-2 text-[11px] leading-snug text-slate-500">
       💡 {{ tx(slotDef.tip) }}

@@ -22,6 +22,7 @@ function addComponent(type) {
     name: '',
     detail: '',
     channels: '',
+    oem: false,
   })
 }
 
@@ -34,7 +35,13 @@ function removeComponent(id) {
 
 function addLink(kind) {
   const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
-  list.push({ id: uid('lnk'), from: '', to: '', label: '', section: null })
+  list.push({ id: uid('lnk'), from: '', to: '', label: '', section: null, oem: false })
+}
+
+/** OEM-Verkabelung braucht keinen Querschnitt – der Hersteller hat dimensioniert. */
+function setLinkOem(link, on) {
+  link.oem = on
+  if (on) link.section = null
 }
 
 function removeLink(kind, id) {
@@ -99,6 +106,10 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           <button type="button" class="btn-ghost btn-xs" @click="removeComponent(c.id)">
             {{ t('common.remove') }}
           </button>
+          <label class="flex items-center gap-1.5 text-xs text-slate-600 sm:col-span-4 sm:col-start-2">
+            <input v-model="c.oem" type="checkbox" class="accent-sky-600" />
+            <span>{{ t('diagram.oemComponent') }}</span>
+          </label>
         </div>
       </div>
     </div>
@@ -198,7 +209,7 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           </div>
           <div>
             <label class="field" :for="`${l.id}-section`">{{ t('diagram.section') }}</label>
-            <select :id="`${l.id}-section`" v-model.number="l.section" class="select">
+            <select :id="`${l.id}-section`" v-model.number="l.section" class="select" :disabled="l.oem">
               <option :value="null">–</option>
               <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
             </select>
@@ -206,6 +217,15 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           <button type="button" class="btn-ghost btn-xs" @click="removeLink('power', l.id)">
             {{ t('common.remove') }}
           </button>
+          <label class="flex items-center gap-1.5 text-xs text-slate-600 sm:col-span-3">
+            <input
+              type="checkbox"
+              class="accent-sky-600"
+              :checked="l.oem"
+              @change="setLinkOem(l, $event.target.checked)"
+            />
+            <span>{{ t('diagram.oemWiring') }}</span>
+          </label>
         </div>
       </div>
     </div>

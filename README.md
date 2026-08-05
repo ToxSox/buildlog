@@ -155,6 +155,15 @@ vergeben, und Dokumentation ist nur für verdeckte Komponenten nötig. Genau
 darauf zielen die beiden Modi der App: Quick Rescue deckt E/S ab, SQ Masterclass
 die Anforderungen ab M aufwärts.
 
+Zwei Markierungen halten die Nachweispflicht realistisch: **Werksseitig
+verbaute Komponenten** (z. B. OEM-Headunit) und **OEM-Verkabelung** lassen sich
+im Diagramm-Schritt kennzeichnen – für Originalteile gilt die Dimensionierung
+des Herstellers als akzeptiert, die App verlangt dafür keinen
+Absicherungs-Nachweis und schreibt „OEM" ins Diagramm. Und weil Fotos nur für
+Verdecktes Pflicht sind, kann jedes Pflichtfoto als **„sichtbar verbaut"**
+markiert werden: Der Juror prüft es direkt am Fahrzeug, die Mappe zählt den
+Punkt trotzdem als belegt.
+
 ### Punkte-Check
 
 Die App rechnet gegen die **Installation Matrix** der gewählten Kategorie
