@@ -1,13 +1,14 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onBeforeUnmount, nextTick, ref, watch } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { SECTIONS, isSlotVisible } from '../data/sections.js'
-import { EMMA_CLASSES } from '../data/schema.js'
-import { evaluateRules, summarize } from '../data/emmaRules.js'
+import { EMMA_CLASSES, MODES } from '../data/schema.js'
+import { evaluateRules, summarize, toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { assessProject } from '../data/assessment.js'
 import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
+import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { useI18n } from '../i18n/index.js'
@@ -34,6 +35,20 @@ const headMeta = computed(() => {
   }
 })
 
+/** Leere Zahlenfelder kommen als '' oder null zurück – beides darf nicht als „ cm“ im Druck landen. */
+const num = toNumber
+const hasNum = (value) => toNumber(value) !== null
+
+/** Der interne Modus-Schlüssel („SQMasterclass“) gehört nicht auf das Deckblatt. */
+const modeLabel = computed(() => {
+  if (p.value.mode === MODES.QUICK) return t('start.quick.title')
+  if (p.value.mode === MODES.MASTER) return t('start.master.title')
+  return p.value.mode || '—'
+})
+
+/** Zeilen pro Matrix-Blatt, mit Reserve für umbrechende Bemerkungen. */
+const MATRIX_ROWS_PER_PAGE = 12
+
 const findings = computed(() => summarize(evaluateRules(p.value)))
 const column = computed(() => columnForClass(p.value.meta.emmaClass))
 const assessment = computed(() => assessProject(p.value, column.value))
@@ -47,37 +62,98 @@ const powerRows = computed(() => {
   const rows = [
     [t('print.battery'), [pw.batteryType, pw.batteryLocation].filter(Boolean).join(', ')],
     [t('print.batteryMount'), pw.batterySecured],
-    [t('print.cableSection'), pw.mainCableSection ? `${pw.mainCableSection} mm²` : ''],
+    [t('print.cableSection'), hasNum(pw.mainCableSection) ? `${num(pw.mainCableSection)} mm²` : ''],
     [
       t('print.mainFuse'),
-      pw.mainFuseAmps ? `${pw.mainFuseAmps} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}` : '',
+      hasNum(pw.mainFuseAmps)
+        ? `${num(pw.mainFuseAmps)} A${pw.mainFuseType ? ` (${pw.mainFuseType})` : ''}`
+        : '',
     ],
-    [t('print.fuseDistance'), pw.mainFuseDistanceCm !== null ? `${pw.mainFuseDistanceCm} cm` : ''],
+    [t('print.fuseDistance'), hasNum(pw.mainFuseDistanceCm) ? `${num(pw.mainFuseDistanceCm)} cm` : ''],
     [
       t('print.ground'),
       [
-        pw.groundCableSection ? `${pw.groundCableSection} mm²` : '',
-        pw.groundLengthCm ? `${pw.groundLengthCm} cm` : '',
+        hasNum(pw.groundCableSection) ? `${num(pw.groundCableSection)} mm²` : '',
+        hasNum(pw.groundLengthCm) ? `${num(pw.groundLengthCm)} cm` : '',
         pw.groundPoint,
       ]
         .filter(Boolean)
         .join(', '),
     ],
-    [t('print.cableProtection'), (pw.cableProtection || []).join(', ')],
+    [
+      t('print.cableProtection'),
+      (pw.cableProtection || []).map((entry) => optionLabel(CABLE_PROTECTION, entry)).join(', '),
+    ],
   ]
   if (pw.secondBattery) {
     rows.push([
       t('print.secondBattery'),
       [
-        pw.secondBatteryFuseAmps ? `${pw.secondBatteryFuseAmps} A` : '',
-        pw.secondBatteryDistanceCm !== null ? t('print.cmToPost', { cm: pw.secondBatteryDistanceCm }) : '',
-        pw.chargingCableSection ? t('print.chargingCable', { section: pw.chargingCableSection }) : '',
+        hasNum(pw.secondBatteryFuseAmps) ? `${num(pw.secondBatteryFuseAmps)} A` : '',
+        hasNum(pw.secondBatteryDistanceCm)
+          ? t('print.cmToPost', { cm: num(pw.secondBatteryDistanceCm) })
+          : '',
+        hasNum(pw.chargingCableSection)
+          ? t('print.chargingCable', { section: num(pw.chargingCableSection) })
+          : '',
       ]
         .filter(Boolean)
         .join(', '),
     ])
   }
   return rows.filter(([, value]) => value)
+})
+
+/**
+ * Komponenten-Seiten. Eine große Anlage (Endstufen, DSPs, viele Lautsprecher)
+ * sprengte bisher das eine Blatt. Eine Einheit entspricht einer Tabellenzeile,
+ * jede Tabelle kostet zwei Einheiten für Überschrift und Spaltenkopf.
+ */
+const HARDWARE_UNITS_PER_PAGE = 16
+
+const hardwarePages = computed(() => {
+  const hw = p.value.hardware
+  const tables = [
+    { key: 'amps', title: t('print.amps'), rows: hw.amps || [] },
+    { key: 'dsp', title: t('print.dsp'), rows: hw.dsp || [] },
+    { key: 'speakers', title: t('print.speakers'), rows: hw.speakers || [] },
+    { key: 'subs', title: t('print.subs'), rows: hw.subs || [] },
+  ].filter((table) => table.rows.length)
+  if (!tables.length) return []
+
+  const pages = []
+  let blocks = []
+  let used = 0
+  const flush = () => {
+    if (blocks.length) pages.push(blocks)
+    blocks = []
+    used = 0
+  }
+
+  for (const table of tables) {
+    const rest = [...table.rows]
+    let continued = false
+    while (rest.length) {
+      const free = HARDWARE_UNITS_PER_PAGE - used - 2
+      if (free < 2) {
+        flush()
+        continue
+      }
+      const chunk = rest.splice(0, free)
+      blocks.push({ ...table, rows: chunk, continued })
+      used += chunk.length + 2
+      continued = true
+    }
+  }
+  flush()
+
+  return pages.map((entries, i) => ({
+    kind: 'hardware',
+    title: t('print.components'),
+    blocks: entries,
+    // Die Einbau-Notiz gehört ans Ende des letzten Komponentenblatts.
+    notes: i === pages.length - 1 ? hw.mountingNotes : '',
+  }))
 })
 
 /** Foto-Seiten: pro Abschnitt in Blöcke à 6 Bildern. */
@@ -156,10 +232,7 @@ const pages = computed(() => {
   if (powerDef.value) list.push({ kind: 'powerDiagram', title: t('print.powerDiagram') })
   list.push({ kind: 'powerData', title: t('print.powerData') })
 
-  const hw = p.value.hardware
-  if (hw.amps.length || hw.dsp.length || hw.speakers.length || hw.subs.length) {
-    list.push({ kind: 'hardware', title: t('print.components') })
-  }
+  list.push(...hardwarePages.value)
 
   const c = p.value.craft
   if (
@@ -173,12 +246,13 @@ const pages = computed(() => {
     list.push({ kind: 'craft', title: t('print.craft') })
   }
 
+  // `story` zählt mit: sonst verschwindet ein nur dort gefüllter Vortrag aus dem Druck.
+  // Leere Highlight-Zeilen zählen nicht, sie erzeugten sonst eine leere Seite.
+  // Bewusst ohne Kategorie-Filter: Wer den Vortrag in einer höheren Kategorie
+  // vorbereitet und danach wechselt, soll seinen Text nicht verlieren – genau
+  // wie beim Handwerk-Abschnitt, der ebenfalls am Inhalt hängt.
   const pr = p.value.presentation
-  if (
-    column.value &&
-    ['M', 'X', 'XUNL'].includes(column.value) &&
-    (pr.goal || pr.challenge || pr.highlights.length)
-  ) {
+  if (pr.goal || pr.story || pr.challenge || (pr.highlights || []).some((h) => h.text)) {
     list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
@@ -193,14 +267,64 @@ const pages = computed(() => {
     }
   }
 
+  // X und X Unlimited bringen 19–20 Kriterien mit – die passen nicht auf ein Blatt.
   if (column.value && assessment.value.max) {
-    list.push({ kind: 'matrix', title: t('print.matrixTitle') })
+    const criteria = assessment.value.criteria
+    for (let i = 0; i < criteria.length; i += MATRIX_ROWS_PER_PAGE) {
+      const items = criteria.slice(i, i + MATRIX_ROWS_PER_PAGE)
+      list.push({
+        kind: 'matrix',
+        title: t('print.matrixTitle'),
+        items,
+        lead: i === 0,
+        sum: i + MATRIX_ROWS_PER_PAGE >= criteria.length,
+      })
+    }
   }
 
   return [...list, ...photoPages.value]
 })
 
 const total = computed(() => pages.value.length)
+
+/**
+ * Ein Abschnitt = ein Blatt. Wird ein Abschnitt länger (viele Einträge, lange
+ * Notizen), druckt der Browser den Rest auf ein Zusatzblatt ohne Kopfzeile –
+ * die Seitenzahlen im Fuß stimmen dann nicht mehr. Statt das stillschweigend
+ * passieren zu lassen, misst die Vorschau nach und sagt Bescheid.
+ */
+const MM_TO_PX = 96 / 25.4
+const SHEET_HEIGHT_PX = 188 * MM_TO_PX
+const SHEET_WIDTH_PX = 277 * MM_TO_PX
+
+const docEl = ref(null)
+const overflowPages = ref([])
+let observer = null
+
+function measurePages() {
+  const nodes = [...(docEl.value?.querySelectorAll('.print-page') || [])]
+  // Auf schmalen Displays skaliert die Vorschau – dort wäre jede Messung falsch.
+  if (!nodes.length || nodes[0].offsetWidth < SHEET_WIDTH_PX - 2) {
+    overflowPages.value = []
+    return
+  }
+  overflowPages.value = nodes
+    .map((node, i) => (node.offsetHeight > SHEET_HEIGHT_PX + 2 ? i + 1 : 0))
+    .filter(Boolean)
+}
+
+/** Diagramme und Bilder kommen verzögert – deshalb messen wir bei jeder Größenänderung neu. */
+function watchPages() {
+  observer?.disconnect()
+  measurePages()
+  if (typeof ResizeObserver === 'undefined' || !docEl.value) return
+  observer = new ResizeObserver(measurePages)
+  docEl.value.querySelectorAll('.print-page').forEach((node) => observer.observe(node))
+}
+
+onMounted(() => nextTick(watchPages))
+watch(pages, () => nextTick(watchPages))
+onBeforeUnmount(() => observer?.disconnect())
 
 function print() {
   window.print()
@@ -224,12 +348,20 @@ function print() {
           <button type="button" class="btn-primary" @click="print">🖨️ {{ t('common.print') }}</button>
         </div>
       </div>
+      <p
+        v-if="overflowPages.length"
+        data-testid="print-overflow"
+        class="mx-auto max-w-6xl px-4 pb-3 text-xs font-semibold text-amber-700"
+      >
+        ⚠️ {{ t('print.overflowWarning', { pages: overflowPages.join(', ') }) }}
+      </p>
     </div>
 
-    <div class="print-doc">
+    <div ref="docEl" class="print-doc">
       <PrintPage
         v-for="(page, i) in pages"
         :key="i"
+        :class="overflowPages.includes(i + 1) ? 'print-page--overflow' : ''"
         :title="page.title"
         :meta="headMeta"
         :page-number="i + 1"
@@ -278,7 +410,7 @@ function print() {
                 {{ p.meta.installerName || '—' }}
               </div>
               <div>
-                <span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ p.mode }}
+                <span class="print-kv__key">{{ t('print.documentationMode') }}:</span> {{ modeLabel }}
               </div>
             </div>
 
@@ -369,11 +501,13 @@ function print() {
 
         <!-- ------------------------------------------------------- Hardware -->
         <template v-else-if="page.kind === 'hardware'">
-          <template v-if="p.hardware.amps.length">
-            <h2 class="print-h2">{{ t('print.amps') }}</h2>
+          <template v-for="(block, bi) in page.blocks" :key="`${block.key}-${bi}`">
+            <h2 class="print-h2" :style="bi ? 'margin-top: 4mm' : ''">
+              {{ block.title }}<template v-if="block.continued"> ({{ t('print.continued') }})</template>
+            </h2>
             <table class="print-table">
               <thead>
-                <tr>
+                <tr v-if="block.key === 'amps'">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.channels') }}</th>
                   <th>{{ t('print.powerRms') }}</th>
@@ -381,73 +515,21 @@ function print() {
                   <th>{{ t('print.mounting') }}</th>
                   <th>{{ t('print.fuse') }}</th>
                 </tr>
-              </thead>
-              <tbody>
-                <tr v-for="a in p.hardware.amps" :key="a.id">
-                  <td>{{ a.brand || '—' }}</td>
-                  <td>{{ a.channels }}</td>
-                  <td>{{ a.power }}</td>
-                  <td>{{ a.location }}</td>
-                  <td>{{ a.mounting }}</td>
-                  <td>{{ a.fuse }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-
-          <template v-if="p.hardware.dsp.length">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.dsp') }}</h2>
-            <table class="print-table">
-              <thead>
-                <tr>
+                <tr v-else-if="block.key === 'dsp'">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.io') }}</th>
                   <th>{{ t('print.location') }}</th>
                   <th>{{ t('print.mounting') }}</th>
                   <th>{{ t('print.signalSource') }}</th>
                 </tr>
-              </thead>
-              <tbody>
-                <tr v-for="d in p.hardware.dsp" :key="d.id">
-                  <td>{{ d.brand || '—' }}</td>
-                  <td>{{ d.channels }}</td>
-                  <td>{{ d.location }}</td>
-                  <td>{{ d.mounting }}</td>
-                  <td>{{ d.input }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-
-          <template v-if="p.hardware.speakers.length">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.speakers') }}</h2>
-            <table class="print-table">
-              <thead>
-                <tr>
+                <tr v-else-if="block.key === 'speakers'">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.position') }}</th>
                   <th>{{ t('print.size') }}</th>
                   <th>{{ t('print.mountingAdapter') }}</th>
                   <th>{{ t('print.cable') }}</th>
                 </tr>
-              </thead>
-              <tbody>
-                <tr v-for="s in p.hardware.speakers" :key="s.id">
-                  <td>{{ s.brand || '—' }}</td>
-                  <td>{{ s.position }}</td>
-                  <td>{{ s.size }}</td>
-                  <td>{{ s.mounting }}</td>
-                  <td>{{ s.wiring }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-
-          <template v-if="p.hardware.subs.length">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.subs') }}</h2>
-            <table class="print-table">
-              <thead>
-                <tr>
+                <tr v-else>
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.enclosure') }}</th>
                   <th>{{ t('print.volume') }}</th>
@@ -456,19 +538,40 @@ function print() {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="s in p.hardware.subs" :key="s.id">
-                  <td>{{ s.brand || '—' }}</td>
-                  <td>{{ s.enclosure }}</td>
-                  <td>{{ s.volume }}</td>
-                  <td>{{ s.location }}</td>
-                  <td>{{ s.securing }}</td>
+                <tr v-for="row in block.rows" :key="row.id">
+                  <td>{{ row.brand || '—' }}</td>
+                  <template v-if="block.key === 'amps'">
+                    <td>{{ row.channels }}</td>
+                    <td>{{ row.power }}</td>
+                    <td>{{ row.location }}</td>
+                    <td>{{ row.mounting }}</td>
+                    <td>{{ row.fuse }}</td>
+                  </template>
+                  <template v-else-if="block.key === 'dsp'">
+                    <td>{{ row.channels }}</td>
+                    <td>{{ row.location }}</td>
+                    <td>{{ row.mounting }}</td>
+                    <td>{{ row.input }}</td>
+                  </template>
+                  <template v-else-if="block.key === 'speakers'">
+                    <td>{{ row.position }}</td>
+                    <td>{{ row.size }}</td>
+                    <td>{{ row.mounting }}</td>
+                    <td>{{ row.wiring }}</td>
+                  </template>
+                  <template v-else>
+                    <td>{{ row.enclosure }}</td>
+                    <td>{{ row.volume }}</td>
+                    <td>{{ row.location }}</td>
+                    <td>{{ row.securing }}</td>
+                  </template>
                 </tr>
               </tbody>
             </table>
           </template>
 
-          <p v-if="p.hardware.mountingNotes" style="margin-top: 4mm; font-size: 9pt; white-space: pre-line">
-            {{ p.hardware.mountingNotes }}
+          <p v-if="page.notes" style="margin-top: 4mm; font-size: 9pt; white-space: pre-line">
+            {{ page.notes }}
           </p>
         </template>
 
@@ -506,7 +609,7 @@ function print() {
               <tbody>
                 <tr v-for="c in p.craft.customParts" :key="c.id">
                   <td>{{ c.name || '—' }}</td>
-                  <td>{{ c.technique }}</td>
+                  <td>{{ optionLabel(FABRICATION_TECHNIQUES, c.technique) }}</td>
                   <td>{{ c.material }}</td>
                   <td>{{ [c.purpose, c.notes].filter(Boolean).join(' – ') }}</td>
                 </tr>
@@ -596,7 +699,7 @@ function print() {
 
         <!-- ------------------------------------------- Selbsteinschätzung -->
         <template v-else-if="page.kind === 'matrix'">
-          <p class="print-lead" style="margin-bottom: 3mm">
+          <p v-if="page.lead" class="print-lead" style="margin-bottom: 3mm">
             {{ t('print.matrixLead', { category: COLUMN_LABELS[column] }) }}
           </p>
           <table class="print-table">
@@ -609,7 +712,7 @@ function print() {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="c in assessment.criteria" :key="c.id">
+              <tr v-for="c in page.items" :key="c.id">
                 <td>{{ tx(c.label) }}</td>
                 <td>{{ c.earned }} / {{ c.max }}</td>
                 <td>
@@ -623,7 +726,7 @@ function print() {
                 </td>
                 <td>{{ c.note || c.detail }}</td>
               </tr>
-              <tr>
+              <tr v-if="page.sum">
                 <td>
                   <strong>{{ t('print.total') }}</strong>
                 </td>

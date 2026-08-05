@@ -80,16 +80,21 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
         >
           <span class="text-2xl">{{ typeIcon(c.type) }}</span>
           <div>
-            <label class="field">{{ t('diagram.name') }}</label>
-            <input v-model="c.name" class="input" :placeholder="typeLabel(c.type)" />
+            <label class="field" :for="`${c.id}-name`">{{ t('diagram.name') }}</label>
+            <input :id="`${c.id}-name`" v-model="c.name" class="input" :placeholder="typeLabel(c.type)" />
           </div>
           <div>
-            <label class="field">{{ t('diagram.detail') }}</label>
-            <input v-model="c.detail" class="input" :placeholder="t('diagram.detailPlaceholder')" />
+            <label class="field" :for="`${c.id}-detail`">{{ t('diagram.detail') }}</label>
+            <input
+              :id="`${c.id}-detail`"
+              v-model="c.detail"
+              class="input"
+              :placeholder="t('diagram.detailPlaceholder')"
+            />
           </div>
           <div>
-            <label class="field">{{ t('diagram.channels') }}</label>
-            <input v-model="c.channels" class="input" placeholder="2 / 4 / 8" />
+            <label class="field" :for="`${c.id}-channels`">{{ t('diagram.channels') }}</label>
+            <input :id="`${c.id}-channels`" v-model="c.channels" class="input" placeholder="2 / 4 / 8" />
           </div>
           <button type="button" class="btn-ghost btn-xs" @click="removeComponent(c.id)">
             {{ t('common.remove') }}
@@ -123,8 +128,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
         >
           <div>
-            <label class="field">{{ t('diagram.from') }}</label>
-            <select v-model="l.from" class="select">
+            <label class="field" :for="`${l.id}-from`">{{ t('diagram.from') }}</label>
+            <select :id="`${l.id}-from`" v-model="l.from" class="select">
               <option value="">–</option>
               <option v-for="c in system.components" :key="c.id" :value="c.id">
                 {{ c.name || typeLabel(c.type) }}
@@ -132,8 +137,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             </select>
           </div>
           <div>
-            <label class="field">{{ t('diagram.to') }}</label>
-            <select v-model="l.to" class="select">
+            <label class="field" :for="`${l.id}-to`">{{ t('diagram.to') }}</label>
+            <select :id="`${l.id}-to`" v-model="l.to" class="select">
               <option value="">–</option>
               <option v-for="c in system.components" :key="c.id" :value="c.id">
                 {{ c.name || typeLabel(c.type) }}
@@ -141,8 +146,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             </select>
           </div>
           <div>
-            <label class="field">{{ t('diagram.cableChannel') }}</label>
-            <input v-model="l.label" class="input" placeholder="Cinch Ch 1-2" />
+            <label class="field" :for="`${l.id}-label`">{{ t('diagram.cableChannel') }}</label>
+            <input :id="`${l.id}-label`" v-model="l.label" class="input" placeholder="Cinch Ch 1-2" />
           </div>
           <button type="button" class="btn-ghost btn-xs" @click="removeLink('signal', l.id)">
             {{ t('common.remove') }}
@@ -174,8 +179,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
           class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
         >
           <div>
-            <label class="field">{{ t('diagram.from') }}</label>
-            <select v-model="l.from" class="select">
+            <label class="field" :for="`${l.id}-from`">{{ t('diagram.from') }}</label>
+            <select :id="`${l.id}-from`" v-model="l.from" class="select">
               <option value="">–</option>
               <option v-for="c in system.components" :key="c.id" :value="c.id">
                 {{ c.name || typeLabel(c.type) }}
@@ -183,8 +188,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             </select>
           </div>
           <div>
-            <label class="field">{{ t('diagram.to') }}</label>
-            <select v-model="l.to" class="select">
+            <label class="field" :for="`${l.id}-to`">{{ t('diagram.to') }}</label>
+            <select :id="`${l.id}-to`" v-model="l.to" class="select">
               <option value="">–</option>
               <option v-for="c in system.components" :key="c.id" :value="c.id">
                 {{ c.name || typeLabel(c.type) }}
@@ -192,8 +197,8 @@ const powerDef = computed(() => powerDefinition(system.value) || '')
             </select>
           </div>
           <div>
-            <label class="field">{{ t('diagram.section') }}</label>
-            <select v-model.number="l.section" class="select">
+            <label class="field" :for="`${l.id}-section`">{{ t('diagram.section') }}</label>
+            <select :id="`${l.id}-section`" v-model.number="l.section" class="select">
               <option :value="null">–</option>
               <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
             </select>

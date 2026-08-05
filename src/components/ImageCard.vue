@@ -58,7 +58,7 @@ function remove() {
       <img
         v-if="src"
         :src="src"
-        :alt="item.caption || 'Foto'"
+        :alt="item.caption || t('uploader.photo')"
         class="block h-32 w-full cursor-zoom-in object-cover"
         loading="lazy"
         @click="zoom = true"
@@ -76,6 +76,7 @@ function remove() {
       <input
         :value="item.caption"
         class="input !py-1 !text-xs"
+        :aria-label="t('uploader.caption')"
         :placeholder="t('uploader.caption')"
         @input="store.updateMedia(slotKey, item.id, { caption: $event.target.value })"
       />

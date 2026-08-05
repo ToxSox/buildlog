@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from '../i18n/index.js'
 
 const { t } = useI18n()
@@ -13,6 +13,9 @@ const svg = ref('')
 const error = ref('')
 let mermaidLib = null
 let counter = 0
+/** Zählt die Renderläufe: Ein langsamer Lauf darf ein neueres Diagramm nicht überschreiben. */
+let runId = 0
+let timer = null
 
 async function ensureMermaid() {
   if (mermaidLib) return mermaidLib
@@ -33,6 +36,7 @@ async function ensureMermaid() {
 }
 
 async function render() {
+  const run = ++runId
   error.value = ''
   if (!props.definition) {
     svg.value = ''
@@ -42,16 +46,28 @@ async function render() {
     const mermaid = await ensureMermaid()
     counter += 1
     const { svg: out } = await mermaid.render(`${props.idPrefix}-${counter}`, props.definition)
+    if (run !== runId) return
     svg.value = out
   } catch (err) {
+    if (run !== runId) return
     console.error('[emma] Diagramm konnte nicht gerendert werden', err)
     error.value = t('diagram.renderError')
     svg.value = ''
   }
 }
 
+/** Beim Tippen ändert sich die Definition pro Zeichen – ohne Pause flackert das Diagramm. */
+function scheduleRender() {
+  clearTimeout(timer)
+  timer = setTimeout(render, 180)
+}
+
 onMounted(render)
-watch(() => props.definition, render)
+watch(() => props.definition, scheduleRender)
+onBeforeUnmount(() => {
+  clearTimeout(timer)
+  runId += 1
+})
 </script>
 
 <template>

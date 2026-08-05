@@ -48,6 +48,14 @@ function slotDefFor(item, index) {
   }
 }
 
+/** Mit dem Eintrag verschwinden auch seine Fotos – sonst bleiben sie unerreichbar im Speicher. */
+async function remove(item) {
+  if (props.photoSlotPrefix) await store.removeMediaSlot(`${props.photoSlotPrefix}.${item.id}`)
+  store.removeItem(props.path, item.id)
+}
+
+const optionValue = (option) => (typeof option === 'string' ? option : option.de)
+
 function add() {
   const blank = {}
   props.fields.forEach((f) => (blank[f.key] = f.type === 'number' ? null : ''))
@@ -76,25 +84,35 @@ function add() {
       >
         <div class="mb-2 flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-slate-400">#{{ i + 1 }}</span>
-          <button type="button" class="btn-ghost btn-xs" @click="store.removeItem(path, item.id)">
+          <button type="button" class="btn-ghost btn-xs" @click="remove(item)">
             {{ t('common.remove') }}
           </button>
         </div>
         <div class="grid gap-3 sm:grid-cols-2">
           <div v-for="f in fields" :key="f.key" :class="f.span === 2 ? 'sm:col-span-2' : ''">
-            <label class="field">{{ tx(f.label) }}</label>
-            <select v-if="f.type === 'select'" v-model="item[f.key]" class="select">
+            <label class="field" :for="`${item.id}-${f.key}`">{{ tx(f.label) }}</label>
+            <select
+              v-if="f.type === 'select'"
+              :id="`${item.id}-${f.key}`"
+              v-model="item[f.key]"
+              class="select"
+            >
               <option value="">–</option>
-              <option v-for="o in f.options" :key="o" :value="o">{{ o }}</option>
+              <!-- Optionen dürfen { de, en } sein: gespeichert wird der deutsche Wert. -->
+              <option v-for="o in f.options" :key="optionValue(o)" :value="optionValue(o)">
+                {{ typeof o === 'string' ? o : tx(o) }}
+              </option>
             </select>
             <textarea
               v-else-if="f.type === 'textarea'"
+              :id="`${item.id}-${f.key}`"
               v-model="item[f.key]"
               class="textarea"
               :placeholder="tx(f.placeholder)"
             />
             <input
               v-else
+              :id="`${item.id}-${f.key}`"
               v-model="item[f.key]"
               class="input"
               :type="f.type === 'number' ? 'number' : 'text'"

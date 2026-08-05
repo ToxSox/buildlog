@@ -16,7 +16,7 @@ npm run preview      # Build lokal testen
 
 npm run lint         # ESLint
 npm run format       # Prettier
-npm test             # Regel- und Matrix-Tests (Node, ohne Browser)
+npm test             # Regeln, Matrix, Datenbasis und Sprachkataloge (ohne Browser)
 npm run build && npm run test:e2e   # End-to-End gegen den echten Build
 ```
 
@@ -118,6 +118,26 @@ abgetippten Sollwerte (`tests/emmaRules.test.mjs`).
 > `EMMA_CLASSES` in `schema.js` gegen Kapitel 2 abgleichen. Maßgeblich ist immer
 > das aktuelle offizielle Rulebook.
 
+#### Woher die Zahlen stammen
+
+| Datei                        | Quelle                                    | Abgesichert durch          |
+| ---------------------------- | ----------------------------------------- | -------------------------- |
+| `emmaRules.js` (Grenzwerte)  | Manual 2026, Kapitel 3 + Fuse Size Matrix | `tests/emmaRules.test.mjs` |
+| `matrix.js` (Punkte)         | Manual 2026, Kapitel 10                   | `tests/matrix.test.mjs`    |
+| `schema.js` (`EMMA_CLASSES`) | Manual 2026, Kapitel 2                    | –                          |
+
+Die Tests rechnen die abgetippten Werte gegen die Sollwerte des Regelwerks
+(Fuse Size Matrix Zeile für Zeile, Spaltensummen E 69 · S 115 · M 161 · X 231 ·
+X Unlimited 325). Sie sichern damit ab, dass die Werte nicht unbemerkt
+verrutschen – ob sie inhaltlich zur jeweils gültigen Edition passen, kann nur
+ein Abgleich mit dem offiziellen Dokument beantworten.
+
+Die App prüft ausschließlich, was in diesen Dateien steht: Installationsregeln
+zu Strom, Absicherung, Befestigung und Dokumentation. Kategorie-spezifische
+Sonderregeln, Klassen-Limits und die eigentliche Klangbewertung sind **nicht**
+abgebildet. Die Punktanzeige ist eine Selbsteinschätzung, keine Wertung – das
+letzte Wort hat der Richter am Fahrzeug.
+
 ### Kategorien und Dokumentationspflicht
 
 `EMMA_CLASSES` in `schema.js` bildet die Kategorien aus Kapitel 2 des Rulebooks ab
@@ -183,12 +203,21 @@ weiterschreiben.
 
 ## Tests
 
-- `npm test` – Regel-Engine gegen die Fuse Size Matrix und die Matrix-Summen
-  gegen die Sollwerte des Rulebooks (Node, kein Browser nötig).
+- `npm test` – vier Prüfungen ohne Browser:
+  - `tests/emmaRules.test.mjs` – Regel-Engine gegen die Fuse Size Matrix, dazu
+    die Bewertung der Hauptsicherung (ein geleertes Feld darf keine Punkte geben).
+  - `tests/matrix.test.mjs` – Matrix-Summen gegen die Sollwerte des Rulebooks.
+  - `tests/sections.test.mjs` – Zusammenhalt der Datenbasis: eindeutige
+    Schlüssel, bekannte Kriterien und Beispielbilder, kein Pflichtfoto ohne
+    sichtbares Feld.
+  - `tests/i18n.test.mjs` – beide Sprachkataloge deckungsgleich, gleiche
+    Platzhalter, jeder im Code benutzte Schlüssel übersetzt.
 - `npm run test:e2e` – fährt den Produktions-Build in Chromium durch: Kategorie-
   Steuerung, Regelverstöße, Bild-Pipeline inklusive Drehen, mermaid,
-  Sprachwechsel, ZIP-Roundtrip und eine Regression auf die PDF-Seitengröße
-  (297 × 210 mm). Braucht einen Chromium; ein eigener Pfad lässt sich über
+  Sprachwechsel, ZIP-Roundtrip (auch zweimal derselbe Import), Autosave ohne
+  Endlosschleife, Seitenumbruch und Inhalt des Ausdrucks, die PDF-Seitengröße
+  (297 × 210 mm), das Layout im Telefonformat und die Beschriftung aller
+  Eingabefelder. Braucht einen Chromium; ein eigener Pfad lässt sich über
   `CHROMIUM_PATH` setzen.
 
 `.github/workflows/ci.yml` führt Lint, Formatprüfung, Tests, Build und E2E aus.

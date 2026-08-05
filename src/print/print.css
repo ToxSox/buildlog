@@ -34,6 +34,14 @@
   overflow: hidden;
 }
 
+/* Vorschau-Markierung: Dieser Abschnitt passt nicht auf ein Blatt. */
+@media screen {
+  .print-page--overflow {
+    outline: 0.5mm dashed #d97706;
+    outline-offset: -0.5mm;
+  }
+}
+
 .print-head {
   display: flex;
   align-items: flex-end;

@@ -123,12 +123,14 @@ const SUB_FIELDS = [
 
     <div class="card">
       <div class="card-header">
-        <h2 class="section-title">{{ t('hardware.notes') }}</h2>
+        <h2 id="hardware-notes-title" class="section-title">{{ t('hardware.notes') }}</h2>
       </div>
       <div class="card-body">
         <textarea
+          id="hardware-notes"
           v-model="hardware.mountingNotes"
           class="textarea"
+          aria-labelledby="hardware-notes-title"
           :placeholder="t('hardware.notesPlaceholder')"
         />
       </div>

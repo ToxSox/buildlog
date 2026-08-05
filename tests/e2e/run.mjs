@@ -8,7 +8,7 @@
  *
  *   npm run build && npm run test:e2e
  */
-import { chromium } from 'playwright'
+import { chromium, devices } from 'playwright'
 import { spawn } from 'node:child_process'
 import { mkdtempSync, writeFileSync, readFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -123,6 +123,51 @@ try {
   await page.fill('#model', 'A3')
   await page.fill('#plate', 'M-AB 1234')
 
+  // ------------------------------------------------------ Autosave kommt zur Ruhe
+  // Regression: save() schrieb updatedAt in den beobachteten State und stieß damit
+  // den nächsten Autosave an – eine Endlosschleife, die die Statusanzeige oben
+  // rechts dauerhaft flackern ließ und ohne Unterlass in IndexedDB schrieb.
+  // Die Verbindung wird sofort wieder geschlossen: eine offene Verbindung
+  // blockiert sonst das Anlegen weiterer localforage-Tabellen (z. B. „media“).
+  const readUpdatedAt = () =>
+    page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const req = globalThis.indexedDB.open('emma-buildlog')
+          req.onerror = () => resolve('')
+          req.onblocked = () => resolve('')
+          req.onsuccess = () => {
+            const db = req.result
+            const done = (value) => {
+              db.close()
+              resolve(value)
+            }
+            try {
+              const all = db.transaction('state', 'readonly').objectStore('state').getAll()
+              all.onerror = () => done('')
+              all.onsuccess = () => done(all.result.find((v) => v?.updatedAt)?.updatedAt || '')
+            } catch {
+              done('')
+            }
+          }
+        }),
+    )
+
+  await page.waitForTimeout(1200)
+  const stampBefore = await readUpdatedAt()
+  const statusLabels = new Set()
+  for (let i = 0; i < 10; i++) {
+    statusLabels.add((await page.locator('[data-testid=save-status]').textContent()).trim())
+    await page.waitForTimeout(200)
+  }
+  const stampAfter = await readUpdatedAt()
+  check(
+    'Autosave stoppt nach der Eingabe',
+    Boolean(stampBefore) && stampBefore === stampAfter,
+    `${stampBefore} → ${stampAfter}`,
+  )
+  check('Statusanzeige flackert im Leerlauf nicht', statusLabels.size === 1, [...statusLabels].join(' | '))
+
   // ------------------------------------------------- Kategorie steuert den Umfang
   await page.getByRole('button', { name: 'SQ E – Entry', exact: true }).click()
   await page.waitForTimeout(400)
@@ -194,6 +239,13 @@ try {
   await page.waitForTimeout(600)
   const navEn = await page.locator('nav ol li button').first().innerText()
   check('Sprachwechsel greift in der Navigation', navEn.includes('Vehicle'), navEn.replace(/\n/g, ' '))
+  // Die Bewertungsstufe im Kopf war fest auf Deutsch verdrahtet, obwohl beide Kataloge sie führen.
+  const headEn = await page.locator('header').innerText()
+  check(
+    'Bewertungsstufe folgt der Sprache',
+    /criteria not assessed/i.test(headEn) && !/Kriterien/.test(headEn),
+    headEn.replace(/\n/g, ' ').slice(0, 120),
+  )
   await page.getByRole('button', { name: 'DE', exact: true }).click()
   await page.waitForTimeout(400)
 
@@ -219,13 +271,118 @@ try {
     (await page2.inputValue('#participant')) === 'Max Mustermann',
   )
   check('Import stellt die Fotos wieder her', (await page2.locator('figure img').count()) === 1)
+
+  // Zweiter Import derselben ZIP: Früher behielt der Import die alten Bild-IDs und
+  // überschrieb damit die Fotos der bereits importierten Mappe.
+  await page2.goto(`${BASE}#/`)
+  await page2.waitForTimeout(600)
+  await page2.locator('input[type=file][accept*="zip"]').setInputFiles(zipPath)
+  await page2.waitForTimeout(3000)
+  const mediaIdSets = await page2.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const req = globalThis.indexedDB.open('emma-buildlog')
+        req.onerror = () => resolve([])
+        req.onblocked = () => resolve([])
+        req.onsuccess = () => {
+          const db = req.result
+          const done = (value) => {
+            db.close()
+            resolve(value)
+          }
+          try {
+            const store = db.transaction('state', 'readonly').objectStore('state')
+            const keys = store.getAllKeys()
+            const values = store.getAll()
+            values.onerror = () => done([])
+            values.onsuccess = () =>
+              done(
+                values.result
+                  .filter((_, i) => String(keys.result[i]).startsWith('project:'))
+                  .map((prj) =>
+                    Object.values(prj.media || {}).flatMap((list) => (list || []).map((m) => m.id)),
+                  ),
+              )
+          } catch {
+            done([])
+          }
+        }
+      }),
+  )
+  const allIds = mediaIdSets.flat()
+  check(
+    'Import vergibt eigene Bild-IDs je Mappe',
+    mediaIdSets.length === 2 && allIds.length === 2 && new Set(allIds).size === 2,
+    JSON.stringify(mediaIdSets),
+  )
+  check('Zweiter Import zeigt sein eigenes Foto', (await page2.locator('figure img').count()) === 1)
   await ctx2.close()
+
+  // --------------------------------------------- Vortrag & leere Zahlenfelder
+  // Nur „story“ gefüllt: Diese Seite fiel früher komplett aus dem Druck.
+  await page.goto(`${BASE}#/wizard/praesentation`)
+  await page.waitForTimeout(600)
+  await page.fill('#story', 'Zum Schluss zeige ich die Messungen am Hörplatz.')
+  // Leeres Zahlenfeld: der Ausdruck zeigte dafür eine Zeile mit nacktem „cm“.
+  await page.goto(`${BASE}#/wizard/strom`)
+  await page.waitForTimeout(600)
+  await page.fill('#fuseDist', '')
+  await page.waitForTimeout(600)
 
   // --------------------------------------------------------------- Druckausgabe
   await page.goto(`${BASE}#/druck`)
   await page.waitForTimeout(3000)
   const printPages = await page.locator('.print-page').count()
   check('Druckansicht baut Seiten auf', printPages >= 4, `${printPages} Seiten`)
+
+  const printTitles = await page.locator('.print-head__title').allInnerTexts()
+  check(
+    'Vortragsseite erscheint auch nur mit Abschluss-Text',
+    printTitles.some((tt) => tt.includes('Erklärung an die Richter')),
+    printTitles.join(' | ').slice(0, 160),
+  )
+
+  const cover = await page.locator('.print-page').first().innerText()
+  check(
+    'Deckblatt nennt den Modus lesbar',
+    cover.includes('SQ Masterclass') && !cover.includes('SQMasterclass'),
+    (cover.split('\n').find((l) => l.includes('Dokumentation')) || '').slice(0, 80),
+  )
+
+  const orphanUnits = await page
+    .locator('.print-table td')
+    .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((v) => /^(cm|mm²|A)$/.test(v)))
+  check('kein leeres Zahlenfeld im Ausdruck', orphanUnits.length === 0, orphanUnits.join(', '))
+
+  check(
+    'normale Mappe passt auf ihre Blätter',
+    (await page.locator('[data-testid=print-overflow]').count()) === 0,
+    await page
+      .locator('[data-testid=print-overflow]')
+      .first()
+      .innerText()
+      .catch(() => ''),
+  )
+
+  // Zu langer Abschnitt: Der Rest landet beim Drucken auf einem Zusatzblatt ohne
+  // Kopfzeile, die Seitenzahlen stimmen dann nicht mehr – das muss die Vorschau sagen.
+  await page.goto(`${BASE}#/wizard/handwerk`)
+  await page.waitForTimeout(600)
+  await page.fill('#tuning', Array.from({ length: 60 }, (_, i) => `Abstimmschritt ${i + 1}`).join('\n'))
+  await page.waitForTimeout(700)
+  await page.goto(`${BASE}#/druck`)
+  await page.waitForTimeout(3000)
+  check(
+    'Vorschau warnt vor überlangen Abschnitten',
+    (await page.locator('[data-testid=print-overflow]').count()) === 1,
+    (
+      await page
+        .locator('[data-testid=print-overflow]')
+        .first()
+        .innerText()
+        .catch(() => '')
+    ).slice(0, 90),
+  )
 
   const pdfPath = join(WORK, 'out.pdf')
   await page.emulateMedia({ media: 'print' })
@@ -235,6 +392,191 @@ try {
   const boxes = [...new Set(pdf.toString('latin1').match(/\/MediaBox\s*\[[^\]]*\]/g) || [])]
   const a4Landscape = boxes.every((b) => /841\.9|842/.test(b) && /594\.9|595/.test(b))
   check('PDF ist DIN A4 quer', boxes.length === 1 && a4Landscape, boxes.join(' '))
+
+  // Ohne diese Prüfung faellt nicht auf, wenn die Fotos zwar in der Vorschau
+  // stehen, im gedruckten Dokument aber fehlen – dort zaehlen sie am meisten.
+  // Achtung: Auch die gerasterten Diagramme sind Bildobjekte, deshalb wird
+  // gegen Fotos + Diagramme der Vorschau gerechnet statt gegen "mindestens eins".
+  const embeddedImages = (pdf.toString('latin1').match(/\/Subtype\s*\/Image/g) || []).length
+  const previewFigures = await page.locator('.print-figure img').count()
+  const previewDiagrams = await page.locator('.print-diagram svg').count()
+  check(
+    'jedes Foto steckt im PDF',
+    previewFigures > 0 && embeddedImages >= previewFigures + previewDiagrams,
+    `${embeddedImages} Bildobjekte, erwartet ≥ ${previewFigures} Fotos + ${previewDiagrams} Diagramme`,
+  )
+
+  // ------------------------------------------------------------ Handy-Layout
+  // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
+  // und lange Eingaben schoben die Seite dort seitlich aus dem Bild.
+  const ctx3 = await browser.newContext({ ...devices['Pixel 5'], locale: 'de-DE' })
+  const phone = await ctx3.newPage()
+  phone.on('pageerror', (e) => consoleErrors.push(`mobil: ${e.message}`))
+  phone.on('console', (m) => m.type() === 'error' && consoleErrors.push(`mobil: ${m.text()}`))
+  const sideways = () =>
+    phone.evaluate(() => {
+      const el = globalThis.document.documentElement
+      return el.scrollWidth > el.clientWidth + 1 ? `${el.scrollWidth} > ${el.clientWidth}` : ''
+    })
+
+  await phone.goto(BASE, { waitUntil: 'networkidle' })
+  const wideStart = await sideways()
+  await phone.locator('button.card').first().click()
+  await phone.waitForURL('**/#/wizard/fahrzeug')
+  await phone.waitForTimeout(500)
+  await phone.fill('#participant', 'Maximilian Mustermann-Sonnenschein')
+  await phone.fill('#model', 'Kompressor-Sondermodell-Langstreckenausfuehrung')
+  await phone.getByRole('button', { name: 'SQ M – Master', exact: true }).click()
+  await phone.waitForTimeout(700)
+
+  const wideSteps = []
+  for (const step of ['fahrzeug', 'diagramme', 'strom', 'hardware', 'handwerk', 'punkte', 'pruefen']) {
+    await phone.goto(`${BASE}#/wizard/${step}`)
+    await phone.waitForTimeout(700)
+    const wide = await sideways()
+    if (wide) wideSteps.push(`${step} (${wide})`)
+  }
+  // Am Auto tippt man und wechselt sofort die App. Ohne sofortiges Schreiben
+  // beendet das Betriebssystem die Seite womoeglich vor Ablauf der 400 ms.
+  await phone.goto(`${BASE}#/wizard/fahrzeug`)
+  await phone.waitForTimeout(700)
+  await phone.fill('#plate', 'B-XY 9876')
+  await phone.evaluate(() => {
+    const doc = globalThis.document
+    Object.defineProperty(doc, 'visibilityState', { value: 'hidden', configurable: true })
+    doc.dispatchEvent(new Event('visibilitychange'))
+  })
+  await phone.waitForTimeout(150)
+  const savedPlate = await phone.evaluate(
+    () =>
+      new Promise((resolve) => {
+        const req = globalThis.indexedDB.open('emma-buildlog')
+        req.onerror = () => resolve('')
+        req.onblocked = () => resolve('')
+        req.onsuccess = () => {
+          const db = req.result
+          const done = (value) => {
+            db.close()
+            resolve(value)
+          }
+          try {
+            const all = db.transaction('state', 'readonly').objectStore('state').getAll()
+            all.onerror = () => done('')
+            all.onsuccess = () => done(all.result.find((v) => v?.meta)?.meta?.plate || '')
+          } catch {
+            done('')
+          }
+        }
+      }),
+  )
+  check('Eingabe ist beim App-Wechsel sofort gesichert', savedPlate === 'B-XY 9876', savedPlate)
+
+  await ctx3.close()
+  check(
+    'Handy: keine Seite scrollt seitlich',
+    !wideStart && wideSteps.length === 0,
+    [wideStart && `Start (${wideStart})`, ...wideSteps].filter(Boolean).join(', '),
+  )
+
+  // ------------------------------------------------- Beschriftung der Felder
+  // Felder in Listen (Komponenten, Endstufen, Bonusantraege) hatten Beschriftungen
+  // ohne Bezug zum Eingabefeld – Screenreader lasen sie deshalb nicht vor.
+  const ctx4 = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const a11y = await ctx4.newPage()
+  a11y.on('pageerror', (e) => consoleErrors.push(`a11y: ${e.message}`))
+  await a11y.goto(BASE, { waitUntil: 'networkidle' })
+  await a11y.locator('button.card').nth(1).click()
+  await a11y.waitForURL('**/#/wizard/fahrzeug')
+  await a11y.getByRole('button', { name: 'SQ X – Expert Unlimited', exact: true }).click()
+  await a11y.waitForTimeout(500)
+
+  const nameless = []
+  for (const step of ['fahrzeug', 'diagramme', 'strom', 'hardware', 'handwerk', 'praesentation', 'punkte']) {
+    await a11y.goto(`${BASE}#/wizard/${step}`)
+    await a11y.waitForTimeout(600)
+    // je einen Listeneintrag anlegen, damit auch dessen Felder geprüft werden
+    const adders = a11y.locator('.card-header button, .card-body > .flex-wrap > button')
+    const count = Math.min(await adders.count(), 8)
+    for (let i = 0; i < count; i++)
+      await adders
+        .nth(i)
+        .click({ timeout: 2000 })
+        .catch(() => {})
+    await a11y.waitForTimeout(500)
+    nameless.push(
+      ...(await a11y.evaluate((where) => {
+        const doc = globalThis.document
+        return [...doc.querySelectorAll('input, select, textarea')]
+          .filter((el) => el.type !== 'hidden' && el.offsetParent !== null)
+          .filter(
+            (el) =>
+              !el.labels?.length &&
+              !el.getAttribute('aria-label') &&
+              !el.getAttribute('aria-labelledby') &&
+              !el.closest('label'),
+          )
+          .map((el) => `${where}: <${el.tagName.toLowerCase()} placeholder="${el.placeholder || ''}">`)
+      }, step)),
+    )
+  }
+  await ctx4.close()
+  check('jedes Eingabefeld hat eine Beschriftung', nameless.length === 0, nameless.slice(0, 5).join(' | '))
+
+  // --------------------------------------------------------- Betrieb ohne Netz
+  // Am Showplatz gibt es oft kein Netz – genau dort wird die Mappe gebraucht.
+  // Der Service Worker muss alles vorhalten, auch den nachgeladenen mermaid-Chunk.
+  const ctx5 = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const offline = await ctx5.newPage()
+  offline.on('pageerror', (e) => consoleErrors.push(`offline: ${e.message}`))
+  offline.on('console', (m) => m.type() === 'error' && consoleErrors.push(`offline: ${m.text()}`))
+
+  await offline.goto(BASE, { waitUntil: 'networkidle' })
+  await offline.locator('button.card').nth(1).click()
+  await offline.waitForURL('**/#/wizard/fahrzeug')
+  await offline.fill('#make', 'Opel')
+  await offline.fill('#model', 'Astra')
+  await offline.getByRole('button', { name: 'SQ M – Master', exact: true }).click()
+  await offline.waitForTimeout(800)
+  const swActive = await offline.evaluate(() =>
+    navigator.serviceWorker.ready.then((r) => Boolean(r.active)).catch(() => false),
+  )
+  await offline.waitForTimeout(2500) // Precache abwarten
+
+  await ctx5.setOffline(true)
+  await offline.reload({ waitUntil: 'load' }).catch(() => {})
+  await offline.waitForTimeout(2500)
+  const startsOffline = await offline
+    .locator('header')
+    .isVisible()
+    .catch(() => false)
+  const keepsProject = await offline
+    .locator('header')
+    .innerText()
+    .then((text) => text.includes('Opel Astra'))
+    .catch(() => false)
+
+  await offline.goto(`${BASE}#/wizard/diagramme`)
+  await offline.waitForTimeout(1000)
+  await offline
+    .getByRole('button', { name: /Signalquelle/ })
+    .first()
+    .click()
+  await offline
+    .getByRole('button', { name: /Endstufe/ })
+    .first()
+    .click()
+  await offline.waitForTimeout(3000)
+  const diagramsOffline = await offline.locator('.mermaid-host svg').count()
+
+  await offline.goto(`${BASE}#/druck`)
+  await offline.waitForTimeout(3000)
+  const printOffline = await offline.locator('.print-page').count()
+  await ctx5.close()
+
+  check('Service Worker übernimmt', swActive)
+  check('App startet ohne Netz und behält die Mappe', startsOffline && keepsProject)
+  check('Diagramme rendern ohne Netz', diagramsOffline === 2, `${diagramsOffline} Diagramme`)
+  check('Druckansicht baut ohne Netz auf', printOffline >= 3, `${printOffline} Seiten`)
 
   check('keine Konsolenfehler', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '))
 } finally {

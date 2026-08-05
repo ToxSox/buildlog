@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useScore } from '../composables/useScore.js'
 import { uid } from '../data/schema.js'
+import { toNumber } from '../data/emmaRules.js'
+import { FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import WizardShell from '../components/WizardShell.vue'
 import { useI18n } from '../i18n/index.js'
 
@@ -50,13 +52,15 @@ const outline = computed(() => {
   })
 
   const powerBits = []
-  if (p.power.mainCableSection && p.power.mainFuseAmps) {
-    powerBits.push(
-      t('presentation.block.powerFuse', { section: p.power.mainCableSection, amps: p.power.mainFuseAmps }),
-    )
+  const section = toNumber(p.power.mainCableSection)
+  const amps = toNumber(p.power.mainFuseAmps)
+  const distance = toNumber(p.power.mainFuseDistanceCm)
+  if (section && amps) {
+    powerBits.push(t('presentation.block.powerFuse', { section, amps }))
   }
-  if (p.power.mainFuseDistanceCm !== null) {
-    powerBits.push(t('presentation.block.powerDistance', { cm: p.power.mainFuseDistanceCm }))
+  // Ein geleertes Feld ergab hier bisher „… sitzt  cm vom Pluspol“.
+  if (distance !== null) {
+    powerBits.push(t('presentation.block.powerDistance', { cm: distance }))
   }
   if (p.power.groundPoint) powerBits.push(t('presentation.block.powerGround', { point: p.power.groundPoint }))
   blocks.push({
@@ -70,9 +74,10 @@ const outline = computed(() => {
     minutes: 2,
     title: t('presentation.block.craft'),
     points: custom.length
-      ? custom.map(
-          (c) => `${c.name}${c.technique ? ` (${c.technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`,
-        )
+      ? custom.map((c) => {
+          const technique = optionLabel(FABRICATION_TECHNIQUES, c.technique)
+          return `${c.name}${technique ? ` (${technique})` : ''}${c.purpose ? ` – ${c.purpose}` : ''}`
+        })
       : [t('presentation.block.craftFallback')],
   })
 
@@ -196,7 +201,12 @@ function removeHighlight(id) {
           {{ t('presentation.noHighlights') }}
         </p>
         <div v-for="h in pres.highlights" :key="h.id" class="flex gap-2">
-          <input v-model="h.text" class="input" :placeholder="t('presentation.highlightPlaceholder')" />
+          <input
+            v-model="h.text"
+            class="input"
+            :aria-label="t('presentation.highlights')"
+            :placeholder="t('presentation.highlightPlaceholder')"
+          />
           <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
         </div>
       </div>

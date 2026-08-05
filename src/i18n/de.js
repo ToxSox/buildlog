@@ -69,6 +69,8 @@ export default {
     duplicateHint:
       'Duplizieren kopiert auch die Fotos – ideal für die nächste Saison oder ein zweites Fahrzeug.',
     newProject: 'Neue Mappe anlegen',
+    untitled: 'Neue Mappe',
+    copySuffix: '(Kopie)',
     chooseStart: 'Womit möchtest du starten?',
     startMode: 'Modus starten →',
     modeHint:
@@ -370,7 +372,8 @@ export default {
     importButton: '📂 ZIP auswählen',
     importing: 'entpackt …',
     importDone: 'Mappe geladen – {restored} Bild(er) wiederhergestellt.',
-    importFailed: 'Import fehlgeschlagen.',
+    importFailed: 'Import fehlgeschlagen. Ist die Datei vollständig heruntergeladen?',
+    noProjectJson: 'In dieser ZIP steckt keine project.json – ist das wirklich ein Export dieser App?',
     notZip: 'Bitte eine .zip-Datei auswählen.',
   },
 
@@ -415,6 +418,9 @@ export default {
     previewTitle: 'Druckvorschau · DIN A4 quer',
     previewHint: '{pages} Seite(n) · im Druckdialog „Hintergrundgrafiken“ aktivieren, Ränder auf „Standard“',
     backToWizard: '← zurück zum Assistenten',
+    overflowWarning:
+      'Seite {pages} ist länger als ein Blatt. Beim Drucken rutscht der Rest auf ein Zusatzblatt, dort fehlt die Kopfzeile und die Seitenzahlen im Fuß stimmen nicht mehr. Kürze dort die Texte oder verteile die Einträge.',
+    continued: 'Fortsetzung',
     cover: 'Deckblatt',
     documentation: 'Einbaudokumentation',
     classPrefix: 'Klasse {name}',

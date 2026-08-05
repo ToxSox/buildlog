@@ -44,8 +44,12 @@ function buildFlowchart(components, links, edgeLabel) {
     lines.push(`  ${nodeId(c.id)}["${labelFor(c)}"]`)
   })
 
+  // Nur Verbindungen zwischen Komponenten dieses Diagramms: Ein Signalweg zur
+  // Batterie hätte sonst einen unbenannten Knoten mit der internen ID erzeugt,
+  // der so auch im gedruckten Diagramm gelandet wäre.
+  const known = new Set(components.map((c) => c.id))
   links
-    .filter((l) => l.from && l.to)
+    .filter((l) => known.has(l.from) && known.has(l.to))
     .forEach((l) => {
       const label = clean(edgeLabel(l))
       const arrow = label ? `-->|${label}|` : '-->'

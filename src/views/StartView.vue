@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
 import { MODES, EMMA_CLASSES } from '../data/schema.js'
@@ -36,26 +36,47 @@ const modes = computed(() => [
   },
 ])
 
-async function start(mode) {
-  await store.startProject(mode)
-  router.push('/wizard/fahrzeug')
+/**
+ * Anlegen, Öffnen, Duplizieren und Löschen dauern jeweils einen Moment –
+ * beim Duplizieren werden alle Fotos kopiert. Ohne Sperre legte ein
+ * ungeduldiger Doppelklick die Mappe zweimal an.
+ */
+const busy = ref(false)
+
+async function guarded(action) {
+  if (busy.value) return
+  busy.value = true
+  try {
+    await action()
+  } finally {
+    busy.value = false
+  }
 }
 
-async function open(id) {
-  await store.switchTo(id)
-  router.push('/wizard/fahrzeug')
-}
+const start = (mode) =>
+  guarded(async () => {
+    await store.startProject(mode)
+    router.push('/wizard/fahrzeug')
+  })
 
-async function duplicate(id) {
-  await store.switchTo(id)
-  const newId = await store.duplicateActive()
-  if (newId) await store.switchTo(newId)
-  router.push('/wizard/fahrzeug')
-}
+const open = (id) =>
+  guarded(async () => {
+    await store.switchTo(id)
+    router.push('/wizard/fahrzeug')
+  })
 
-async function remove(entry) {
-  const ok = window.confirm(t('start.deleteConfirm', { title: entry.title, photos: entry.photos }))
-  if (ok) await store.deleteProject(entry.id)
+const duplicate = (id) =>
+  guarded(async () => {
+    await store.switchTo(id)
+    const newId = await store.duplicateActive(t('start.copySuffix'))
+    if (newId) await store.switchTo(newId)
+    router.push('/wizard/fahrzeug')
+  })
+
+const remove = (entry) => {
+  const title = entry.title || t('start.untitled')
+  if (!window.confirm(t('start.deleteConfirm', { title, photos: entry.photos }))) return
+  return guarded(() => store.deleteProject(entry.id))
 }
 </script>
 
@@ -87,7 +108,7 @@ async function remove(entry) {
         >
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-bold text-slate-900">
-              {{ entry.title }}
+              {{ entry.title || t('start.untitled') }}
               <span v-if="entry.id === store.activeId" class="badge ml-1 bg-sky-600 text-white">{{
                 t('start.active')
               }}</span>
@@ -98,13 +119,18 @@ async function remove(entry) {
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn-primary btn-xs" @click="open(entry.id)">
+            <button type="button" class="btn-primary btn-xs" :disabled="busy" @click="open(entry.id)">
               {{ t('common.open') }}
             </button>
-            <button type="button" class="btn-soft btn-xs" @click="duplicate(entry.id)">
+            <button type="button" class="btn-soft btn-xs" :disabled="busy" @click="duplicate(entry.id)">
               {{ t('common.duplicate') }}
             </button>
-            <button type="button" class="btn-ghost btn-xs !text-rose-600" @click="remove(entry)">
+            <button
+              type="button"
+              class="btn-ghost btn-xs !text-rose-600"
+              :disabled="busy"
+              @click="remove(entry)"
+            >
               {{ t('common.delete') }}
             </button>
           </div>
@@ -124,7 +150,8 @@ async function remove(entry) {
           v-for="m in modes"
           :key="m.id"
           type="button"
-          class="card group text-left transition hover:-translate-y-0.5 hover:shadow-lg"
+          class="card group text-left transition hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60"
+          :disabled="busy"
           @click="start(m.id)"
         >
           <div class="h-1.5 rounded-t-xl bg-gradient-to-r" :class="m.accent" />

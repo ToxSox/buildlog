@@ -68,6 +68,8 @@ export default {
     changedAt: 'changed {date}',
     duplicateHint: 'Duplicating copies the photos too – ideal for next season or a second vehicle.',
     newProject: 'Create a new build log',
+    untitled: 'New build log',
+    copySuffix: '(copy)',
     chooseStart: 'How would you like to start?',
     startMode: 'Start mode →',
     modeHint:
@@ -366,7 +368,8 @@ export default {
     importButton: '📂 Choose ZIP',
     importing: 'extracting …',
     importDone: 'Build log loaded – {restored} image(s) restored.',
-    importFailed: 'Import failed.',
+    importFailed: 'Import failed. Is the file fully downloaded?',
+    noProjectJson: 'This ZIP contains no project.json – is it really an export of this app?',
     notZip: 'Please select a .zip file.',
   },
 
@@ -410,6 +413,9 @@ export default {
     previewTitle: 'Print preview · A4 landscape',
     previewHint: '{pages} page(s) · enable “background graphics” in the print dialog, margins “default”',
     backToWizard: '← back to the assistant',
+    overflowWarning:
+      'Page {pages} is taller than one sheet. When printing, the rest moves to an extra sheet without a header and the page numbers in the footer no longer match. Shorten the texts there or spread the entries out.',
+    continued: 'continued',
     cover: 'Cover',
     documentation: 'Installation documentation',
     classPrefix: 'Class {name}',

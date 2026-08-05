@@ -36,7 +36,7 @@ export const useProjectStore = defineStore('project', () => {
   const title = computed(() => {
     const m = project.value.meta
     const car = [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ')
-    return car || m.participantName || 'Neues Projekt'
+    return car || m.participantName || translate('start.untitled')
   })
 
   /** Alle Bild-IDs, die aktuell irgendwo referenziert werden. */
@@ -70,6 +70,21 @@ export const useProjectStore = defineStore('project', () => {
     if (!list.length) delete project.value.media[slot]
     if (!allMediaIds.value.includes(id)) {
       await useMediaStore().remove(id)
+    }
+  }
+
+  /**
+   * Räumt einen kompletten Foto-Slot ab. Nötig beim Löschen von Einträgen mit
+   * eigenem Slot (Custom-Parts, Messungen): sonst blieben die Blobs für immer in
+   * der IndexedDB liegen und der Slot im Projekt-JSON stehen.
+   */
+  async function removeMediaSlot(slot) {
+    const ids = (project.value.media[slot] || []).map((item) => item.id)
+    delete project.value.media[slot]
+    if (!ids.length) return
+    const media = useMediaStore()
+    for (const id of ids) {
+      if (!allMediaIds.value.includes(id)) await media.remove(id)
     }
   }
 
@@ -146,7 +161,9 @@ export const useProjectStore = defineStore('project', () => {
     const m = data.meta || {}
     return {
       id,
-      title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || 'Neue Mappe',
+      // Bewusst ohne Ersatztext: Der wird beim Anzeigen übersetzt, sonst
+      // friert die Sprache ein, in der die Mappe zufällig angelegt wurde.
+      title: [m.vehicleMake, m.vehicleModel].filter(Boolean).join(' ') || m.participantName || '',
       participant: m.participantName || '',
       emmaClass: m.emmaClass || '',
       mode: data.mode || '',
@@ -202,7 +219,7 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   /** Kopiert die aktive Mappe inklusive eigener Bildkopien. */
-  async function duplicateActive(suffix = '(Kopie)') {
+  async function duplicateActive(suffix = translate('start.copySuffix')) {
     const media = useMediaStore()
     const copy = migrateProject(plain(project.value))
     copy.createdAt = new Date().toISOString()
@@ -272,7 +289,18 @@ export const useProjectStore = defineStore('project', () => {
     await save()
   }
 
-  async function load() {
+  /**
+   * Router-Guard und App-Mount stoßen das Laden beide an. Ohne diese Sperre
+   * könnten beide Läufe parallel starten und die Alt-Migration unten zwei
+   * Mappen aus demselben Datensatz anlegen.
+   */
+  let loading = null
+  function load() {
+    if (!loading) loading = loadOnce()
+    return loading
+  }
+
+  async function loadOnce() {
     try {
       const index = await stateDb.getItem(INDEX_KEY)
 
@@ -310,15 +338,22 @@ export const useProjectStore = defineStore('project', () => {
 
   async function save() {
     if (!activeId.value) return
+    pending = false
     saving.value = true
     try {
-      project.value.updatedAt = new Date().toISOString()
+      // Zeitstempel bewusst am Rohobjekt setzen: eine Zuweisung über den reaktiven
+      // Proxy meldet eine Änderung an den Deep-Watcher unten, der daraufhin den
+      // nächsten Autosave plant – der wiederum den Zeitstempel setzt. Diese
+      // Endlosschleife ließ die Statusanzeige im Header dauerhaft flackern.
+      toRaw(project.value).updatedAt = new Date().toISOString()
       await stateDb.setItem(projectKey(activeId.value), plain(project.value))
       touchIndexEntry()
       await persistIndex()
       lastSavedAt.value = new Date()
       storageError.value = ''
     } catch (err) {
+      // Der Stand ist weiterhin ungesichert – der nächste Versuch soll ihn mitnehmen.
+      pending = true
       console.error('[emma] Autosave fehlgeschlagen', err)
       storageError.value = isQuotaError(err)
         ? translate('storage.autosaveQuota')
@@ -330,10 +365,33 @@ export const useProjectStore = defineStore('project', () => {
 
   // Debounced Autosave: jede Änderung am State landet nach 400ms in IndexedDB.
   let timer = null
+  /** Es liegt eine Änderung an, die noch nicht geschrieben wurde. */
+  let pending = false
+
+  /**
+   * Sofort schreiben statt die 400 ms abzuwarten. Am Auto wird fotografiert,
+   * getippt und sofort die App gewechselt – dann beendet das Betriebssystem
+   * die Seite unter Umständen, bevor der Timer abläuft.
+   */
+  function flush() {
+    if (!pending) return
+    clearTimeout(timer)
+    return save()
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flush()
+    })
+    // pagehide feuert auch dort, wo unload nicht mehr zuverlässig ist (iOS).
+    globalThis.addEventListener?.('pagehide', flush)
+  }
+
   watch(
     project,
     () => {
       if (!ready.value) return
+      pending = true
       clearTimeout(timer)
       timer = setTimeout(save, 400)
     },
@@ -348,6 +406,7 @@ export const useProjectStore = defineStore('project', () => {
     saving,
     lastSavedAt,
     storageError,
+    flush,
     mode,
     isMasterclass,
     isQuick,
@@ -358,6 +417,7 @@ export const useProjectStore = defineStore('project', () => {
     mediaFor,
     addMedia,
     removeMedia,
+    removeMediaSlot,
     updateMedia,
     moveMedia,
     skip,

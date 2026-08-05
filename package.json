@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/emmaRules.test.mjs && node tests/matrix.test.mjs",
+    "test": "node tests/emmaRules.test.mjs && node tests/matrix.test.mjs && node tests/sections.test.mjs && node tests/i18n.test.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

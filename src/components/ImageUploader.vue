@@ -30,6 +30,9 @@ const hasCamera = computed(
 )
 
 async function handleFiles(fileList) {
+  // Ein zweiter Schwung während der Verarbeitung würde die Fortschrittsanzeige
+  // zurücksetzen – der Uploader nimmt erst wieder an, wenn er fertig ist.
+  if (busy.value) return
   const files = [...(fileList || [])].filter(isImage)
   if (!files.length) {
     error.value = t('uploader.notAnImage')

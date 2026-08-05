@@ -1,6 +1,6 @@
 <script setup>
 import { useI18n } from '../i18n/index.js'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '../stores/project.js'
 import { stepsForColumn } from '../data/steps.js'
@@ -18,8 +18,25 @@ const steps = computed(() => stepsForColumn(store.column))
 const currentKey = computed(() => route.meta.step)
 const showWizard = computed(() => store.hasProject && Boolean(route.meta.step))
 
+// Ein Autosave dauert meist nur wenige Millisekunden. Würde die Anzeige sofort
+// umschalten, blitzte bei jeder Eingabe kurz „speichert …“ auf. Deshalb erst
+// nach einer halben Sekunde anzeigen – dann sieht man nur echte Wartezeiten.
+const showSaving = ref(false)
+let savingTimer = null
+
+watch(
+  () => store.saving,
+  (isSaving) => {
+    clearTimeout(savingTimer)
+    if (isSaving) savingTimer = setTimeout(() => (showSaving.value = true), 500)
+    else showSaving.value = false
+  },
+)
+
+onBeforeUnmount(() => clearTimeout(savingTimer))
+
 const savedLabel = computed(() => {
-  if (store.saving) return t('app.saving')
+  if (showSaving.value) return t('app.saving')
   if (!store.lastSavedAt) return t('app.autosave')
   return t('app.savedAt', {
     time: store.lastSavedAt.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' }),
@@ -63,7 +80,12 @@ function go(step) {
 
       <LanguageSwitch class="shrink-0" />
 
-      <span class="hidden lg:inline text-[11px] text-slate-400 whitespace-nowrap">{{ savedLabel }}</span>
+      <!-- feste Breite: sonst schiebt der Textwechsel die Kopfzeile hin und her -->
+      <span
+        data-testid="save-status"
+        class="hidden lg:inline-block w-32 shrink-0 text-right text-[11px] text-slate-400 tabular-nums whitespace-nowrap"
+        >{{ savedLabel }}</span
+      >
     </div>
 
     <nav v-if="showWizard" class="border-t border-slate-100 bg-slate-50">
