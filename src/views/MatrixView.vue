@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/project.js'
 import { useScore } from '../composables/useScore.js'
 import { slotsForCriterion } from '../data/sections.js'
 import { MAX_BONUS_REQUESTS, BONUS_POINTS_PER_REQUEST } from '../data/matrix.js'
+import { STEPS } from '../data/steps.js'
 import WizardShell from '../components/WizardShell.vue'
 import { useI18n } from '../i18n/index.js'
 
@@ -27,6 +28,24 @@ const bonusCap = computed(() => (bonus.value ? Math.floor(bonus.value.max / BONU
 function photoHint(criterionId) {
   if (!column.value) return []
   return slotsForCriterion(criterionId, column.value).map((s) => tx(s.label))
+}
+
+/** Wizard-Schritt, in dem die Eingaben zu einem Auto-Kriterium liegen. */
+const CRITERION_STEP = {
+  diagram: 'diagram',
+  sysDoc: 'diagram',
+  mainFuse: 'power',
+  allFused: 'power',
+  fuseValue: 'power',
+  terminated: 'power',
+  terminationsProtected: 'power',
+  cablesProtected: 'power',
+  mounted: 'hardware',
+}
+
+function stepFor(criterionId) {
+  const key = CRITERION_STEP[criterionId]
+  return key ? STEPS.find((s) => s.key === key) : null
 }
 </script>
 
@@ -75,6 +94,13 @@ function photoHint(criterionId) {
             <div class="min-w-0 flex-1">
               <p class="text-sm font-semibold text-slate-800">{{ tx(c.label) }}</p>
               <p class="text-xs text-slate-500">{{ c.detail }}</p>
+              <router-link
+                v-if="c.earned < c.max && stepFor(c.id)"
+                :to="stepFor(c.id).path"
+                class="mt-0.5 inline-block text-xs font-semibold text-sky-700 hover:underline"
+              >
+                {{ t('matrix.jumpTo', { step: t(stepFor(c.id).labelKey) }) }} →
+              </router-link>
             </div>
             <div class="w-28 shrink-0">
               <div class="h-1.5 overflow-hidden rounded-full bg-slate-200">

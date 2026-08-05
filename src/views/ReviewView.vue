@@ -26,6 +26,7 @@ const checklist = computed(() =>
     required: isSlotRequired(slot, store.column),
     count: store.mediaFor(slot.key).length,
     skipped: store.isSkipped(slot.key),
+    visible: store.isVisibleNoPhoto(slot.key),
   })),
 )
 
@@ -114,11 +115,14 @@ const grouped = computed(() => {
           <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
             <li v-for="item in items" :key="item.key" class="flex items-center gap-3 px-3 py-2">
               <span class="text-base">
-                {{ item.count ? '✅' : item.required ? '⛔' : '○' }}
+                {{ item.count ? '✅' : item.visible ? '👁️' : item.required ? '⛔' : '○' }}
               </span>
               <span class="min-w-0 flex-1 truncate text-sm text-slate-700">{{ item.label }}</span>
               <span v-if="item.count" class="badge bg-emerald-100 text-emerald-700">{{
                 t('common.photos', { n: item.count })
+              }}</span>
+              <span v-else-if="item.visible" class="badge bg-emerald-100 text-emerald-700">{{
+                t('uploader.visibleBadge')
               }}</span>
               <span v-else-if="item.skipped" class="badge bg-slate-200 text-slate-600">{{
                 t('common.skipped')

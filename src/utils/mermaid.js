@@ -20,7 +20,8 @@ function typeMeta(type) {
 
 function labelFor(component) {
   const meta = typeMeta(component.type)
-  const lines = [clean(component.name) || clean(meta.label)]
+  const name = clean(component.name) || clean(meta.label)
+  const lines = [component.oem ? `${name} (OEM)` : name]
   if (component.detail) lines.push(clean(component.detail))
   if (component.channels) lines.push(clean(translate('diagram.channelsSuffix', { n: component.channels })))
   return `${meta.icon} ${lines.join('<br/>')}`
@@ -73,5 +74,7 @@ export function signalDefinition(system) {
 /** Stromlaufplan: Batterie, Sicherung, Verbraucher. */
 export function powerDefinition(system) {
   const components = (system.components || []).filter((c) => !['speaker', 'sub'].includes(c.type))
-  return buildFlowchart(components, system.powerLinks || [], (l) => (l.section ? `${l.section} mm²` : ''))
+  return buildFlowchart(components, system.powerLinks || [], (l) =>
+    l.oem ? 'OEM' : l.section ? `${l.section} mm²` : '',
+  )
 }

@@ -16,7 +16,13 @@ const d = (key, params) => translate(`assessment.${key}`, params)
 const SELF_FACTOR = { yes: 1, partly: 0.5, no: 0 }
 
 const count = (project, slotKey) => (project.media?.[slotKey] || []).length
-const has = (project, slotKey) => count(project, slotKey) > 0
+/**
+ * Ein Slot gilt als belegt, wenn ein Foto vorliegt ODER er als „sichtbar
+ * verbaut“ markiert ist – Fotos sind laut Regelwerk nur für Verdecktes Pflicht,
+ * Sichtbares prüft der Juror direkt am Fahrzeug.
+ */
+const has = (project, slotKey) =>
+  count(project, slotKey) > 0 || (project.visibleNoPhoto || []).includes(slotKey)
 
 function hasSignalDiagram(project) {
   const sys = project.system || {}
@@ -33,11 +39,19 @@ function hasHiddenPhotoLog(project) {
   return has(project, 'power.underCarpet') || has(project, 'power.terminals')
 }
 
-/** Zählt Komponenten, die laut Regelwerk eine eigene Sicherung brauchen. */
+/**
+ * Zählt Komponenten, die laut Regelwerk eine eigene Sicherung brauchen.
+ * Werksseitig verbaute Signalquellen (OEM-Headunit) und Komponenten an
+ * OEM-Verkabelung zählen nicht mit: Für Originalteile gilt die Dimensionierung
+ * des Herstellers als akzeptiert, ein Nachweis wird nicht verlangt.
+ */
 function fusedComponentCount(project) {
   const hw = project.hardware || {}
   const explicit = (hw.amps?.length || 0) + (hw.dsp?.length || 0)
-  const sources = (project.system?.components || []).filter((c) => c.type === 'source').length
+  const oemPowered = new Set((project.system?.powerLinks || []).filter((l) => l.oem).map((l) => l.to))
+  const sources = (project.system?.components || []).filter(
+    (c) => c.type === 'source' && !c.oem && !oemPowered.has(c.id),
+  ).length
   return explicit + sources
 }
 
@@ -88,7 +102,7 @@ function deriveAuto(criterion, project, column, findings) {
       const unfused = Math.max(0, needed - fuses)
       return ok(
         max - unfused * 2,
-        unfused ? d('allFusedUnfused', { n: unfused }) : d('allFusedOk', { n: needed }),
+        unfused ? d('allFusedUnfused', { n: unfused, needed, fuses }) : d('allFusedOk', { n: needed }),
       )
     }
 

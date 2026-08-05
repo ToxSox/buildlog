@@ -160,6 +160,12 @@ export function createEmptyProject() {
 
     /** Slots, die der Nutzer bewusst übersprungen hat (für Warnungen/Score). */
     skipped: [],
+
+    /**
+     * Slots, deren Motiv sichtbar verbaut ist: Der Juror prüft direkt am
+     * Fahrzeug, ein Foto ist laut Regelwerk nur für Verdecktes Pflicht.
+     */
+    visibleNoPhoto: [],
   }
 }
 
@@ -214,6 +220,7 @@ export function migrateProject(raw) {
     presentation: { ...base.presentation, ...(raw.presentation || {}) },
     media: { ...(raw.media || {}) },
     skipped: Array.isArray(raw.skipped) ? raw.skipped : [],
+    visibleNoPhoto: Array.isArray(raw.visibleNoPhoto) ? raw.visibleNoPhoto : [],
   }
 
   if (LEGACY_CLASS_MAP[merged.meta.emmaClass]) {
@@ -234,9 +241,14 @@ export function migrateProject(raw) {
   // Ein geleertes Formularfeld hinterlässt einen leeren String. Der soll weder
   // in der gespeicherten Mappe noch im ZIP-Export stehen.
   for (const key of NUMERIC_POWER_FIELDS) merged.power[key] = toNumber(merged.power[key])
+  merged.system.components = (merged.system.components || []).map((c) => ({
+    ...c,
+    oem: Boolean(c.oem),
+  }))
   merged.system.powerLinks = (merged.system.powerLinks || []).map((link) => ({
     ...link,
     section: sanitizeSection(link.section),
+    oem: Boolean(link.oem),
   }))
 
   // 'rotation' wurde durch physisches Drehen abgelöst und wird nicht mehr geführt.
