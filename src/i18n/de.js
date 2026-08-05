@@ -142,7 +142,7 @@ export default {
     signalHint: 'Quelle → DSP → Endstufe → Lautsprecher.',
     power: 'Stromlaufplan',
     powerHint:
-      'Batterie → Sicherung → Verteiler → Verbraucher. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
+      'Batterie → Sicherung → Verteiler → Verbraucher – und zurück über den Massepunkt. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
     addLink: '+ Verbindung',
     noSignalLink: 'Noch keine Signalverbindung.',
     noPowerLink: 'Noch keine Stromverbindung.',
@@ -152,6 +152,8 @@ export default {
     section: 'Querschnitt',
     oemComponent: 'Werksseitig verbaut (OEM) – Sicherungswerte und Querschnitte gelten als ab Werk korrekt',
     oemWiring: 'OEM-Verkabelung (original, kein Querschnitts-Nachweis nötig)',
+    groundMissing:
+      'Der Stromlaufplan hat noch keine Masse: Lege einen „Massepunkt (Karosserie)“ an und verbinde die Verbraucher dorthin – mit Querschnitt, idealerweise wie beim Pluskabel.',
     generated: 'Automatisch generierte Diagramme',
     generatedHint: 'Genau diese Grafiken landen später im Ausdruck – du musst nichts zeichnen.',
     empty2: 'Lege Komponenten an und verbinde sie – das Diagramm entsteht automatisch.',

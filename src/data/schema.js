@@ -61,6 +61,7 @@ export const COMPONENT_TYPES = [
   { id: 'sub', label: { de: 'Subwoofer', en: 'Subwoofer' }, icon: '🥁' },
   { id: 'battery', label: { de: 'Batterie / Stromquelle', en: 'Battery / power source' }, icon: '🔋' },
   { id: 'fuse', label: { de: 'Sicherung / Verteiler', en: 'Fuse / distribution' }, icon: '🛡️' },
+  { id: 'ground', label: { de: 'Massepunkt (Karosserie)', en: 'Ground point (chassis)' }, icon: '🔩' },
 ]
 
 /**

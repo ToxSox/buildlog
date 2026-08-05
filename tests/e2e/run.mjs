@@ -234,6 +234,33 @@ try {
   await page.waitForTimeout(2500)
   check('mermaid rendert beide Diagramme', (await page.locator('.mermaid-host svg').count()) === 2)
 
+  // Masse gehört in den Stromlaufplan: erst der Hinweis, dann der Rückweg.
+  await page.getByRole('button', { name: '+ Verbindung' }).last().click()
+  await page.waitForTimeout(300)
+  await page.locator('select').nth(2).selectOption({ index: 1 }) // von: Signalquelle
+  await page.locator('select').nth(3).selectOption({ index: 2 }) // nach: Endstufe
+  await page.waitForTimeout(400)
+  check(
+    'fehlende Masse wird angemahnt',
+    await page.getByText(/Stromlaufplan hat noch keine Masse/).isVisible(),
+  )
+  await page.getByRole('button', { name: /\+ Massepunkt/ }).click()
+  await page.getByRole('button', { name: '+ Verbindung' }).last().click()
+  await page.waitForTimeout(300)
+  await page.locator('select').nth(5).selectOption({ index: 2 }) // von: Endstufe
+  await page.locator('select').nth(6).selectOption({ index: 3 }) // nach: Massepunkt
+  await page.waitForTimeout(2500)
+  const powerDiagram = await page.locator('.mermaid-host').last().innerText()
+  check(
+    'Massepunkt erscheint im Stromlaufplan',
+    powerDiagram.includes('Massepunkt'),
+    powerDiagram.slice(0, 80),
+  )
+  check(
+    'Masse-Hinweis verschwindet',
+    !(await page.getByText(/Stromlaufplan hat noch keine Masse/).isVisible()),
+  )
+
   // ------------------------------------------------------------ Sprachwechsel
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.waitForTimeout(600)
