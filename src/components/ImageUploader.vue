@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { uid } from '../data/schema.js'
-import { compressImage, readDimensions, isImage } from '../utils/image.js'
+import { compressImage, readDimensions, isImage, isHeic } from '../utils/image.js'
 import { isQuotaError, quotaMessage, storageEstimate } from '../utils/storage.js'
 import { useI18n } from '../i18n/index.js'
 
@@ -61,7 +61,11 @@ async function handleFiles(fileList) {
         error.value = quotaMessage(await storageEstimate())
         break
       }
-      error.value = t('uploader.failed', { name: file.name || 'Bild' })
+      // Die Ursache gehört in die Meldung – ohne sie ist ein Fehler auf dem
+      // Showplatz nicht diagnostizierbar. HEIC bekommt einen echten Ausweg.
+      error.value = isHeic(file)
+        ? t('uploader.heicFailed', { name: file.name || 'Bild' })
+        : t('uploader.failed', { name: file.name || 'Bild', reason: err?.message || err })
     } finally {
       progress.value.done += 1
     }

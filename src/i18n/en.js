@@ -356,7 +356,9 @@ export default {
     resizeHint: 'resized locally to max. 1920 px',
     processing: 'Compressing image {current} of {total} …',
     notAnImage: 'Please select image files (JPG, PNG, HEIC …).',
-    failed: '“{name}” could not be processed.',
+    failed: '“{name}” could not be processed ({reason}).',
+    heicFailed:
+      '“{name}” is a HEIC photo – this browser cannot read it. Share it as JPEG from your photo app or set the camera to “Most Compatible”.',
     noPhoto: 'No photo yet',
     addMore: '+ Add another detail photo',
     caption: 'Caption (appears in the printout)',

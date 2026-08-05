@@ -194,6 +194,42 @@ try {
     .evaluateAll((els) => els.filter((e) => e.complete && e.naturalWidth > 0).length)
   check('Foto nach dem Drehen weiterhin gültig', intact === 1)
 
+  // Kamerafotos sind grosse JPEGs mit EXIF-Orientierung (iPhone: "image.jpg") –
+  // genau daran scheiterte die Pipeline im Feld. Der Testfall stellt sie nach.
+  const jpegDataUrl = await page.evaluate(() => {
+    const c = globalThis.document.createElement('canvas')
+    c.width = 3200
+    c.height = 2400
+    const g = c.getContext('2d')
+    g.fillStyle = '#328'
+    g.fillRect(0, 0, c.width, c.height)
+    g.fillStyle = '#fa0'
+    g.fillRect(0, 0, 800, 2400)
+    return c.toDataURL('image/jpeg', 0.9)
+  })
+  const plainJpeg = Buffer.from(jpegDataUrl.split(',')[1], 'base64')
+  const exifTiff = Buffer.concat([
+    Buffer.from('49492a00', 'hex'), // TIFF-Header, little endian
+    Buffer.from([8, 0, 0, 0]),
+    Buffer.from([1, 0]),
+    Buffer.from('120103000100000006000000', 'hex'), // Orientation = 6 (90° CW)
+    Buffer.from([0, 0, 0, 0]),
+  ])
+  const app1data = Buffer.concat([Buffer.from('Exif\0\0', 'ascii'), exifTiff])
+  const app1 = Buffer.concat([
+    Buffer.from([0xff, 0xe1, (app1data.length + 2) >> 8, (app1data.length + 2) & 0xff]),
+    app1data,
+  ])
+  const cameraJpg = join(WORK, 'image.jpg')
+  writeFileSync(cameraJpg, Buffer.concat([plainJpeg.subarray(0, 2), app1, plainJpeg.subarray(2)]))
+  await page.locator('input[type=file]').first().setInputFiles(cameraJpg)
+  await page.waitForTimeout(2500)
+  check('Kamera-JPEG mit EXIF wird verarbeitet', (await page.locator('figure img').count()) === 2)
+  // Wieder entfernen, damit die Folge-Checks denselben Stand sehen wie bisher.
+  await page.locator('figure').last().getByRole('button', { name: 'Löschen' }).click()
+  await page.waitForTimeout(600)
+  check('Kamera-JPEG wieder entfernt', (await page.locator('figure img').count()) === 1)
+
   // ------------------------------------------------------------- Regel-Engine
   await page.goto(`${BASE}#/wizard/strom`)
   await page.waitForTimeout(600)

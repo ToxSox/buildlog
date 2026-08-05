@@ -358,7 +358,9 @@ export default {
     resizeHint: 'wird lokal auf max. 1920 px verkleinert',
     processing: 'Bild {current} von {total} wird verkleinert …',
     notAnImage: 'Bitte Bilddateien auswählen (JPG, PNG, HEIC …).',
-    failed: '„{name}“ konnte nicht verarbeitet werden.',
+    failed: '„{name}“ konnte nicht verarbeitet werden ({reason}).',
+    heicFailed:
+      '„{name}“ ist ein HEIC-Foto – dieser Browser kann es nicht lesen. Teile es aus der Foto-App als JPEG oder stelle die Kamera auf „Maximale Kompatibilität“.',
     noPhoto: 'Noch kein Foto',
     addMore: '+ Weiteres Detailfoto hinzufügen',
     caption: 'Bildunterschrift (erscheint im Ausdruck)',
