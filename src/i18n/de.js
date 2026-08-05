@@ -41,7 +41,7 @@ export default {
     power: 'Strom & Sicherheit',
     hardware: 'Hardware-Montage',
     craft: 'Handwerk & Akustik',
-    presentation: 'Erklärung an die Richter',
+    presentation: 'Erklärung an die Juroren',
     matrix: 'Punkte-Check',
     review: 'Prüfen & Export',
     vehicleShort: 'Fahrzeug',
@@ -58,7 +58,7 @@ export default {
     kicker: 'EMMA Build Log Creator',
     headline: 'Deine Einbaudokumentation.',
     headline2: 'Geführt, regelkonform, druckfertig.',
-    lead: 'Der Assistent fragt genau das ab, was die Richter sehen wollen – prüft deine Absicherung live gegen das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem Browser: keine Uploads, kein Konto, kein Server.',
+    lead: 'Der Assistent fragt genau das ab, was die Juroren sehen wollen – prüft deine Absicherung live gegen das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem Browser: keine Uploads, kein Konto, kein Server.',
     badgeOffline: '100 % offline',
     badgeAutosave: 'Autosave im Browser',
     badgeCamera: 'Handy-Kamera direkt nutzbar',
@@ -204,7 +204,7 @@ export default {
     dsp: 'DSP / Signalprozessor',
     dspEmpty: 'Kein DSP erfasst.',
     speakers: 'Lautsprecher',
-    speakersIntro: 'Jede Position einzeln – der Richter gleicht das mit dem Blockdiagramm ab.',
+    speakersIntro: 'Jede Position einzeln – der Juror gleicht das mit dem Blockdiagramm ab.',
     speakersEmpty: 'Noch keine Lautsprecher erfasst.',
     subs: 'Subwoofer',
     subsEmpty: 'Kein Subwoofer erfasst.',
@@ -250,9 +250,9 @@ export default {
     challengePlaceholder:
       'Die A-Säule gab keinen Winkel her, also habe ich das Podest in CAD auf den Hörplatz gerechnet und in ASA gedruckt …',
     story: 'Womit willst du enden?',
-    storyPlaceholder: 'Der Satz, der beim Richter hängen bleiben soll.',
+    storyPlaceholder: 'Der Satz, der beim Juror hängen bleiben soll.',
     highlights: 'Details, auf die du hinweisen willst',
-    highlightsHint: 'Dinge, die der Richter sonst übersieht – verdeckte Lösungen, Kleinigkeiten mit Aufwand.',
+    highlightsHint: 'Dinge, die der Juror sonst übersieht – verdeckte Lösungen, Kleinigkeiten mit Aufwand.',
     highlightPlaceholder: 'z. B. Kabeldurchführung in der Tür wasserdicht gekapselt',
     noHighlights: 'Noch nichts notiert.',
     addDetail: '+ Detail',
@@ -281,7 +281,7 @@ export default {
       bonus: 'Bonuspunkte-Anträge benennen',
       outro: 'Abschluss',
       outroFallback: 'Warum lohnt sich der Blick auf genau dieses Auto?',
-      outroWait: 'Fragen der Richter abwarten – nicht überziehen.',
+      outroWait: 'Fragen der Juroren abwarten – nicht überziehen.',
     },
   },
 
@@ -295,12 +295,11 @@ export default {
     estimated: 'geschätzte Installationspunkte',
     openCriteria: '{n} Kriterien noch offen',
     disclaimer:
-      'Das ist eine Selbsteinschätzung, keine Wertung. Die App kann nur prüfen, was sie sieht – ob eine Crimpung wirklich sauber ist, entscheidet der Richter am Auto.',
+      'Das ist eine Selbsteinschätzung, keine Wertung. Die App kann nur prüfen, was sie sieht – ob eine Crimpung wirklich sauber ist, entscheidet der Juror am Auto.',
     autoTitle: 'Von der App abgeleitet',
     autoHint: 'Ergibt sich aus deinen Eingaben und Fotos.',
     selfTitle: 'Selbst einschätzen',
-    selfHint:
-      'Das prüft der Richter am Fahrzeug – schätze ehrlich, dann weißt du vor dem Event, wo du stehst.',
+    selfHint: 'Das prüft der Juror am Fahrzeug – schätze ehrlich, dann weißt du vor dem Event, wo du stehst.',
     provableVia: 'Belegbar über: {slots}',
     maxPoints: 'max. {n} P.',
     notePlaceholder: 'Notiz für dich selbst (z. B. was noch fehlt)',
@@ -316,7 +315,7 @@ export default {
     bonusAdd: '+ Antrag',
     bonusTitleField: 'Titel',
     bonusArea: 'Bereich',
-    bonusReason: 'Begründung für die Richter',
+    bonusReason: 'Begründung für die Juroren',
     bonusReasonPlaceholder: 'Was ist die Idee, warum ist sie außergewöhnlich, wie wurde sie umgesetzt?',
     bonusMax: 'Maximum von {n} Anträgen erreicht.',
     basisAuto: 'abgeleitet',
@@ -403,14 +402,14 @@ export default {
 
   skip: {
     title: 'Hier fehlen noch Pflichtfotos',
-    lead: 'Ohne diese Bilder verschenkst du Punkte – der Richter kann nur bewerten, was er sieht.',
+    lead: 'Ohne diese Bilder verschenkst du Punkte – der Juror kann nur bewerten, was er sieht.',
     skipAnyway: 'Trotzdem überspringen',
     addNow: 'Fotos jetzt ergänzen',
     stillMissing: '{n} Pflichtfoto(s) fehlt noch',
   },
 
   example: {
-    kicker: 'So macht der Richter Punkte',
+    kicker: 'So macht der Juror Punkte',
     ariaLabel: 'Beispielfoto ansehen: {title}',
   },
 
@@ -490,7 +489,7 @@ export default {
     system: 'System',
     result: 'Ergebnis',
     tuning: 'Abstimmung',
-    presentationTitle: 'Leitfaden für die Erklärung an die Richter',
+    presentationTitle: 'Leitfaden für die Erklärung an die Juroren',
     presentationLead: 'Persönlicher Spickzettel – nicht Teil der Bewertungsunterlagen.',
     presentationGoal: 'Ziel',
     presentationEnd: 'Schluss',
@@ -498,7 +497,7 @@ export default {
     presentationShow: 'Nicht vergessen zu zeigen',
     bonusTitle: 'Bonuspunkte-Anträge',
     bonusLead:
-      'Anträge auf Bonuspunkte gemäß Regelwerk – eingereicht zusammen mit der Erklärung an die Richter.',
+      'Anträge auf Bonuspunkte gemäß Regelwerk – eingereicht zusammen mit der Erklärung an die Juroren.',
     bonusElement: 'Element',
     bonusArea: 'Bereich',
     bonusReason: 'Begründung',
@@ -539,7 +538,7 @@ export default {
     fuseSectionNotListed: {
       title: '{section} mm² steht nicht in der Fuse Size Matrix',
       message:
-        'Die App rechnet konservativ mit dem nächstkleineren gelisteten Querschnitt. Alternativ erlaubt das Regelwerk eine Berechnung nach der Formel aus dem Judge Book – diese muss dann dokumentiert und den Richtern vorgelegt werden.',
+        'Die App rechnet konservativ mit dem nächstkleineren gelisteten Querschnitt. Alternativ erlaubt das Regelwerk eine Berechnung nach der Formel aus dem Judge Book – diese muss dann dokumentiert und den Juroren vorgelegt werden.',
     },
     fuseIncomplete: {
       title: 'Angaben zur Hauptabsicherung unvollständig',
@@ -556,11 +555,11 @@ export default {
     fuseDistanceOk: {
       title: 'Abstand zum Pluspol eingehalten',
       message:
-        '{distance} cm liegen innerhalb der {max}-cm-Grenze. Lege für den Richter einen Zollstock mit ins Foto.',
+        '{distance} cm liegen innerhalb der {max}-cm-Grenze. Lege für den Juror einen Zollstock mit ins Foto.',
     },
     fuseDistanceMissing: {
       title: 'Abstand Hauptsicherung ↔ Pluspol fehlt',
-      message: 'Ohne cm-Angabe kann der Richter die 40-cm-Regel nicht nachvollziehen.',
+      message: 'Ohne cm-Angabe kann der Juror die 40-cm-Regel nicht nachvollziehen.',
     },
     fuseMetalPanel: {
       title: 'Sicherung sitzt hinter der Blechdurchführung',
@@ -592,7 +591,7 @@ export default {
     secondBatteryNoFuse: {
       title: 'Zweitbatterie ohne Absicherung',
       message:
-        'Die Absicherungsregel gilt für alle Leiter im Stromsystem. Bei Mehrbatterie-Anlagen achten die Richter besonders darauf, dass jede Quelle, die Strom in einen Verteiler speist, abgesichert ist.',
+        'Die Absicherungsregel gilt für alle Leiter im Stromsystem. Bei Mehrbatterie-Anlagen achten die Juroren besonders darauf, dass jede Quelle, die Strom in einen Verteiler speist, abgesichert ist.',
       fix: 'Sicherungswert der Zweitbatterie eintragen und im Foto belegen.',
     },
     secondBatteryDistance: {
@@ -607,7 +606,7 @@ export default {
     secondBatteryCombined: {
       title: 'Mehrbatterie-System: Strom kann von beiden Seiten kommen',
       message:
-        'Bei einem Kurzschluss können mehrere Quellen gleichzeitig einspeisen. Jeder Leiter muss die Summe aller einspeisenden Quellen bzw. den Wert der ihn schützenden Sicherung aushalten – das prüfen die Richter ausdrücklich.',
+        'Bei einem Kurzschluss können mehrere Quellen gleichzeitig einspeisen. Jeder Leiter muss die Summe aller einspeisenden Quellen bzw. den Wert der ihn schützenden Sicherung aushalten – das prüfen die Juroren ausdrücklich.',
     },
     distributionOversized: {
       title: 'Abgang „{label}“ zu hoch abgesichert',
@@ -640,7 +639,7 @@ export default {
     groundLength: {
       title: 'Masseleitung sehr lang',
       message:
-        '{length} cm – als Faustregel gilt „so kurz wie möglich“. Keine Rulebook-Vorgabe, aber es hilft dem Klang und der Erklärung gegenüber den Richtern.',
+        '{length} cm – als Faustregel gilt „so kurz wie möglich“. Keine Rulebook-Vorgabe, aber es hilft dem Klang und der Erklärung gegenüber den Juroren.',
     },
     groundPointMissing: {
       title: 'Massepunkt nicht beschrieben',
@@ -683,7 +682,7 @@ export default {
     noCategory: 'Kategorie wählen, um gegen die Matrix zu rechnen',
     unrated: '{n} Kriterien noch nicht eingeschätzt',
     showcase: 'Vorzeigemappe',
-    judgeReady: 'Richtertauglich',
+    judgeReady: 'Jurytauglich',
     solid: 'Solide Mappe',
     foundation: 'Grundgerüst steht',
     shell: 'Rohbau',

@@ -30,7 +30,7 @@ export const SECTIONS = [
     key: 'sec.vehicle',
     title: { de: 'Fahrzeug & Teilnehmer', en: 'Vehicle & competitor' },
     intro: {
-      de: 'Damit der Richter die Mappe eindeutig deinem Auto zuordnen kann.',
+      de: 'Damit der Juror die Mappe eindeutig deinem Auto zuordnen kann.',
       en: 'So the judge can clearly match the build log to your car.',
     },
     slots: [
@@ -66,7 +66,7 @@ export const SECTIONS = [
           en: 'View from the driver seat towards the dashboard.',
         },
         tip: {
-          de: 'Zeigt dem Richter die Einbaulage der Hochtöner und den Hörplatz.',
+          de: 'Zeigt dem Juror die Einbaulage der Hochtöner und den Hörplatz.',
           en: 'Shows the judge where the tweeters sit and what the listening position looks like.',
         },
       },
@@ -115,7 +115,7 @@ export const SECTIONS = [
           en: 'Fuse and folding rule up to the positive battery post in the same shot.',
         },
         tip: {
-          de: 'Richter können keine Entfernungen raten. Lege einen Zollstock ins Bild und fotografiere so, dass Sicherung UND Batteriepol sichtbar sind. Die Sicherung muss innerhalb von 40 cm zum Pol und/oder vor der ersten Blechdurchführung sitzen – sonst gibt es 0 von 10 Punkten.',
+          de: 'Juroren können keine Entfernungen raten. Lege einen Zollstock ins Bild und fotografiere so, dass Sicherung UND Batteriepol sichtbar sind. Die Sicherung muss innerhalb von 40 cm zum Pol und/oder vor der ersten Blechdurchführung sitzen – sonst gibt es 0 von 10 Punkten.',
           en: 'Judges cannot guess distances. Put a folding rule in the shot and frame it so the fuse AND the battery post are visible. The fuse must sit within 40 cm of the post and/or before the first metal pass-through – otherwise it is 0 of 10 points.',
         },
       },
@@ -283,7 +283,7 @@ export const SECTIONS = [
           en: 'Installed position plus a close-up of the mounting points.',
         },
         tip: {
-          de: 'Die Richter prüfen jede Komponente per Handprobe auf festen Sitz (2 Punkte Abzug pro loser Komponente). Zeige Schrauben oder Gewindeeinsätze.',
+          de: 'Die Juroren prüfen jede Komponente per Handprobe auf festen Sitz (2 Punkte Abzug pro loser Komponente). Zeige Schrauben oder Gewindeeinsätze.',
           en: 'Judges check every component by hand for a secure fit (2 points deducted per loose component). Show bolts or threaded inserts.',
         },
       },
@@ -407,7 +407,7 @@ export const SECTIONS = [
         example: 'damping',
         hint: { de: 'Bitumen/Alubutyl auf dem Außenblech.', en: 'Bitumen/alubutyl on the outer skin.' },
         tip: {
-          de: 'Ohne Zwischenschritt-Foto sieht der Richter am Ende nur eine verkleidete Tür.',
+          de: 'Ohne Zwischenschritt-Foto sieht der Juror am Ende nur eine verkleidete Tür.',
           en: 'Without intermediate photos the judge only ever sees a trimmed door.',
         },
       },

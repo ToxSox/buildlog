@@ -102,7 +102,7 @@ export const CRITERIA = [
   },
   {
     id: 'explanation',
-    label: { de: 'Erklärung der Anlage an die Richter', en: 'Explanation of system to the judges' },
+    label: { de: 'Erklärung der Anlage an die Juroren', en: 'Explanation of system to the judges' },
     points: P(0, 0, 5, 10, 10),
     assess: 'self',
     help: {
