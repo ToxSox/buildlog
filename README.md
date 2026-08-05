@@ -120,8 +120,8 @@ abgetippten Sollwerte (`tests/emmaRules.test.mjs`).
 > **Bei einer neuen Rulebook-Edition:** `FUSE_LIMITS`, `MAX_FUSE_DISTANCE_CM`,
 > `OEM_GROUND_MAX_MAIN_FUSE_A` und `RULEBOOK_EDITION` am Kopf von `emmaRules.js`
 > nachziehen, die Sollwerte in `tests/emmaRules.test.mjs` anpassen und
-> `EMMA_CLASSES` in `schema.js` gegen Kapitel 2 abgleichen. Maßgeblich ist immer
-> das aktuelle offizielle Rulebook.
+> `EMMA_CLASSES` sowie `EMMA_SUBCLASSES` in `schema.js` gegen Kapitel 2
+> abgleichen. Maßgeblich ist immer das aktuelle offizielle Rulebook.
 
 #### Woher die Zahlen stammen
 
@@ -147,6 +147,9 @@ letzte Wort hat der Juror am Fahrzeug.
 
 `EMMA_CLASSES` in `schema.js` bildet die Kategorien aus Kapitel 2 des Rulebooks ab
 (ESQL Inside, SQ E/S/M/X Limited/Unlimited, MM, ESPL, ESQL, EMMA Tuning).
+Zur Kategorie lässt sich die **Unterklasse** (Budget-/OEM-Variante, z. B.
+„Master OEM Unlimited") erfassen – per Schnellauswahl (`EMMA_SUBCLASSES`) oder
+Freitext. Sie steht in der Kopfzeile jeder gedruckten Seite.
 
 Die Rubrik **System documentation** (Signal-Flowchart, Cable/Fuse-Diagramm,
 Foto-Log nicht zugänglicher Verbindungen, 10 Punkte) gibt es erst ab **SQ M**.

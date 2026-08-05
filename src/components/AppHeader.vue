@@ -63,7 +63,8 @@ function go(step) {
         <p class="truncate text-sm font-semibold text-slate-800">{{ store.title }}</p>
         <p class="truncate text-[11px] text-slate-500">
           {{ columnLabel || store.mode
-          }}<span v-if="store.project.meta.plate"> · {{ store.project.meta.plate }}</span>
+          }}<span v-if="store.project.meta.emmaSubclass"> · {{ store.project.meta.emmaSubclass }}</span
+          ><span v-if="store.project.meta.plate"> · {{ store.project.meta.plate }}</span>
         </p>
       </div>
       <div v-else class="flex-1"></div>

@@ -42,6 +42,17 @@ export const EMMA_CLASSES = [
   { id: 'tuning-custom-unlimited', label: 'Tuning Custom Unlimited', group: 'EMMA Tuning' },
 ]
 
+/**
+ * Bekannte Unterklassen (Budget-/OEM-Varianten) je Kategorie – Schnellauswahl
+ * bei der Fahrzeugeingabe. Die Liste stammt aus Teilnehmer-Feedback; die
+ * Eingabe bleibt bewusst Freitext, damit jede Variante der jeweils gültigen
+ * Edition eintragbar ist. Bei einer neuen Edition gegen Kapitel 2 abgleichen.
+ */
+export const EMMA_SUBCLASSES = {
+  'sq-s': ['Skilled 4000', 'Skilled Unlimited'],
+  'sq-m': ['Master Limited', 'Master 8000', 'Master Unlimited', 'Master OEM 4000', 'Master OEM Unlimited'],
+}
+
 export const COMPONENT_TYPES = [
   { id: 'source', label: { de: 'Signalquelle / Headunit', en: 'Source / head unit' }, icon: '🎛️' },
   { id: 'dsp', label: { de: 'DSP / Prozessor', en: 'DSP / processor' }, icon: '🧠' },
@@ -81,6 +92,8 @@ export function createEmptyProject() {
       vehicleYear: '',
       plate: '',
       emmaClass: '',
+      /** Unterklasse der Kategorie (z. B. „Master OEM Unlimited“) – Freitext. */
+      emmaSubclass: '',
       eventName: '',
       installerName: '',
       notes: '',
@@ -227,6 +240,8 @@ export function migrateProject(raw) {
     merged.meta.emmaClass = LEGACY_CLASS_MAP[merged.meta.emmaClass]
   } else if (merged.meta.emmaClass && !EMMA_CLASSES.some((c) => c.id === merged.meta.emmaClass)) {
     merged.meta.emmaClass = ''
+    // Ohne Kategorie ergibt die Unterklasse keinen Sinn mehr.
+    merged.meta.emmaSubclass = ''
   }
 
   merged.power.mainCableSection = sanitizeSection(merged.power.mainCableSection)

@@ -113,6 +113,10 @@ export default {
     classSection: 'EMMA class',
     classHint:
       'Determines which criteria are judged, which photos are mandatory and how many points are available in total.',
+    subclass: 'Subclass',
+    subclassPlaceholder: 'e.g. Master OEM Unlimited',
+    subclassHint:
+      'Budget/OEM variant of your category as registered – appears in the header of every printed page. Free text in case your variant is not among the quick picks.',
     modeSection: 'Documentation mode',
     modeHint:
       'Just a scope filter: Quick Rescue hides everything that is not mandatory in your category. Switching never deletes data.',

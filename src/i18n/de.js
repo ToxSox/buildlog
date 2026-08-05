@@ -116,6 +116,10 @@ export default {
     classSection: 'EMMA-Klasse',
     classHint:
       'Bestimmt, welche Kriterien bei dir bewertet werden, welche Fotos Pflicht sind und wie viele Punkte insgesamt zu holen sind.',
+    subclass: 'Unterklasse',
+    subclassPlaceholder: 'z. B. Master OEM Unlimited',
+    subclassHint:
+      'Budget-/OEM-Variante deiner Kategorie laut Anmeldung – erscheint in der Kopfzeile jeder Seite des Ausdrucks. Freitext, falls deine Variante nicht in der Schnellauswahl steht.',
     modeSection: 'Dokumentations-Modus',
     modeHint:
       'Nur ein Umfangsfilter: Quick Rescue blendet alles aus, was in deiner Kategorie nicht Pflicht ist. Ein Wechsel löscht keine Daten.',
