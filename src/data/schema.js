@@ -261,6 +261,10 @@ export function migrateProject(raw) {
     ...c,
     oem: Boolean(c.oem),
   }))
+  merged.system.signalLinks = (merged.system.signalLinks || []).map((link) => ({
+    ...link,
+    remote: Boolean(link.remote),
+  }))
   merged.system.powerLinks = (merged.system.powerLinks || []).map((link) => ({
     ...link,
     section: sanitizeSection(link.section),

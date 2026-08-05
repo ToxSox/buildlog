@@ -35,7 +35,7 @@ function removeComponent(id) {
 
 function addLink(kind) {
   const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
-  list.push({ id: uid('lnk'), from: '', to: '', label: '', section: null, oem: false })
+  list.push({ id: uid('lnk'), from: '', to: '', label: '', section: null, oem: false, remote: false })
 }
 
 /** OEM-Verkabelung braucht keinen Querschnitt – der Hersteller hat dimensioniert. */
@@ -171,11 +171,20 @@ const groundMissing = computed(
           </div>
           <div>
             <label class="field" :for="`${l.id}-label`">{{ t('diagram.cableChannel') }}</label>
-            <input :id="`${l.id}-label`" v-model="l.label" class="input" placeholder="Cinch Ch 1-2" />
+            <input
+              :id="`${l.id}-label`"
+              v-model="l.label"
+              class="input"
+              :placeholder="l.remote ? 'REM' : 'Cinch Ch 1-2'"
+            />
           </div>
           <button type="button" class="btn-ghost btn-xs" @click="removeLink('signal', l.id)">
             {{ t('common.remove') }}
           </button>
+          <label class="flex items-center gap-1.5 text-xs text-slate-600 sm:col-span-3">
+            <input v-model="l.remote" type="checkbox" class="accent-sky-600" />
+            <span>{{ t('diagram.remoteLink') }}</span>
+          </label>
         </div>
       </div>
     </div>

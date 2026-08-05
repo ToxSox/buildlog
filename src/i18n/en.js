@@ -136,7 +136,8 @@ export default {
     channels: 'Channels',
     channelsSuffix: '{n} channels',
     signal: 'Signal path',
-    signalHint: 'Source → DSP → amplifier → speakers.',
+    signalHint:
+      'Source → DSP → amplifier → speakers. The remote lead belongs here too – marked as REM it appears dashed.',
     power: 'Power diagram',
     powerHint:
       'Battery → fuse → distribution → consumers – and back via the ground point. Mark factory-wired devices as OEM – judges do not require proof for those.',
@@ -147,6 +148,7 @@ export default {
     to: 'to',
     cableChannel: 'Cable / channel',
     section: 'Cross-section',
+    remoteLink: 'Remote lead (REM) – turn-on signal, appears dashed in the diagram',
     oemComponent:
       'Factory-installed (OEM) – fuse values and cross-sections count as correct from the factory',
     oemWiring: 'OEM wiring (original, no cross-section proof needed)',

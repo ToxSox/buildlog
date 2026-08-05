@@ -306,6 +306,24 @@ try {
     !(await page.getByText(/Stromlaufplan hat noch keine Masse/).isVisible()),
   )
 
+  // Remote-Leitung: als REM markierte Signalverbindung erscheint im Diagramm.
+  await page.getByRole('button', { name: '+ Verbindung' }).first().click()
+  await page.waitForTimeout(300)
+  // Neue Signal-Selects liegen vor den Strom-Selects: Indizes 2 und 3.
+  await page.locator('select').nth(2).selectOption({ index: 1 }) // von: Signalquelle
+  await page.locator('select').nth(3).selectOption({ index: 2 }) // nach: Endstufe
+  await page
+    .getByLabel(/Remote-Leitung/)
+    .last()
+    .check()
+  await page.waitForTimeout(2500)
+  const signalDiagram = await page.locator('.mermaid-host').first().innerText()
+  check(
+    'Remote-Leitung erscheint als REM im Signalweg',
+    signalDiagram.includes('REM'),
+    signalDiagram.slice(0, 80),
+  )
+
   // ------------------------------------------------------------ Sprachwechsel
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.waitForTimeout(600)

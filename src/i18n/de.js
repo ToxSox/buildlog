@@ -139,7 +139,8 @@ export default {
     channels: 'Kanäle',
     channelsSuffix: '{n} Kanäle',
     signal: 'Signalweg',
-    signalHint: 'Quelle → DSP → Endstufe → Lautsprecher.',
+    signalHint:
+      'Quelle → DSP → Endstufe → Lautsprecher. Auch die Remote-Leitung gehört hierher – als REM markiert erscheint sie gestrichelt.',
     power: 'Stromlaufplan',
     powerHint:
       'Batterie → Sicherung → Verteiler → Verbraucher – und zurück über den Massepunkt. Original verkabelte Geräte als OEM markieren – dafür verlangt der Juror keinen Nachweis.',
@@ -150,6 +151,7 @@ export default {
     to: 'nach',
     cableChannel: 'Kabel / Kanal',
     section: 'Querschnitt',
+    remoteLink: 'Remote-Leitung (REM) – Einschaltsignal, erscheint gestrichelt im Diagramm',
     oemComponent: 'Werksseitig verbaut (OEM) – Sicherungswerte und Querschnitte gelten als ab Werk korrekt',
     oemWiring: 'OEM-Verkabelung (original, kein Querschnitts-Nachweis nötig)',
     groundMissing:

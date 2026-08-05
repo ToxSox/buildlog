@@ -54,8 +54,18 @@ function buildFlowchart(components, links, edgeLabel) {
     .filter((l) => known.has(l.from) && known.has(l.to))
     .forEach((l) => {
       const label = clean(edgeLabel(l))
-      const arrow = label ? `-->|${label}|` : '-->'
-      lines.push(`  ${nodeId(l.from)} ${arrow} ${nodeId(l.to)}`)
+      // Remote-Leitungen (Einschaltsignal) gestrichelt, damit sie sich vom
+      // Audiosignal unterscheiden.
+      if (l.remote) {
+        lines.push(
+          label
+            ? `  ${nodeId(l.from)} -. ${label} .-> ${nodeId(l.to)}`
+            : `  ${nodeId(l.from)} -.-> ${nodeId(l.to)}`,
+        )
+      } else {
+        const arrow = label ? `-->|${label}|` : '-->'
+        lines.push(`  ${nodeId(l.from)} ${arrow} ${nodeId(l.to)}`)
+      }
     })
 
   lines.push(CLASS_DEFS.trim())
@@ -69,7 +79,7 @@ function buildFlowchart(components, links, edgeLabel) {
 /** Signalweg: alles außer reinen Strom-Komponenten. */
 export function signalDefinition(system) {
   const components = (system.components || []).filter((c) => !['battery', 'fuse', 'ground'].includes(c.type))
-  return buildFlowchart(components, system.signalLinks || [], (l) => l.label)
+  return buildFlowchart(components, system.signalLinks || [], (l) => (l.remote ? l.label || 'REM' : l.label))
 }
 
 /** Stromlaufplan: Batterie, Sicherung, Verbraucher – und der Massepunkt. */
