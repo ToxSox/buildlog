@@ -58,7 +58,7 @@ const assessment = computed(() => assessProject(p.value, column.value))
 const bonusRequests = computed(() => p.value.bonusRequests.filter((r) => r.title))
 
 const signalDef = computed(() => signalDefinition(p.value.system) || '')
-const powerDef = computed(() => powerDefinition(p.value.system) || '')
+const powerDef = computed(() => powerDefinition(p.value.system, p.value.power) || '')
 
 const powerRows = computed(() => {
   const pw = p.value.power

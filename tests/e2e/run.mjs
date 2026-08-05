@@ -222,6 +222,10 @@ try {
   await page.waitForTimeout(600)
   check('nach Korrektur keine Fehler mehr', (await page.locator('.border-rose-300').count()) === 0)
 
+  // Beschreibung des Massepunkts – landet später als Detail im Stromlaufplan-Knoten.
+  await page.fill('#gndPoint', 'Sitzschiene hinten links')
+  await page.waitForTimeout(600)
+
   // ------------------------------------------------------------------ Diagramme
   await page.goto(`${BASE}#/wizard/diagramme`)
   await page.waitForTimeout(500)
@@ -255,6 +259,11 @@ try {
     'Massepunkt erscheint im Stromlaufplan',
     powerDiagram.includes('Massepunkt'),
     powerDiagram.slice(0, 80),
+  )
+  check(
+    'Massepunkt erbt die Beschreibung aus Strom & Sicherheit',
+    powerDiagram.includes('Sitzschiene hinten links'),
+    powerDiagram.slice(0, 120),
   )
   check(
     'Masse-Hinweis verschwindet',

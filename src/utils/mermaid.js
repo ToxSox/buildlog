@@ -72,9 +72,15 @@ export function signalDefinition(system) {
   return buildFlowchart(components, system.signalLinks || [], (l) => l.label)
 }
 
-/** Stromlaufplan: Batterie, Sicherung, Verbraucher. */
-export function powerDefinition(system) {
-  const components = (system.components || []).filter((c) => !['speaker', 'sub'].includes(c.type))
+/** Stromlaufplan: Batterie, Sicherung, Verbraucher – und der Massepunkt. */
+export function powerDefinition(system, power = {}) {
+  const components = (system.components || [])
+    .filter((c) => !['speaker', 'sub'].includes(c.type))
+    // Massepunkt-Beschreibung aus „Strom & Sicherheit“ übernehmen, solange am
+    // Knoten selbst kein Detail steht – eine Eingabe, beide Stellen aktuell.
+    .map((c) =>
+      c.type === 'ground' && !c.detail && power.groundPoint ? { ...c, detail: power.groundPoint } : c,
+    )
   return buildFlowchart(components, system.powerLinks || [], (l) =>
     l.oem ? 'OEM' : l.section ? `${l.section} mm²` : '',
   )

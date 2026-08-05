@@ -51,7 +51,15 @@ function removeLink(kind, id) {
 }
 
 const signalDef = computed(() => signalDefinition(system.value) || '')
-const powerDef = computed(() => powerDefinition(system.value) || '')
+const powerDef = computed(() => powerDefinition(system.value, store.project.power) || '')
+
+/** Beim Massepunkt zeigt der Platzhalter die geerbte Beschreibung aus „Strom & Sicherheit“. */
+function detailPlaceholder(component) {
+  if (component.type === 'ground' && store.project.power.groundPoint) {
+    return store.project.power.groundPoint
+  }
+  return t('diagram.detailPlaceholder')
+}
 
 /** Ein Stromlaufplan ohne Rückweg ist unvollständig – daran erinnern, solange die Masse fehlt. */
 const groundMissing = computed(
@@ -101,7 +109,7 @@ const groundMissing = computed(
               :id="`${c.id}-detail`"
               v-model="c.detail"
               class="input"
-              :placeholder="t('diagram.detailPlaceholder')"
+              :placeholder="detailPlaceholder(c)"
             />
           </div>
           <div>
