@@ -200,10 +200,21 @@ export default {
     secondDistance: 'Abstand Sicherung ↔ Pol (cm)',
     chargingSection: 'Ladekabel-Querschnitt (mm²)',
     distribution: 'Verteiler & Abgänge',
-    distributionHint: 'Jeder Abgang mit kleinerem Querschnitt braucht eine eigene Sicherung.',
+    distributionHint:
+      'Die Abgänge sind die Stromverbindungen aus dem Blockdiagramm – hier bearbeitest du dieselben Daten. Jeder Abgang mit kleinerem Querschnitt braucht eine eigene Sicherung.',
     addBranch: '+ Abgang',
     noBranches: 'Noch keine Abgänge erfasst.',
     branchLabel: 'Bezeichnung',
+    branchTarget: 'Abgang zu',
+    noDistributor:
+      'Noch kein Verteiler vorhanden. Lege ihn hier an – er erscheint automatisch auch im Blockdiagramm.',
+    createDistributor: 'Verteiler anlegen',
+    unassignedBranches: 'Nicht zugeordnete Abgänge',
+    assignSource: 'Quelle',
+    fromDiagram: 'Im Blockdiagramm: {section} mm²',
+    adopt: 'übernehmen',
+    plusDistributor: 'Plus-Verteiler',
+    minusDistributor: 'Masse-Verteiler',
     branchFuse: 'Sicherung (A)',
     polarity: 'Polarität',
     polarityPlus: '+12 V',
@@ -483,6 +494,8 @@ export default {
     powerSupply: 'Stromversorgung & Absicherung',
     distribution: 'Verteiler & Abgänge',
     branch: 'Abgang',
+    branchSource: 'Quelle',
+    polarity: 'Polarität',
     section: 'Querschnitt',
     fuse: 'Absicherung',
     components: 'Verbaute Komponenten',
@@ -644,9 +657,9 @@ export default {
         '{section} mm² dürfen laut Fuse Size Matrix mit maximal {limit} A abgesichert werden, eingetragen sind {fuse} A. Die Regel gilt ausdrücklich auch für Verteilerblöcke und Busbars.',
     },
     distributionMissing: {
-      title: 'Keine Abgänge erfasst',
+      title: 'Keine abgesicherten Abgänge',
       message:
-        'Jede Leitung zu jeder Komponente (Headunit, DSP, Endstufen) muss abgesichert sein und die Sicherungen müssen innerhalb von drei Minuten auffindbar sein. Erfasse die Abgänge, damit sie im Stromlaufplan auftauchen.',
+        'Jede Leitung zu jeder Komponente (Headunit, DSP, Endstufen) muss abgesichert sein und die Sicherungen müssen innerhalb von drei Minuten auffindbar sein. Trage die Sicherungswerte an den Stromverbindungen ein – im Blockdiagramm oder hier bei „Verteiler & Abgänge“.',
       ref: 'Kriterium „Are all the cables to the components fused?“ (15 Punkte)',
     },
     batterySecured: {

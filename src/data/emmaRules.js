@@ -279,25 +279,34 @@ export function evaluateRules(project) {
   }
 
   // -------------------------------------------------- Verteiler, Busbars, Abgänge
-  const dist = Array.isArray(p.distributionFuses) ? p.distributionFuses : []
-  dist.forEach((entry, i) => {
-    const section = num(entry.section)
-    const amps = num(entry.amps)
+  // Abgänge sind die Stromverbindungen des Blockdiagramms – eine Eingabe, eine Prüfung.
+  const system = project.system || {}
+  const components = Array.isArray(system.components) ? system.components : []
+  const powerLinks = Array.isArray(system.powerLinks) ? system.powerLinks : []
+  const nameOf = (id, fallback) => components.find((c) => c.id === id)?.name || fallback
+
+  powerLinks.forEach((link, i) => {
+    if (link.oem) return
+    const section = num(link.section)
+    const amps = num(link.fuseAmps)
     if (!section || !amps) return
     const limit = maxAmpsFor(section)
     if (limit && amps > limit) {
       out.push({
-        id: `distribution.oversized.${entry.id || i}`,
+        id: `distribution.oversized.${link.id || i}`,
         severity: 'error',
         source: 'rulebook',
         step: 'power',
         key: 'rules.distributionOversized',
-        params: { label: entry.label || i + 1, section, limit, fuse: amps },
+        params: { label: nameOf(link.to, link.label || i + 1), section, limit, fuse: amps },
       })
     }
   })
 
-  if (!dist.length) {
+  // OEM-Verkabelung gilt als ab Werk abgesichert und braucht keinen Nachweis.
+  const fusedBranches = powerLinks.filter((l) => !l.oem && num(l.fuseAmps) !== null)
+  const oemOnly = powerLinks.length > 0 && powerLinks.every((l) => l.oem)
+  if (!fusedBranches.length && !oemOnly) {
     out.push({
       id: 'distribution.missing',
       severity: 'warn',

@@ -198,10 +198,21 @@ export default {
     secondDistance: 'Distance fuse ↔ post (cm)',
     chargingSection: 'Charging cable cross-section (mm²)',
     distribution: 'Distribution & branches',
-    distributionHint: 'Every branch with a smaller cross-section needs its own fuse.',
+    distributionHint:
+      'Branches are the power connections from the block diagram – you edit the same data here. Every branch with a smaller cross-section needs its own fuse.',
     addBranch: '+ Branch',
     noBranches: 'No branches recorded yet.',
     branchLabel: 'Name',
+    branchTarget: 'Branch to',
+    noDistributor:
+      'No distributor yet. Create it here – it automatically appears in the block diagram as well.',
+    createDistributor: 'Create distributor',
+    unassignedBranches: 'Unassigned branches',
+    assignSource: 'Source',
+    fromDiagram: 'In the block diagram: {section} mm²',
+    adopt: 'adopt',
+    plusDistributor: 'Positive distributor',
+    minusDistributor: 'Ground distributor',
     branchFuse: 'Fuse (A)',
     polarity: 'Polarity',
     polarityPlus: '+12 V',
@@ -479,6 +490,8 @@ export default {
     powerSupply: 'Power supply & fusing',
     distribution: 'Distribution & branches',
     branch: 'Branch',
+    branchSource: 'Source',
+    polarity: 'Polarity',
     section: 'Cross-section',
     fuse: 'Fuse',
     components: 'Installed components',
@@ -637,9 +650,9 @@ export default {
         'Per the Fuse Size Matrix, {section} mm² may be fused at {limit} A at most – you entered {fuse} A. The rule explicitly covers distribution blocks and busbars too.',
     },
     distributionMissing: {
-      title: 'No branches recorded',
+      title: 'No fused branches',
       message:
-        'Every cable to every component (head unit, DSP, amplifiers) must be fused, and the fuses must be findable within three minutes. Record the branches so they appear in the power diagram.',
+        'Every cable to every component (head unit, DSP, amplifiers) must be fused, and the fuses must be findable within three minutes. Enter the fuse values on the power connections – in the block diagram or here under “Distribution & branches”.',
       ref: 'Criterion “Are all the cables to the components fused?” (15 points)',
     },
     batterySecured: {

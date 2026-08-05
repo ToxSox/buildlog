@@ -138,15 +138,16 @@ check('80 cm gibt keine Punkte', farDistance && farDistance.earned === 0)
 
 // Fall 8: OEM-Komponenten brauchen keinen Absicherungs-Nachweis.
 // Für Originalteile gilt die Dimensionierung des Herstellers als akzeptiert.
+// Absicherungen leben seit Schema 6 an den Stromverbindungen des Blockdiagramms.
 const allFusedFor = (project) => assessProject(project, 'M').criteria.find((c) => c.id === 'allFused')
 p = createEmptyProject()
 p.meta.emmaClass = 'sq-m'
 p.system.components = [
   { id: 'src', type: 'source', oem: true },
   { id: 'amp1', type: 'amp' },
+  { id: 'dist', type: 'distributor' },
 ]
-p.hardware.amps = [{ id: 'hw1', brand: 'Amp' }]
-p.power.distributionFuses = [{ id: 'd1', section: 10, amps: 60 }]
+p.system.powerLinks = [{ id: 'l1', from: 'dist', to: 'amp1', section: 10, fuseAmps: 60 }]
 let allFused = allFusedFor(p)
 check('OEM-Headunit zaehlt nicht als abzusichernde Leitung', allFused && allFused.earned === allFused.max)
 
@@ -154,9 +155,29 @@ p.system.components[0].oem = false
 allFused = allFusedFor(p)
 check('Nicht-OEM-Headunit verlangt einen eigenen Abgang', allFused && allFused.earned < allFused.max)
 
-p.system.powerLinks = [{ id: 'l1', from: 'bat', to: 'src', oem: true }]
+p.system.powerLinks.push({ id: 'l2', from: 'bat', to: 'src', oem: true })
 allFused = allFusedFor(p)
 check('OEM-Verkabelung zur Quelle ersetzt den Nachweis', allFused && allFused.earned === allFused.max)
+
+// Fall 8b: Abgangs-Sicherung gegen die Fuse Size Matrix – direkt an der Verbindung.
+p = createEmptyProject()
+p.system.components = [
+  { id: 'dist', type: 'distributor', name: 'Hauptverteiler' },
+  { id: 'amp1', type: 'amp', name: 'Endstufe Front' },
+]
+p.system.powerLinks = [{ id: 'l1', from: 'dist', to: 'amp1', section: 10, fuseAmps: 80 }]
+f = evaluateRules(p)
+const oversized = f.find((x) => x.id.startsWith('distribution.oversized'))
+check('10mm²-Abgang mit 80A ist zu hoch abgesichert', !!oversized)
+check('Befund nennt die Ziel-Komponente', oversized && oversized.params.label === 'Endstufe Front')
+
+p.system.powerLinks = [{ id: 'l1', from: 'dist', to: 'amp1', oem: true }]
+f = evaluateRules(p)
+check('reine OEM-Verkabelung loest keine Verteiler-Warnung aus', !ids(f).includes('distribution.missing'))
+
+p.system.powerLinks = []
+f = evaluateRules(p)
+check('ohne abgesicherte Abgaenge kommt die Warnung', ids(f).includes('distribution.missing'))
 
 // Fall 9: „Sichtbar verbaut" ersetzt das Pflichtfoto – Fotos sind laut
 // Regelwerk nur für Verdecktes Pflicht, Sichtbares prüft der Juror am Auto.

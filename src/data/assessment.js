@@ -46,13 +46,10 @@ function hasHiddenPhotoLog(project) {
  * des Herstellers als akzeptiert, ein Nachweis wird nicht verlangt.
  */
 function fusedComponentCount(project) {
-  const hw = project.hardware || {}
-  const explicit = (hw.amps?.length || 0) + (hw.dsp?.length || 0)
   const oemPowered = new Set((project.system?.powerLinks || []).filter((l) => l.oem).map((l) => l.to))
-  const sources = (project.system?.components || []).filter(
-    (c) => c.type === 'source' && !c.oem && !oemPowered.has(c.id),
+  return (project.system?.components || []).filter(
+    (c) => ['amp', 'dsp', 'source'].includes(c.type) && !c.oem && !oemPowered.has(c.id),
   ).length
-  return explicit + sources
 }
 
 /**
@@ -97,7 +94,9 @@ function deriveAuto(criterion, project, column, findings) {
 
     case 'allFused': {
       const needed = fusedComponentCount(project)
-      const fuses = (project.power?.distributionFuses || []).length
+      const fuses = (project.system?.powerLinks || []).filter(
+        (l) => !l.oem && toNumber(l.fuseAmps) !== null,
+      ).length
       if (!needed) return ok(0, d('allFusedNoComponents'))
       const unfused = Math.max(0, needed - fuses)
       return ok(

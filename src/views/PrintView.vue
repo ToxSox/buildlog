@@ -3,7 +3,7 @@ import { computed, onMounted, onBeforeUnmount, nextTick, ref, watch } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { SECTIONS, isSlotVisible } from '../data/sections.js'
-import { EMMA_CLASSES, MODES } from '../data/schema.js'
+import { EMMA_CLASSES, MODES, COMPONENT_TYPES } from '../data/schema.js'
 import { evaluateRules, summarize, toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { assessProject } from '../data/assessment.js'
@@ -106,6 +106,39 @@ const powerRows = computed(() => {
     ])
   }
   return rows.filter(([, value]) => value)
+})
+
+/** Verteiler-Abgänge für den Druck: Stromverbindungen ab Batterie/Verteiler/Sicherung. */
+const branchRows = computed(() => {
+  const sys = p.value.system
+  const comps = sys.components || []
+  const byId = (id) => comps.find((c) => c.id === id)
+  const componentLabel = (c) => c?.name || tx(COMPONENT_TYPES.find((x) => x.id === c?.type)?.label) || ''
+  const sourceTypes = new Set(['battery', 'distributor', 'fuse'])
+  return (sys.powerLinks || [])
+    .filter((l) => {
+      const from = byId(l.from)
+      if (from) return sourceTypes.has(from.type)
+      // Noch nicht zugeordnete Abgänge (z. B. aus der Migration) drucken, sobald sie Daten tragen.
+      return Boolean(l.label) || hasNum(l.section) || hasNum(l.fuseAmps)
+    })
+    .map((l) => {
+      const from = byId(l.from)
+      const to = byId(l.to)
+      return {
+        id: l.id,
+        source: from ? componentLabel(from) : '—',
+        target: to ? componentLabel(to) : l.label || '—',
+        polarity:
+          l.polarity === 'plus'
+            ? t('power.polarityPlus')
+            : l.polarity === 'minus'
+              ? t('power.polarityMinus')
+              : '—',
+        section: l.oem ? 'OEM' : hasNum(l.section) ? `${num(l.section)} mm²` : '—',
+        fuse: l.oem ? 'OEM' : hasNum(l.fuseAmps) ? `${num(l.fuseAmps)} A` : '—',
+      }
+    })
 })
 
 /**
@@ -498,21 +531,25 @@ function print() {
             </tbody>
           </table>
 
-          <template v-if="p.power.distributionFuses.length">
+          <template v-if="branchRows.length">
             <h2 class="print-h2" style="margin-top: 5mm">{{ t('print.distribution') }}</h2>
             <table class="print-table">
               <thead>
                 <tr>
+                  <th>{{ t('print.branchSource') }}</th>
                   <th>{{ t('print.branch') }}</th>
+                  <th>{{ t('print.polarity') }}</th>
                   <th>{{ t('print.section') }}</th>
                   <th>{{ t('print.fuse') }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="b in p.power.distributionFuses" :key="b.id">
-                  <td>{{ b.label || '—' }}</td>
-                  <td>{{ b.section ? `${b.section} mm²` : '—' }}</td>
-                  <td>{{ b.amps ? `${b.amps} A` : '—' }}</td>
+                <tr v-for="b in branchRows" :key="b.id">
+                  <td>{{ b.source }}</td>
+                  <td>{{ b.target }}</td>
+                  <td>{{ b.polarity }}</td>
+                  <td>{{ b.section }}</td>
+                  <td>{{ b.fuse }}</td>
                 </tr>
               </tbody>
             </table>
