@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
-import { COMPONENT_TYPES, uid, CABLE_SECTIONS } from '../data/schema.js'
+import { COMPONENT_TYPES, uid, CABLE_SECTIONS, INSTALL_DEFAULTS } from '../data/schema.js'
 import WizardShell from '../components/WizardShell.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
@@ -23,6 +23,7 @@ function addComponent(type) {
     detail: '',
     channels: '',
     oem: false,
+    install: { ...INSTALL_DEFAULTS },
   })
 }
 
@@ -35,14 +36,33 @@ function removeComponent(id) {
 
 function addLink(kind) {
   const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
-  list.push({ id: uid('lnk'), from: '', to: '', label: '', section: null, oem: false, remote: false })
+  list.push({
+    id: uid('lnk'),
+    from: '',
+    to: '',
+    label: '',
+    section: null,
+    fuseAmps: null,
+    polarity: null,
+    oem: false,
+    remote: false,
+  })
 }
 
-/** OEM-Verkabelung braucht keinen Querschnitt – der Hersteller hat dimensioniert. */
+/** OEM-Verkabelung braucht keinen Nachweis – der Hersteller hat dimensioniert und abgesichert. */
 function setLinkOem(link, on) {
   link.oem = on
-  if (on) link.section = null
+  if (on) {
+    link.section = null
+    link.fuseAmps = null
+  }
 }
+
+const POLARITY_OPTIONS = [
+  { value: 'plus', labelKey: 'power.polarityPlus', active: 'border-red-600 bg-red-600 font-semibold text-white' },
+  { value: 'minus', labelKey: 'power.polarityMinus', active: 'border-slate-700 bg-slate-700 font-semibold text-white' },
+  { value: null, labelKey: 'power.polarityUnset', active: 'border-sky-600 bg-sky-600 font-semibold text-white' },
+]
 
 function removeLink(kind, id) {
   const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
@@ -215,7 +235,7 @@ const groundMissing = computed(
         <div
           v-for="l in system.powerLinks"
           :key="l.id"
-          class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+          class="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[1fr_1fr_0.8fr_0.8fr_auto] sm:items-end"
         >
           <div>
             <label class="field" :for="`${l.id}-from`">{{ t('diagram.from') }}</label>
@@ -242,18 +262,50 @@ const groundMissing = computed(
               <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
             </select>
           </div>
+          <div>
+            <label class="field" :for="`${l.id}-fuse`">{{ t('power.branchFuse') }}</label>
+            <input
+              :id="`${l.id}-fuse`"
+              v-model.number="l.fuseAmps"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              :disabled="l.oem"
+              placeholder="60"
+            />
+          </div>
           <button type="button" class="btn-ghost btn-xs" @click="removeLink('power', l.id)">
             {{ t('common.remove') }}
           </button>
-          <label class="flex items-center gap-1.5 text-xs text-slate-600 sm:col-span-3">
-            <input
-              type="checkbox"
-              class="accent-sky-600"
-              :checked="l.oem"
-              @change="setLinkOem(l, $event.target.checked)"
-            />
-            <span>{{ t('diagram.oemWiring') }}</span>
-          </label>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 sm:col-span-4">
+            <span class="flex items-center gap-1.5 text-xs text-slate-600">
+              {{ t('power.polarity') }}:
+              <button
+                v-for="opt in POLARITY_OPTIONS"
+                :key="String(opt.value)"
+                type="button"
+                class="rounded-md border px-2 py-0.5 text-xs transition"
+                :class="
+                  l.polarity === opt.value
+                    ? opt.active
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-sky-400'
+                "
+                @click="l.polarity = opt.value"
+              >
+                {{ t(opt.labelKey) }}
+              </button>
+            </span>
+            <label class="flex items-center gap-1.5 text-xs text-slate-600">
+              <input
+                type="checkbox"
+                class="accent-sky-600"
+                :checked="l.oem"
+                @change="setLinkOem(l, $event.target.checked)"
+              />
+              <span>{{ t('diagram.oemWiring') }}</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>

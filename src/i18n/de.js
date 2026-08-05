@@ -205,6 +205,10 @@ export default {
     noBranches: 'Noch keine Abgänge erfasst.',
     branchLabel: 'Bezeichnung',
     branchFuse: 'Sicherung (A)',
+    polarity: 'Polarität',
+    polarityPlus: '+12 V',
+    polarityMinus: 'Masse',
+    polarityUnset: 'offen',
     protection: 'Kabelschutz',
   },
 

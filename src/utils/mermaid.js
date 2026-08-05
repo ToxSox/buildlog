@@ -34,11 +34,12 @@ const CLASS_DEFS = `
   classDef speaker fill:#dcfce7,stroke:#16a34a,color:#14532d;
   classDef sub fill:#d1fae5,stroke:#059669,color:#064e3b;
   classDef battery fill:#fee2e2,stroke:#dc2626,color:#7f1d1d;
+  classDef distributor fill:#fae8ff,stroke:#c026d3,color:#701a75;
   classDef fuse fill:#ffe4e6,stroke:#e11d48,color:#881337;
   classDef ground fill:#f1f5f9,stroke:#475569,color:#0f172a;
 `
 
-function buildFlowchart(components, links, edgeLabel) {
+function buildFlowchart(components, links, edgeLabel, edgeStyle) {
   if (!components.length) return null
 
   const lines = ['flowchart LR']
@@ -50,6 +51,8 @@ function buildFlowchart(components, links, edgeLabel) {
   // Batterie hätte sonst einen unbenannten Knoten mit der internen ID erzeugt,
   // der so auch im gedruckten Diagramm gelandet wäre.
   const known = new Set(components.map((c) => c.id))
+  const styleLines = []
+  let edgeIndex = 0
   links
     .filter((l) => known.has(l.from) && known.has(l.to))
     .forEach((l) => {
@@ -66,8 +69,13 @@ function buildFlowchart(components, links, edgeLabel) {
         const arrow = label ? `-->|${label}|` : '-->'
         lines.push(`  ${nodeId(l.from)} ${arrow} ${nodeId(l.to)}`)
       }
+      // linkStyle adressiert Kanten über ihren Ausgabe-Index.
+      const style = edgeStyle ? edgeStyle(l) : null
+      if (style) styleLines.push(`  linkStyle ${edgeIndex} ${style}`)
+      edgeIndex += 1
     })
 
+  lines.push(...styleLines)
   lines.push(CLASS_DEFS.trim())
   components.forEach((c) => {
     lines.push(`  class ${nodeId(c.id)} ${c.type};`)
@@ -78,8 +86,17 @@ function buildFlowchart(components, links, edgeLabel) {
 
 /** Signalweg: alles außer reinen Strom-Komponenten. */
 export function signalDefinition(system) {
-  const components = (system.components || []).filter((c) => !['battery', 'fuse', 'ground'].includes(c.type))
+  const components = (system.components || []).filter(
+    (c) => !['battery', 'distributor', 'fuse', 'ground'].includes(c.type),
+  )
   return buildFlowchart(components, system.signalLinks || [], (l) => (l.remote ? l.label || 'REM' : l.label))
+}
+
+/** Plusleitungen rot, Masseleitungen dunkel – wie am Fahrzeug. */
+function polarityStyle(link) {
+  if (link.polarity === 'plus') return 'stroke:#dc2626,stroke-width:2px'
+  if (link.polarity === 'minus') return 'stroke:#334155,stroke-width:2px'
+  return null
 }
 
 /** Stromlaufplan: Batterie, Sicherung, Verbraucher – und der Massepunkt. */
@@ -91,7 +108,13 @@ export function powerDefinition(system, power = {}) {
     .map((c) =>
       c.type === 'ground' && !c.detail && power.groundPoint ? { ...c, detail: power.groundPoint } : c,
     )
-  return buildFlowchart(components, system.powerLinks || [], (l) =>
-    l.oem ? 'OEM' : l.section ? `${l.section} mm²` : '',
+  return buildFlowchart(
+    components,
+    system.powerLinks || [],
+    (l) =>
+      l.oem
+        ? 'OEM'
+        : [l.section && `${l.section} mm²`, l.fuseAmps && `${l.fuseAmps} A`].filter(Boolean).join(' / '),
+    polarityStyle,
   )
 }

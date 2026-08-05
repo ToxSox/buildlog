@@ -203,6 +203,10 @@ export default {
     noBranches: 'No branches recorded yet.',
     branchLabel: 'Name',
     branchFuse: 'Fuse (A)',
+    polarity: 'Polarity',
+    polarityPlus: '+12 V',
+    polarityMinus: 'Ground',
+    polarityUnset: 'unset',
     protection: 'Cable protection',
   },
 

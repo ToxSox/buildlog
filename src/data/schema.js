@@ -60,7 +60,8 @@ export const COMPONENT_TYPES = [
   { id: 'speaker', label: { de: 'Lautsprecher', en: 'Speaker' }, icon: '🔊' },
   { id: 'sub', label: { de: 'Subwoofer', en: 'Subwoofer' }, icon: '🥁' },
   { id: 'battery', label: { de: 'Batterie / Stromquelle', en: 'Battery / power source' }, icon: '🔋' },
-  { id: 'fuse', label: { de: 'Sicherung / Verteiler', en: 'Fuse / distribution' }, icon: '🛡️' },
+  { id: 'distributor', label: { de: 'Verteiler / Sicherungsblock', en: 'Distributor / fuse block' }, icon: '🔌' },
+  { id: 'fuse', label: { de: 'Sicherung (inline)', en: 'Fuse (inline)' }, icon: '🛡️' },
   { id: 'ground', label: { de: 'Massepunkt (Karosserie)', en: 'Ground point (chassis)' }, icon: '🔩' },
 ]
 
@@ -70,6 +71,31 @@ export const COMPONENT_TYPES = [
  * eigene Berechnung nach der Formel aus dem Judge Book.
  */
 export const CABLE_SECTIONS = [0.5, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70]
+
+/**
+ * Montage-Details je Komponente – gepflegt auf „Hardware-Montage“, gespeichert
+ * an der zentralen Komponente aus dem Blockdiagramm. Welche Felder eine Seite
+ * anzeigt, entscheidet der Komponententyp; hier liegen alle mit Leer-Default.
+ */
+export const INSTALL_DEFAULTS = {
+  location: '',
+  mounting: '',
+  power: '',
+  input: '',
+  position: '',
+  size: '',
+  wiring: '',
+  enclosure: '',
+  volume: '',
+  securing: '',
+}
+
+/** Kennzeichnung einer Stromverbindung: Plus- oder Masseleitung. */
+export const POLARITIES = ['plus', 'minus']
+
+function sanitizePolarity(value) {
+  return POLARITIES.includes(value) ? value : null
+}
 
 export function uid(prefix = 'id') {
   const rnd = Math.random().toString(36).slice(2, 8)
@@ -260,6 +286,7 @@ export function migrateProject(raw) {
   merged.system.components = (merged.system.components || []).map((c) => ({
     ...c,
     oem: Boolean(c.oem),
+    install: { ...INSTALL_DEFAULTS, ...(c.install || {}) },
   }))
   merged.system.signalLinks = (merged.system.signalLinks || []).map((link) => ({
     ...link,
@@ -268,6 +295,8 @@ export function migrateProject(raw) {
   merged.system.powerLinks = (merged.system.powerLinks || []).map((link) => ({
     ...link,
     section: sanitizeSection(link.section),
+    fuseAmps: toNumber(link.fuseAmps),
+    polarity: sanitizePolarity(link.polarity),
     oem: Boolean(link.oem),
   }))
 
