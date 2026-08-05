@@ -116,12 +116,32 @@ const powerRows = computed(() => {
 const HARDWARE_UNITS_PER_PAGE = 16
 
 const hardwarePages = computed(() => {
-  const hw = p.value.hardware
+  const system = p.value.system
+  // Absicherung kommt aus den Stromverbindungen des Blockdiagramms.
+  const fuseFor = (component) =>
+    (system.powerLinks || [])
+      .filter((l) => l.to === component.id && !l.oem && (hasNum(l.fuseAmps) || hasNum(l.section)))
+      .map((l) =>
+        hasNum(l.fuseAmps)
+          ? `${num(l.fuseAmps)} A${hasNum(l.section) ? ` (${num(l.section)} mm²)` : ''}`
+          : `${num(l.section)} mm²`,
+      )
+      .join(', ')
+  const rowsFor = (type) =>
+    (system.components || [])
+      .filter((c) => c.type === type)
+      .map((c) => ({
+        id: c.id,
+        brand: c.name,
+        channels: c.channels,
+        fuse: fuseFor(c),
+        ...(c.install || {}),
+      }))
   const tables = [
-    { key: 'amps', title: t('print.amps'), rows: hw.amps || [] },
-    { key: 'dsp', title: t('print.dsp'), rows: hw.dsp || [] },
-    { key: 'speakers', title: t('print.speakers'), rows: hw.speakers || [] },
-    { key: 'subs', title: t('print.subs'), rows: hw.subs || [] },
+    { key: 'amps', title: t('print.amps'), rows: rowsFor('amp') },
+    { key: 'dsp', title: t('print.dsp'), rows: rowsFor('dsp') },
+    { key: 'speakers', title: t('print.speakers'), rows: rowsFor('speaker') },
+    { key: 'subs', title: t('print.subs'), rows: rowsFor('sub') },
   ].filter((table) => table.rows.length)
   if (!tables.length) return []
 
@@ -156,7 +176,7 @@ const hardwarePages = computed(() => {
     title: t('print.components'),
     blocks: entries,
     // Die Einbau-Notiz gehört ans Ende des letzten Komponentenblatts.
-    notes: i === pages.length - 1 ? hw.mountingNotes : '',
+    notes: i === pages.length - 1 ? p.value.hardware.mountingNotes : '',
   }))
 })
 

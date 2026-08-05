@@ -213,6 +213,13 @@ export default {
   hardware: {
     subtitle:
       'What is installed, where does it sit and how is it fixed? Every component must be mounted securely.',
+    sharedHint:
+      'The components here are the same as in the block diagram – enter them once. Name and channels are shared; here you only add the mounting details.',
+    fuseFrom: 'Fuse (A) – from {source}',
+    noPowerLink:
+      'No power feed in the block diagram. Add a power connection there, then you can maintain the fuse right here.',
+    removeConfirm:
+      'Really remove this component? It also disappears from the block diagram and all its connections.',
     amps: 'Amplifiers',
     ampsIntro: 'All amplifiers including location and type of mounting.',
     ampsEmpty: 'No amplifier recorded yet.',

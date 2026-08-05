@@ -215,6 +215,13 @@ export default {
   hardware: {
     subtitle:
       'Was ist verbaut, wo sitzt es und wie ist es befestigt? Jede Komponente muss sicher montiert sein.',
+    sharedHint:
+      'Die Komponenten hier sind dieselben wie im Blockdiagramm – einmal anlegen genügt. Bezeichnung und Kanäle werden geteilt, hier ergänzt du nur die Montage-Details.',
+    fuseFrom: 'Sicherung (A) – von {source}',
+    noPowerLink:
+      'Keine Stromzuführung im Blockdiagramm. Lege dort eine Stromverbindung an, dann kannst du die Absicherung direkt hier pflegen.',
+    removeConfirm:
+      'Komponente wirklich entfernen? Sie verschwindet auch aus dem Blockdiagramm und allen Verbindungen.',
     amps: 'Endstufen',
     ampsIntro: 'Alle Verstärker inklusive Einbauort und Befestigungsart.',
     ampsEmpty: 'Noch keine Endstufe erfasst.',
