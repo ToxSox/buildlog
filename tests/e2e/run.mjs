@@ -331,6 +331,84 @@ try {
     signalDiagram.slice(0, 80),
   )
 
+  // --------------------------- Zentrale Komponenten: einmal eingeben, überall
+  // Batterie + Verteiler im Blockdiagramm anlegen, verbinden, Polarität setzen –
+  // dieselben Daten müssen auf „Strom & Sicherheit“ editierbar wieder auftauchen.
+  await page.getByRole('button', { name: /\+ Batterie/ }).click()
+  await page.getByRole('button', { name: /\+ Verteiler/ }).click()
+  await page.waitForTimeout(300)
+  await page.getByPlaceholder('Batterie / Stromquelle').fill('Zusatzbatterie')
+  await page.getByPlaceholder('Verteiler / Sicherungsblock').fill('Hauptverteiler')
+  await page.getByRole('button', { name: '+ Verbindung' }).last().click()
+  await page.waitForTimeout(300)
+  // Selects: 2 Signal-Links (0-3), Strom-Links je from/to/section (4-6, 7-9, neu 10-12)
+  await page.locator('select').nth(10).selectOption({ label: 'Zusatzbatterie' })
+  await page.locator('select').nth(11).selectOption({ label: 'Hauptverteiler' })
+  await page.locator('select').nth(12).selectOption('25')
+  await page.getByPlaceholder('60').last().fill('80')
+  await page.getByRole('button', { name: '+12 V' }).last().click()
+  await page.waitForTimeout(2500)
+  const powerDiagram2 = await page.locator('.mermaid-host').last().innerText()
+  check(
+    'Verteiler und Kabeldaten erscheinen im Stromlaufplan',
+    powerDiagram2.includes('Hauptverteiler') && powerDiagram2.includes('25 mm² / 80 A'),
+    powerDiagram2.replace(/\n/g, ' ').slice(0, 120),
+  )
+  const powerSvg = await page.locator('.mermaid-host').last().innerHTML()
+  check('Plus-Leitung wird rot gezeichnet', /dc2626|rgb\(220,\s*38,\s*38\)/.test(powerSvg))
+
+  await page.goto(`${BASE}#/wizard/strom`)
+  await page.waitForTimeout(600)
+  const batteryPanel = page.locator('div.rounded-lg.border.border-slate-200.p-3', {
+    hasText: 'Zusatzbatterie',
+  })
+  check('Abgang aus dem Diagramm erscheint bei Strom & Sicherheit', (await batteryPanel.count()) === 1)
+  check(
+    'Abgang übernimmt Querschnitt aus dem Diagramm',
+    (await batteryPanel.locator('select').nth(1).inputValue()) === '25',
+  )
+  check(
+    'Abgang übernimmt Sicherung aus dem Diagramm',
+    (await batteryPanel.locator('input[type=number]').first().inputValue()) === '80',
+  )
+  check(
+    'Panel zeigt die Plus-Kennzeichnung',
+    await batteryPanel.getByText('Plus-Verteiler').isVisible(),
+  )
+  // Änderung hier muss im Diagramm ankommen – es ist dasselbe Link-Objekt.
+  await batteryPanel.locator('input[type=number]').first().fill('100')
+  await page.waitForTimeout(600)
+  await page.goto(`${BASE}#/wizard/diagramme`)
+  await page.waitForTimeout(2500)
+  const powerDiagram3 = await page.locator('.mermaid-host').last().innerText()
+  check(
+    'Sicherungs-Änderung von Strom & Sicherheit erscheint im Diagramm',
+    powerDiagram3.includes('25 mm² / 100 A'),
+    powerDiagram3.replace(/\n/g, ' ').slice(0, 120),
+  )
+
+  // Hardware-Montage: dieselben Komponenten, nur um Montage-Details ergänzt.
+  await page.goto(`${BASE}#/wizard/hardware`)
+  await page.waitForTimeout(600)
+  const ampCard = page.locator('.card', { hasText: 'Endstufen' }).first()
+  check('Diagramm-Endstufe erscheint auf Hardware-Montage', await ampCard.getByText('#1').isVisible())
+  await ampCard.getByPlaceholder('Audison AP8.9 bit').first().fill('Match UP 8DSP')
+  await ampCard.getByRole('button', { name: '+ Endstufe' }).click()
+  await page.waitForTimeout(400)
+  check('Hardware-Anlage erzeugt zweite Endstufe', await ampCard.getByText('#2').isVisible())
+  await page.goto(`${BASE}#/wizard/diagramme`)
+  await page.waitForTimeout(2500)
+  check(
+    'auf Hardware angelegte Endstufe steht im Blockdiagramm',
+    (await page.getByPlaceholder('Endstufe', { exact: true }).count()) >= 2,
+  )
+  const signalDiagram2 = await page.locator('.mermaid-host').first().innerText()
+  check(
+    'Umbenennung von Hardware-Montage erscheint im Signalweg',
+    signalDiagram2.includes('Match UP 8DSP'),
+    signalDiagram2.replace(/\n/g, ' ').slice(0, 120),
+  )
+
   // ------------------------------------------------------------ Sprachwechsel
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.waitForTimeout(600)

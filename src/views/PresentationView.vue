@@ -42,7 +42,9 @@ const outline = computed(() => {
     ],
   })
 
-  const sig = p.system.components.filter((c) => !['battery', 'fuse'].includes(c.type))
+  const sig = p.system.components.filter(
+    (c) => !['battery', 'distributor', 'fuse', 'ground'].includes(c.type),
+  )
   blocks.push({
     minutes: 1,
     title: t('presentation.block.chain'),
