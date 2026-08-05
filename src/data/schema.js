@@ -9,7 +9,7 @@
 
 import { toNumber } from './emmaRules.js'
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 export const MODES = {
   QUICK: 'QuickRescue',
@@ -154,15 +154,14 @@ export function createEmptyProject() {
       secondBatteryFuseAmps: null,
       secondBatteryDistanceCm: null,
       chargingCableSection: null,
-      distributionFuses: [],
       cableProtection: [],
     },
 
+    /**
+     * Seit Schema 6 nur noch Notizen: Die Komponenten selbst leben zentral in
+     * system.components, Montage-Details im install-Bag jeder Komponente.
+     */
     hardware: {
-      amps: [],
-      speakers: [],
-      subs: [],
-      dsp: [],
       mountingNotes: '',
     },
 
@@ -274,15 +273,18 @@ export function migrateProject(raw) {
   merged.power.mainCableSection = sanitizeSection(merged.power.mainCableSection)
   merged.power.groundCableSection = sanitizeSection(merged.power.groundCableSection)
   merged.power.chargingCableSection = sanitizeSection(merged.power.chargingCableSection)
-  merged.power.distributionFuses = (merged.power.distributionFuses || []).map((b) => ({
-    ...b,
-    section: sanitizeSection(b.section),
-    amps: toNumber(b.amps),
-  }))
 
   // Ein geleertes Formularfeld hinterlässt einen leeren String. Der soll weder
   // in der gespeicherten Mappe noch im ZIP-Export stehen.
   for (const key of NUMERIC_POWER_FIELDS) merged.power[key] = toNumber(merged.power[key])
+
+  // Vor Schema 6 kannten Stromverbindungen keine Polarität. Nur für solche
+  // Links wird sie unten aus den Endpunkten abgeleitet – eine später bewusst
+  // auf „offen“ zurückgesetzte Polarität bleibt offen.
+  const linksNeedingPolarity = new Set(
+    (merged.system.powerLinks || []).filter((l) => !('polarity' in l)).map((l) => l.id),
+  )
+
   merged.system.components = (merged.system.components || []).map((c) => ({
     ...c,
     oem: Boolean(c.oem),
@@ -299,6 +301,104 @@ export function migrateProject(raw) {
     polarity: sanitizePolarity(link.polarity),
     oem: Boolean(link.oem),
   }))
+
+  // ------------------------------------------------------------ Schema 5 → 6
+  // „Hardware-Montage“ und „Strom & Sicherheit“ pflegten eigene Listen. Sie
+  // werden einmalig in zentrale Komponenten bzw. Verbindungen überführt –
+  // bewusst getrennt, ohne Zusammenführungs-Heuristik: nichts wird gelöscht
+  // oder geraten, Duplikate räumt der Nutzer auf. Erneute Läufe finden keine
+  // Altdaten mehr vor (idempotent).
+  const legacyHardware = { amps: 'amp', dsp: 'dsp', speakers: 'speaker', subs: 'sub' }
+  for (const [listKey, type] of Object.entries(legacyHardware)) {
+    for (const entry of merged.hardware[listKey] || []) {
+      const component = {
+        id: uid('cmp'),
+        type,
+        name: entry.brand || '',
+        detail: '',
+        channels: entry.channels || '',
+        oem: false,
+        install: {
+          ...INSTALL_DEFAULTS,
+          location: entry.location || '',
+          mounting: entry.mounting || '',
+          power: entry.power || '',
+          input: entry.input || '',
+          position: entry.position || '',
+          size: entry.size || '',
+          wiring: entry.wiring || '',
+          enclosure: entry.enclosure || '',
+          volume: entry.volume || '',
+          securing: entry.securing || '',
+        },
+      }
+      merged.system.components.push(component)
+      const fuse = toNumber(entry.fuse)
+      if (fuse !== null) {
+        // Die Absicherung lebt jetzt an der Stromverbindung. Ohne bekannte
+        // Quelle bleibt der Abgang offen und wartet auf manuelle Zuordnung.
+        merged.system.powerLinks.push({
+          id: uid('lnk'),
+          from: '',
+          to: component.id,
+          label: '',
+          section: null,
+          fuseAmps: fuse,
+          polarity: null,
+          oem: false,
+          remote: false,
+        })
+      }
+    }
+    delete merged.hardware[listKey]
+  }
+
+  const legacyBranches = merged.power.distributionFuses || []
+  if (legacyBranches.length) {
+    let source = merged.system.components.find((c) => c.type === 'distributor')
+    if (!source) {
+      // Leerer Name rendert überall als übersetztes Typ-Label.
+      source = {
+        id: uid('cmp'),
+        type: 'distributor',
+        name: '',
+        detail: '',
+        channels: '',
+        oem: false,
+        install: { ...INSTALL_DEFAULTS },
+      }
+      merged.system.components.push(source)
+    }
+    const knownIds = new Set(merged.system.components.map((c) => c.id))
+    for (const branch of legacyBranches) {
+      merged.system.powerLinks.push({
+        id: uid('lnk'),
+        from: source.id,
+        // 'target' war ein totes Feld – eine gültige ID darin ist aber eine
+        // explizite Referenz und wird respektiert, alles andere bleibt offen.
+        to: knownIds.has(branch.target) ? branch.target : '',
+        label: branch.label || '',
+        section: sanitizeSection(branch.section),
+        fuseAmps: toNumber(branch.amps),
+        polarity: null,
+        oem: false,
+        remote: false,
+      })
+    }
+  }
+  delete merged.power.distributionFuses
+
+  if (linksNeedingPolarity.size) {
+    const typeById = new Map(merged.system.components.map((c) => [c.id, c.type]))
+    merged.system.powerLinks = merged.system.powerLinks.map((link) => {
+      if (!linksNeedingPolarity.has(link.id) || link.polarity) return link
+      if (typeById.get(link.from) === 'ground' || typeById.get(link.to) === 'ground') {
+        return { ...link, polarity: 'minus' }
+      }
+      if (typeById.get(link.from) === 'battery') return { ...link, polarity: 'plus' }
+      return link
+    })
+  }
 
   // 'rotation' wurde durch physisches Drehen abgelöst und wird nicht mehr geführt.
   Object.values(merged.media).forEach((list) =>
