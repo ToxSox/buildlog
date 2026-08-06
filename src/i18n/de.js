@@ -9,6 +9,8 @@ export default {
     saving: 'speichert …',
     savedAt: 'gespeichert {time}',
     notSaved: '⚠ nicht gespeichert',
+    updateReady: 'Eine neue Version der App steht bereit.',
+    updateNow: 'Jetzt laden',
     progress: 'Install-Punkte (geschätzt)',
     photoProgress: 'Pflichtfotos',
     language: 'Sprache',

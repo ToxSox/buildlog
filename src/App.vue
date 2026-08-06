@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from './stores/project.js'
 import { requestPersistence } from './utils/storage.js'
+import { updateReady, applyUpdate } from './utils/appUpdate.js'
 import AppHeader from './components/AppHeader.vue'
 import { useI18n } from './i18n/index.js'
 
@@ -30,6 +31,20 @@ onMounted(() => {
 
   <div v-else class="min-h-screen flex flex-col">
     <AppHeader class="wizard-ui" />
+
+    <!-- Neue Version bereit: Ohne diesen Hinweis merkte niemand, dass er auf
+         einem alten Stand arbeitet – und mehrfaches Neuladen half nur zufällig. -->
+    <div
+      v-if="updateReady"
+      role="status"
+      data-testid="update-banner"
+      class="wizard-ui flex flex-wrap items-center justify-center gap-3 border-b border-sky-200 bg-sky-50 px-4 py-2 text-center text-sm text-sky-900"
+    >
+      <span>{{ t('app.updateReady') }}</span>
+      <button type="button" class="btn-primary btn-xs" @click="applyUpdate">
+        {{ t('app.updateNow') }}
+      </button>
+    </div>
 
     <!-- Auf jeder Seite und in jeder Breite sichtbar: Wenn der Autosave
          scheitert, liegen die Eingaben nur noch im RAM. Bisher stand das

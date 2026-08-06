@@ -19,7 +19,14 @@ export default defineConfig({
      * inklusive der nachgeladenen mermaid-Chunks.
      */
     VitePWA({
-      registerType: 'autoUpdate',
+      /**
+       * Bewusst 'prompt' statt 'autoUpdate': Bei autoUpdate uebernimmt der neue
+       * Worker still im Hintergrund, und bis er die Kontrolle hat, liefert der
+       * alte weiter die alten Dateien aus – in Safari brauchte es dafuer
+       * mehrere Reloads, ohne dass der Nutzer wusste, worauf er wartet. Jetzt
+       * meldet die App die neue Version sichtbar und laedt sie auf Klick.
+       */
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],

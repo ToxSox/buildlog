@@ -9,6 +9,8 @@ export default {
     saving: 'saving …',
     savedAt: 'saved {time}',
     notSaved: '⚠ not saved',
+    updateReady: 'A new version of the app is ready.',
+    updateNow: 'Load now',
     progress: 'Install points (estimated)',
     photoProgress: 'Required photos',
     language: 'Language',
