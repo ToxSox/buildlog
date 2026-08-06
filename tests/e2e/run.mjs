@@ -548,11 +548,43 @@ try {
   const figuresPerPage = await page
     .locator('.print-page')
     .evaluateAll((els) => els.map((e) => e.querySelectorAll('.print-figure').length))
+  // Sechs Bilder pro Blatt waren zu klein, um Stecker und Crimpungen zu
+  // erkennen – zwei ist die harte Obergrenze.
   check(
-    'höchstens vier Fotos pro Blatt',
-    Math.max(0, ...figuresPerPage) <= 4,
+    'höchstens zwei Fotos pro Blatt',
+    Math.max(0, ...figuresPerPage) <= 2,
     figuresPerPage.filter(Boolean).join(','),
   )
+
+  // Fotos gehören hinter ihre Textseite: Die Handwerk-Messung landete früher
+  // gesammelt am Ende der Mappe statt beim Handwerk-Abschnitt.
+  const craftIdx = printTitles.findIndex((tt) => tt.includes('Dämmung & Türaufbau'))
+  const bonusIdx = printTitles.findIndex((tt) => tt.includes('Bonus'))
+  const vehicleIdx = printTitles.findIndex((tt) => tt.includes('Fahrzeug & Teilnehmer'))
+  check(
+    'Fahrzeug-Fotos stehen vorne, nicht am Ende',
+    vehicleIdx > 0 && vehicleIdx < printTitles.length - 1,
+    `Position ${vehicleIdx + 1} von ${printTitles.length}`,
+  )
+  if (craftIdx >= 0 && bonusIdx >= 0) {
+    check('Handwerk-Fotos stehen vor den Bonuspunkten', craftIdx < bonusIdx)
+  }
+
+  check('keine Abschnitts-Einleitung im Ausdruck', !/hier wird am häufigsten Punktabzug/.test(printText))
+
+  // Umschalten auf ein Bild pro Seite
+  await page.getByRole('button', { name: '1', exact: true }).click()
+  await page.waitForTimeout(1500)
+  const perPageAfter = await page
+    .locator('.print-page')
+    .evaluateAll((els) => els.map((e) => e.querySelectorAll('.print-figure').length))
+  check(
+    'Einstellung 1 zeigt nur ein Foto pro Blatt',
+    Math.max(0, ...perPageAfter) <= 1,
+    perPageAfter.filter(Boolean).join(','),
+  )
+  await page.getByRole('button', { name: '2', exact: true }).click()
+  await page.waitForTimeout(1200)
 
   // Der Rahmen des Hochformatfotos muss ein Vielfaches der alten 52 mm hoch
   // sein: 52 mm sind bei 96 dpi rund 197 px, ein volles Blatt rund 540 px.
@@ -565,6 +597,27 @@ try {
     .locator('.print-table td')
     .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((v) => /^(cm|mm²|A)$/.test(v)))
   check('kein leeres Zahlenfeld im Ausdruck', orphanUnits.length === 0, orphanUnits.join(', '))
+
+  // Leere Seiten im PDF: Laeuft ein Blatt ueber, schiebt der Browser den
+  // Ueberhang auf ein weiteres und laesst das angefangene halb leer. Dann hat
+  // das PDF mehr Seiten als die Vorschau Blaetter zeigt. Bewusst hier gemessen,
+  // solange die Mappe normal ist – weiter unten wird eine Seite absichtlich
+  // ueberlang gemacht.
+  const cleanPdfPath = join(WORK, 'clean.pdf')
+  await page.emulateMedia({ media: 'print' })
+  await page.pdf({ path: cleanPdfPath, preferCSSPageSize: true, printBackground: true })
+  await page.emulateMedia({ media: 'screen' })
+  const cleanPdfPages = (
+    readFileSync(cleanPdfPath)
+      .toString('latin1')
+      .match(/\/Type\s*\/Page[^s]/g) || []
+  ).length
+  const previewSheets = await page.locator('.print-page').count()
+  check(
+    'PDF hat keine zusätzlichen (leeren) Seiten',
+    cleanPdfPages === previewSheets,
+    `PDF ${cleanPdfPages}, Vorschau ${previewSheets}`,
+  )
 
   check(
     'normale Mappe passt auf ihre Blätter',

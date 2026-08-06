@@ -154,6 +154,8 @@ export default {
     oemComponent:
       'Factory-installed (OEM) – fuse values and cross-sections count as correct from the factory',
     oemWiring: 'OEM wiring (original, no cross-section proof needed)',
+    remoteMissing:
+      'No remote lead in the signal path yet: the app cannot guess the turn-on signal – tick “Remote lead (REM)” on the connection from source or DSP to the amplifier.',
     groundMissing:
       'The power diagram has no ground yet: add a “Ground point (chassis)” and connect the consumers to it – with a cross-section, ideally matching the positive cable.',
     generated: 'Automatically generated diagrams',
@@ -539,6 +541,7 @@ export default {
     bonusElement: 'Element',
     bonusArea: 'Area',
     bonusReason: 'Reasoning',
+    photosPerPage: 'Photos per page:',
     detailSuffix: '{label} (detail {n})',
     customPartsPhotos: 'Custom parts in detail',
     measurementPhotos: 'Measurements in detail',

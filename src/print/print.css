@@ -131,26 +131,24 @@
   color: #64748b;
 }
 
-/* Bild-Raster. Die Rastervariante haengt an der Bildausrichtung (siehe
-   utils/photoPages.js): Hochformat zu zweit, Querformat zu viert, ein
-   einzelnes Bild ueber die volle Blattbreite. Statt fester Rahmenhoehen gibt
-   das Raster feste Zeilenhoehen vor – der Rahmen fuellt den Rest der Zelle und
-   waechst damit von selbst, wenn ein Bild keine Unterschrift hat. */
+/* Bild-Raster: hoechstens zwei Bilder pro Blatt, einstellbar auf eines
+   (siehe utils/photoPages.js). Feste Zeilenhoehen statt fester Rahmenhoehen –
+   der Rahmen fuellt den Rest der Zelle und waechst damit von selbst, wenn ein
+   Bild keine Unterschrift hat. Wichtig gegen leere Seiten: Eine feste
+   Zeilenhoehe waechst NICHT mit umbrechenden Bildunterschriften, das Blatt
+   kann also nicht ueberlaufen und der Browser schiebt nichts auf ein
+   Folgeblatt. */
 .print-grid {
   display: grid;
   gap: 4mm;
 }
 .print-grid--solo {
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: 144mm;
+  grid-auto-rows: 148mm;
 }
-.print-grid--tall {
+.print-grid--duo {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 144mm;
-}
-.print-grid--wide {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: 70mm;
+  grid-auto-rows: 148mm;
 }
 
 .print-figure {

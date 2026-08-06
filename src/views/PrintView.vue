@@ -6,7 +6,7 @@ import { SECTIONS, isSlotVisible } from '../data/sections.js'
 import { EMMA_CLASSES, MODES, COMPONENT_TYPES } from '../data/schema.js'
 import { toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
-import { isPortrait, paginateFigures, layoutFor } from '../utils/photoPages.js'
+import { paginateFigures, layoutFor, photosPerPage } from '../utils/photoPages.js'
 import { columnForClass } from '../data/matrix.js'
 import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
@@ -216,6 +216,22 @@ const hardwarePages = computed(() => {
  * Foto-Seiten. Wie viele Bilder auf ein Blatt passen, hängt an der Ausrichtung –
  * siehe utils/photoPages.js.
  */
+const perPage = computed(() => photosPerPage(p.value.print.photosPerPage))
+
+/** Baut aus einer Figurenliste die Blätter eines Abschnitts. */
+function sheetsFor(figures, title, step) {
+  const chunks = paginateFigures(figures, perPage.value)
+  return chunks.map((chunk, i) => ({
+    kind: 'photos',
+    step,
+    // Die Abschnitts-Einleitung („Der wichtigste Sicherheitsblock …“) bleibt
+    // bewusst draußen: Sie richtet sich an den Teilnehmer, nicht an den Juror.
+    title: title + (chunks.length > 1 ? ` (${i + 1})` : ''),
+    figures: chunk.figures,
+    layout: layoutFor(chunk),
+  }))
+}
+
 const photoPages = computed(() => {
   const pages = []
   SECTIONS.forEach((section) => {
@@ -228,23 +244,14 @@ const photoPages = computed(() => {
             id: item.id,
             title: i === 0 ? tx(slot.label) : t('print.detailSuffix', { label: tx(slot.label), n: i + 1 }),
             caption: item.caption || '',
-            portrait: isPortrait(item),
           })
         })
       })
-    const chunks = paginateFigures(figures)
-    chunks.forEach((chunk, i) => {
-      pages.push({
-        kind: 'photos',
-        title: tx(section.title) + (chunks.length > 1 ? ` (${i + 1})` : ''),
-        intro: i === 0 ? tx(section.intro) : '',
-        figures: chunk.figures,
-        layout: layoutFor(chunk),
-      })
-    })
+    pages.push(...sheetsFor(figures, tx(section.title), section.step))
   })
 
-  // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen)
+  // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen).
+  // Sie gehören inhaltlich zum Handwerk-Schritt und stehen deshalb dort.
   const perItem = [
     {
       list: p.value.craft.customParts,
@@ -267,34 +274,33 @@ const photoPages = computed(() => {
           id: media.id,
           title: `${item[nameKey] || t('print.unnamed')}${i > 0 ? ` (${i + 1})` : ''}`,
           caption: media.caption || '',
-          portrait: isPortrait(media),
         })
       })
     })
-    const chunks = paginateFigures(figures)
-    chunks.forEach((chunk, i) => {
-      pages.push({
-        kind: 'photos',
-        // Bisher trugen mehrere Blätter denselben Titel – jetzt durchnummeriert.
-        title: title + (chunks.length > 1 ? ` (${i + 1})` : ''),
-        intro: '',
-        figures: chunk.figures,
-        layout: layoutFor(chunk),
-      })
-    })
+    // Bisher trugen mehrere Blätter denselben Titel – jetzt durchnummeriert.
+    pages.push(...sheetsFor(figures, title, 'craft'))
   })
 
   return pages
 })
 
+/** Fotoblätter eines Wizard-Schritts – sie stehen direkt hinter dessen Textseite. */
+const photosForStep = (step) => photoPages.value.filter((page) => page.step === step)
+
 const pages = computed(() => {
+  // Fotos stehen direkt hinter der Textseite, zu der sie gehören. Vorher hingen
+  // sie gesammelt am Ende – die Messung zum Handwerk auf Seite 6 landete dann
+  // auf Seite 22.
   const list = [{ kind: 'cover', title: t('print.cover') }]
+  list.push(...photosForStep('vehicle'))
 
   if (signalDef.value) list.push({ kind: 'signal', title: t('print.signal') })
   if (powerDef.value) list.push({ kind: 'powerDiagram', title: t('print.powerDiagram') })
   list.push({ kind: 'powerData', title: t('print.powerData') })
+  list.push(...photosForStep('power'))
 
   list.push(...hardwarePages.value)
+  list.push(...photosForStep('hardware'))
 
   const c = p.value.craft
   if (
@@ -307,6 +313,7 @@ const pages = computed(() => {
   ) {
     list.push({ kind: 'craft', title: t('print.craft') })
   }
+  list.push(...photosForStep('craft'))
 
   // `story` zählt mit: sonst verschwindet ein nur dort gefüllter Vortrag aus dem Druck.
   // Leere Highlight-Zeilen zählen nicht, sie erzeugten sonst eine leere Seite.
@@ -329,7 +336,7 @@ const pages = computed(() => {
     }
   }
 
-  return [...list, ...photoPages.value]
+  return list
 })
 
 const total = computed(() => pages.value.length)
@@ -388,7 +395,25 @@ function print() {
             {{ t('print.previewHint', { pages: total }) }}
           </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-500">{{ t('print.photosPerPage') }}</span>
+          <div class="flex gap-1">
+            <button
+              v-for="n in [1, 2]"
+              :key="n"
+              type="button"
+              class="rounded-lg border px-3 py-1 text-xs font-semibold transition"
+              :class="
+                perPage === n
+                  ? 'border-sky-600 bg-sky-600 text-white'
+                  : 'border-slate-300 bg-white text-slate-700 hover:border-sky-400'
+              "
+              :aria-pressed="perPage === n"
+              @click="p.print.photosPerPage = n"
+            >
+              {{ n }}
+            </button>
+          </div>
           <router-link to="/wizard/pruefen" class="btn-ghost btn-xs">
             {{ t('print.backToWizard') }}
           </router-link>
@@ -737,7 +762,6 @@ function print() {
         <!-- ------------------------------------------- Selbsteinschätzung -->
         <!-- ------------------------------------------------------ Fotoseiten -->
         <template v-else-if="page.kind === 'photos'">
-          <p v-if="page.intro" class="print-lead" style="margin-bottom: 3mm">{{ page.intro }}</p>
           <div class="print-grid" :class="`print-grid--${page.layout}`">
             <figure v-for="fig in page.figures" :key="fig.id" class="print-figure">
               <div class="print-figure__frame">

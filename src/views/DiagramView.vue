@@ -84,6 +84,14 @@ function detailPlaceholder(component) {
 const groundMissing = computed(
   () => system.value.powerLinks.length > 0 && !system.value.components.some((c) => c.type === 'ground'),
 )
+
+/**
+ * Dasselbe für die Remoteleitung: Die App kann das Einschaltsignal nicht
+ * erraten, also muss der Hinweis kommen, statt dass es im Ausdruck fehlt.
+ */
+const remoteMissing = computed(
+  () => system.value.signalLinks.length > 0 && !system.value.signalLinks.some((l) => l.remote),
+)
 </script>
 
 <template>
@@ -164,6 +172,12 @@ const groundMissing = computed(
       <div class="card-body space-y-3">
         <p v-if="!system.signalLinks.length" class="text-sm text-slate-500">
           {{ t('diagram.noSignalLink') }}
+        </p>
+        <p
+          v-if="remoteMissing"
+          class="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"
+        >
+          ⚠️ {{ t('diagram.remoteMissing') }}
         </p>
         <div
           v-for="l in system.signalLinks"

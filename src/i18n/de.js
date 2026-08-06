@@ -156,6 +156,8 @@ export default {
     remoteLink: 'Remote-Leitung (REM) – Einschaltsignal, erscheint gestrichelt im Diagramm',
     oemComponent: 'Werksseitig verbaut (OEM) – Sicherungswerte und Querschnitte gelten als ab Werk korrekt',
     oemWiring: 'OEM-Verkabelung (original, kein Querschnitts-Nachweis nötig)',
+    remoteMissing:
+      'Noch keine Remoteleitung im Signalweg: Das Einschaltsignal muss die App von dir erfahren – setze bei der Verbindung von Quelle oder DSP zur Endstufe den Haken „Remote-Leitung (REM)“.',
     groundMissing:
       'Der Stromlaufplan hat noch keine Masse: Lege einen „Massepunkt (Karosserie)“ an und verbinde die Verbraucher dorthin – mit Querschnitt, idealerweise wie beim Pluskabel.',
     generated: 'Automatisch generierte Diagramme',
@@ -544,6 +546,7 @@ export default {
     bonusElement: 'Element',
     bonusArea: 'Bereich',
     bonusReason: 'Begründung',
+    photosPerPage: 'Bilder pro Seite:',
     detailSuffix: '{label} (Detail {n})',
     customPartsPhotos: 'Eigenbau-Teile im Detail',
     measurementPhotos: 'Messungen im Detail',

@@ -1,66 +1,42 @@
 /**
  * Seitenaufteilung der Fotostrecke im Ausdruck.
  *
- * Fotos sind der eigentliche Nachweis in der Mappe – sie sollen so groß wie
- * möglich auf das Blatt. Weil ein Hochformatfoto in einem breiten, flachen
- * Rahmen winzig wird, hängt die Anzahl pro Seite an der Bildausrichtung:
- * Hochformat zu zweit nebeneinander, Querformat zu viert (2 × 2).
+ * Fotos sind der eigentliche Nachweis in der Mappe. Sechs Bilder pro Blatt
+ * machten Stecker und Crimpungen unlesbar – ein Juror lehnt das ab. Deshalb
+ * gilt eine harte Obergrenze von zwei Bildern pro Blatt, einstellbar auf eines.
  *
- * Eine Seite bleibt bewusst orientierungsrein. Ein Hochformat quer über zwei
- * Rasterzeilen zu legen, würde die Seite sprengen, sobald es erst nach zwei
- * Querformaten kommt – dann bräuchte es eine dritte Zeile. Orientierungsreine
- * Seiten halten dagegen die Reihenfolge der Foto-Slots exakt ein.
+ * Bei höchstens zwei Bildern bekommen Hoch- und Querformat dieselbe Zelle
+ * (rund 130 × 139 mm), eine orientierungsabhängige Aufteilung wäre also ohne
+ * Wirkung. Nebeneinander schlägt dabei übereinander: Ein 4:3-Foto rendert in
+ * einer 130 × 139 mm hohen Zelle mit 130 × 97 mm deutlich größer als in einer
+ * flachen 265 × 70 mm breiten.
  */
 
-export const PORTRAIT_PER_PAGE = 2
-export const LANDSCAPE_PER_PAGE = 4
+export const MIN_PHOTOS_PER_PAGE = 1
+export const MAX_PHOTOS_PER_PAGE = 2
 
-/**
- * Fehlende Maße (0 oder undefined, etwa wenn das Auslesen fehlschlug) gelten
- * als Querformat – so bleibt das Verhalten wie vor der Umstellung.
- */
-export function isPortrait(item) {
-  return Number(item?.height) > Number(item?.width)
+/** Nur 1 oder 2 sind zulässig; alles andere fällt auf 2 zurück. */
+export function photosPerPage(value) {
+  return Number(value) === MIN_PHOTOS_PER_PAGE ? MIN_PHOTOS_PER_PAGE : MAX_PHOTOS_PER_PAGE
 }
 
 /**
- * Teilt Figuren in orientierungsreine Seiten auf; die Reihenfolge bleibt
- * unverändert.
+ * Teilt Figuren in Blätter auf; die Reihenfolge bleibt unverändert.
  *
- * @param {Array<{portrait?: boolean}>} figures
- * @returns {Array<{figures: Array, portrait: boolean}>}
+ * @param {Array} figures
+ * @param {number} perPage 1 oder 2
+ * @returns {Array<{figures: Array}>}
  */
-export function paginateFigures(figures) {
+export function paginateFigures(figures, perPage = MAX_PHOTOS_PER_PAGE) {
+  const size = photosPerPage(perPage)
   const pages = []
-  let run = []
-  let runPortrait = false
-
-  const flush = () => {
-    if (run.length) pages.push({ figures: run, portrait: runPortrait })
-    run = []
+  for (let i = 0; i < (figures || []).length; i += size) {
+    pages.push({ figures: figures.slice(i, i + size) })
   }
-
-  for (const figure of figures || []) {
-    const portrait = Boolean(figure.portrait)
-    const capacity = portrait ? PORTRAIT_PER_PAGE : LANDSCAPE_PER_PAGE
-    if (run.length && (runPortrait !== portrait || run.length >= capacity)) flush()
-    if (!run.length) runPortrait = portrait
-    run.push(figure)
-  }
-  flush()
-
   return pages
 }
 
-/**
- * Rastervariante einer Fotoseite – steuert Spalten und Rahmenhöhe im Druck-CSS.
- *
- * Nicht ganz volle Blätter nutzen die volle Blatthöhe: Zwei Bilder stehen
- * nebeneinander über die ganze Höhe, ein einzelnes bekommt das ganze Blatt.
- * Ohne das wären ausgerechnet die halbleeren Seiten kleiner als vorher.
- */
+/** Rastervariante eines Fotoblatts – steuert Spalten und Rahmenhöhe im Druck-CSS. */
 export function layoutFor(page) {
-  if (page.figures.length === 1) return 'solo'
-  if (page.figures.length === 2) return 'tall'
-  return 'wide'
+  return page.figures.length === 1 ? 'solo' : 'duo'
 }

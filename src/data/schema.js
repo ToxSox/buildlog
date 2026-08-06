@@ -201,6 +201,15 @@ export function createEmptyProject() {
      */
     media: {},
 
+    /**
+     * Druck-Einstellungen der Mappe. Wandern bewusst mit dem ZIP-Export mit:
+     * Wer am Handy fotografiert und am PC druckt, bekommt dasselbe Layout.
+     */
+    print: {
+      /** 1 oder 2 – mehr Bilder pro Blatt lehnen Juroren als zu klein ab. */
+      photosPerPage: 2,
+    },
+
     /** Slots, die der Nutzer bewusst übersprungen hat (für Warnungen/Score). */
     skipped: [],
 
@@ -261,6 +270,7 @@ export function migrateProject(raw) {
     assessment: { ...(raw.assessment || {}) },
     bonusRequests: Array.isArray(raw.bonusRequests) ? raw.bonusRequests : [],
     presentation: { ...base.presentation, ...(raw.presentation || {}) },
+    print: { ...base.print, ...(raw.print || {}) },
     media: { ...(raw.media || {}) },
     skipped: Array.isArray(raw.skipped) ? raw.skipped : [],
     visibleNoPhoto: Array.isArray(raw.visibleNoPhoto) ? raw.visibleNoPhoto : [],
@@ -273,6 +283,10 @@ export function migrateProject(raw) {
     // Ohne Kategorie ergibt die Unterklasse keinen Sinn mehr.
     merged.meta.emmaSubclass = ''
   }
+
+  // Nur 1 oder 2 sind zulässig – alles andere (Altstände, manipulierte ZIPs)
+  // fällt auf den Standard zurück.
+  merged.print.photosPerPage = merged.print.photosPerPage === 1 ? 1 : 2
 
   merged.power.mainCableSection = sanitizeSection(merged.power.mainCableSection)
   merged.power.groundCableSection = sanitizeSection(merged.power.groundCableSection)

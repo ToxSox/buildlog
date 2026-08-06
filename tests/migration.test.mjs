@@ -147,5 +147,19 @@ check('leeres Projekt: hardware nur Notizen', JSON.stringify(empty.hardware) ===
 check('leeres Projekt: keine distributionFuses', !('distributionFuses' in empty.power))
 check('leeres Projekt: aktuelle Schema-Version', empty.schemaVersion === SCHEMA_VERSION)
 
+// ---- Druck-Einstellungen (Bilder pro Seite)
+check('leeres Projekt: zwei Bilder pro Seite', empty.print.photosPerPage === 2)
+check('Altmappe ohne print-Block bekommt den Standard', migrateProject({}).print.photosPerPage === 2)
+check(
+  'Einstellung 1 bleibt erhalten',
+  migrateProject({ print: { photosPerPage: 1 } }).print.photosPerPage === 1,
+)
+// Sechs Bilder pro Blatt waren der Ausgangspunkt der Beschwerde – auch eine
+// manipulierte oder alte ZIP darf die Grenze nicht aushebeln.
+check(
+  'unzulaessiger Wert faellt auf zwei zurueck',
+  migrateProject({ print: { photosPerPage: 6 } }).print.photosPerPage === 2,
+)
+
 console.log(fail === 0 ? '\nMigration: alle Checks bestanden.' : `\n${fail} Check(s) fehlgeschlagen.`)
 process.exit(fail ? 1 : 0)
