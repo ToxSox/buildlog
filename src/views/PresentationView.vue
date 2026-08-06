@@ -194,9 +194,6 @@ function removeHighlight(id) {
           <h2 class="section-title">{{ t('presentation.highlights') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('presentation.highlightsHint') }}</p>
         </div>
-        <button type="button" class="btn-soft btn-xs" @click="addHighlight">
-          {{ t('presentation.addDetail') }}
-        </button>
       </div>
       <div class="card-body space-y-2">
         <p v-if="!pres.highlights.length" class="text-sm text-slate-500">
@@ -211,6 +208,10 @@ function removeHighlight(id) {
           />
           <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
         </div>
+
+        <button type="button" class="btn-soft btn-xs w-full" @click="addHighlight">
+          {{ t('presentation.addDetail') }}
+        </button>
       </div>
     </div>
 

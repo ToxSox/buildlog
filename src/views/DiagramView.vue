@@ -104,18 +104,6 @@ const remoteMissing = computed(
         </div>
       </div>
       <div class="card-body space-y-4">
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="ct in COMPONENT_TYPES"
-            :key="ct.id"
-            type="button"
-            class="btn-soft btn-xs"
-            @click="addComponent(ct.id)"
-          >
-            {{ ct.icon }} + {{ tx(ct.label) }}
-          </button>
-        </div>
-
         <p v-if="!system.components.length" class="text-sm text-slate-500">
           {{ t('diagram.empty') }}
         </p>
@@ -151,6 +139,20 @@ const remoteMissing = computed(
             <span>{{ t('diagram.oemComponent') }}</span>
           </label>
         </div>
+
+        <!-- Unter der Liste, nicht darüber: Man trägt eine Komponente ein und
+             legt die nächste direkt darunter an, statt hochzuscrollen. -->
+        <div class="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+          <button
+            v-for="ct in COMPONENT_TYPES"
+            :key="ct.id"
+            type="button"
+            class="btn-soft btn-xs"
+            @click="addComponent(ct.id)"
+          >
+            {{ ct.icon }} + {{ tx(ct.label) }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -160,14 +162,6 @@ const remoteMissing = computed(
           <h2 class="section-title">{{ t('diagram.signal') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('diagram.signalHint') }}</p>
         </div>
-        <button
-          type="button"
-          class="btn-soft btn-xs"
-          :disabled="system.components.length < 2"
-          @click="addLink('signal')"
-        >
-          {{ t('diagram.addLink') }}
-        </button>
       </div>
       <div class="card-body space-y-3">
         <p v-if="!system.signalLinks.length" class="text-sm text-slate-500">
@@ -219,6 +213,15 @@ const remoteMissing = computed(
             <span>{{ t('diagram.remoteLink') }}</span>
           </label>
         </div>
+
+        <button
+          type="button"
+          class="btn-soft btn-xs w-full"
+          :disabled="system.components.length < 2"
+          @click="addLink('signal')"
+        >
+          {{ t('diagram.addLink') }}
+        </button>
       </div>
     </div>
 
@@ -228,14 +231,6 @@ const remoteMissing = computed(
           <h2 class="section-title">{{ t('diagram.power') }}</h2>
           <p class="mt-0.5 text-sm text-slate-600">{{ t('diagram.powerHint') }}</p>
         </div>
-        <button
-          type="button"
-          class="btn-soft btn-xs"
-          :disabled="system.components.length < 2"
-          @click="addLink('power')"
-        >
-          {{ t('diagram.addLink') }}
-        </button>
       </div>
       <div class="card-body space-y-3">
         <p v-if="!system.powerLinks.length" class="text-sm text-slate-500">{{ t('diagram.noPowerLink') }}</p>
@@ -320,6 +315,15 @@ const remoteMissing = computed(
             </label>
           </div>
         </div>
+
+        <button
+          type="button"
+          class="btn-soft btn-xs w-full"
+          :disabled="system.components.length < 2"
+          @click="addLink('power')"
+        >
+          {{ t('diagram.addLink') }}
+        </button>
       </div>
     </div>
 

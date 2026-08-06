@@ -58,9 +58,6 @@ function remove(item) {
         <h2 class="section-title">{{ tx(title) }}</h2>
         <p v-if="tx(intro)" class="mt-0.5 text-sm text-slate-600">{{ tx(intro) }}</p>
       </div>
-      <button type="button" class="btn-soft btn-xs" @click="add">
-        {{ addLabel || `+ ${t('common.add')}` }}
-      </button>
     </div>
     <div class="card-body space-y-3">
       <p v-if="!items.length" class="text-sm text-slate-500">{{ tx(emptyLabel) }}</p>
@@ -112,6 +109,12 @@ function remove(item) {
           </template>
         </div>
       </div>
+
+      <!-- Unter der Liste, nicht darüber: Man trägt einen Eintrag ein und legt
+           den nächsten direkt darunter an, statt jedes Mal hochzuscrollen. -->
+      <button type="button" class="btn-soft btn-xs w-full" @click="add">
+        {{ addLabel || `+ ${t('common.add')}` }}
+      </button>
     </div>
   </div>
 </template>

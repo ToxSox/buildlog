@@ -383,9 +383,6 @@ function adoptMainSection() {
                 {{ t('power.minusDistributor') }}
               </span>
             </div>
-            <button type="button" class="btn-soft btn-xs" @click="addBranch(source.id)">
-              {{ t('power.addBranch') }}
-            </button>
           </div>
 
           <p v-if="!outgoing(source.id).length" class="text-sm text-slate-500">
@@ -465,6 +462,10 @@ function adoptMainSection() {
                 </label>
               </div>
             </div>
+
+            <button type="button" class="btn-soft btn-xs w-full" @click="addBranch(source.id)">
+              {{ t('power.addBranch') }}
+            </button>
           </div>
         </div>
 

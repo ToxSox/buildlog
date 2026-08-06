@@ -187,14 +187,6 @@ function stepFor(criterionId) {
               }}
             </p>
           </div>
-          <button
-            type="button"
-            class="btn-soft btn-xs"
-            :disabled="store.project.bonusRequests.length >= MAX_BONUS_REQUESTS"
-            @click="store.addBonusRequest()"
-          >
-            {{ t('matrix.bonusAdd') }}
-          </button>
         </div>
         <div class="card-body space-y-3">
           <p class="text-xs text-slate-500">
@@ -237,6 +229,15 @@ function stepFor(criterionId) {
               />
             </div>
           </div>
+
+          <button
+            type="button"
+            class="btn-soft btn-xs w-full"
+            :disabled="store.project.bonusRequests.length >= MAX_BONUS_REQUESTS"
+            @click="store.addBonusRequest()"
+          >
+            {{ t('matrix.bonusAdd') }}
+          </button>
 
           <p
             v-if="store.project.bonusRequests.length >= MAX_BONUS_REQUESTS"
