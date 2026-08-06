@@ -736,6 +736,26 @@ try {
   )
   check('Eingabe ist beim App-Wechsel sofort gesichert', savedPlate === 'B-XY 9876', savedPlate)
 
+  // iOS Safari zoomt beim Antippen in jedes Feld unter 16 px – und zoomt danach
+  // nicht zurueck. Auf Touch-Geraeten muss deshalb jedes Eingabefeld mindestens
+  // 16 px gross sein, auch die Bildunterschriften mit ihrer Kleinschrift.
+  await phone.goto(`${BASE}#/wizard/fahrzeug`)
+  await phone.waitForTimeout(700)
+  const tinyFields = await phone.evaluate(() =>
+    [...globalThis.document.querySelectorAll('input, select, textarea')]
+      .filter((el) => !['checkbox', 'radio', 'file'].includes(el.type))
+      .map((el) => ({
+        id: el.id || el.className.slice(0, 20),
+        size: parseFloat(globalThis.getComputedStyle(el).fontSize),
+      }))
+      .filter((f) => f.size < 16),
+  )
+  check(
+    'Handy: kein Eingabefeld unter 16 px (sonst zoomt iOS hinein)',
+    tinyFields.length === 0,
+    tinyFields.map((f) => `${f.id}:${f.size}px`).join(', '),
+  )
+
   await ctx3.close()
   check(
     'Handy: keine Seite scrollt seitlich',

@@ -58,6 +58,26 @@ h1 {
   @apply mt-1 text-xs text-slate-500;
 }
 
+/*
+ * iOS Safari zoomt beim Antippen in jedes Eingabefeld, dessen Schrift kleiner
+ * als 16 px ist – und zoomt danach NICHT wieder heraus. Die Seite bleibt
+ * vergrößert und verschoben stehen, was am Auto wie ein kaputtes Layout wirkt.
+ *
+ * Auf Touch-Geräten deshalb mindestens 16 px, auch dort, wo eine Utility-Klasse
+ * kleiner schreibt (Bildunterschriften nutzen `!text-xs`) – daher `!important`
+ * und die höhere Spezifität über die Attribut-Ausschlüsse.
+ *
+ * Bewusst NICHT über `maximum-scale=1` im Viewport gelöst: Das verhindert das
+ * Zoomen ganz und nimmt Weitsichtigen die Lupe für die Detailfotos.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ------------------------------------------------------------------ Buttons */
 .btn,
 .btn-primary,
