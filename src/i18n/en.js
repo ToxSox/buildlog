@@ -8,6 +8,7 @@ export default {
     autosave: 'Autosave active',
     saving: 'saving …',
     savedAt: 'saved {time}',
+    notSaved: '⚠ not saved',
     progress: 'Install points (estimated)',
     photoProgress: 'Required photos',
     language: 'Language',
@@ -72,6 +73,7 @@ export default {
     newProject: 'Create a new build log',
     untitled: 'New build log',
     copySuffix: '(copy)',
+    actionFailed: 'Action failed. Please try again.',
     chooseStart: 'How would you like to start?',
     startMode: 'Start mode →',
     modeHint:
@@ -352,9 +354,6 @@ export default {
     bonusReason: 'Reasoning for the judges',
     bonusReasonPlaceholder: 'What is the idea, why is it extraordinary, how was it realised?',
     bonusMax: 'Maximum of {n} requests reached.',
-    basisAuto: 'derived',
-    basisSelf: 'self',
-    basisOpen: 'open',
   },
 
   review: {
@@ -410,6 +409,8 @@ export default {
     importButton: '📂 Choose ZIP',
     importing: 'extracting …',
     importDone: 'Build log loaded – {restored} image(s) restored.',
+    exportMissing: '{n} image(s) were no longer in storage and are missing from the archive.',
+    importMissing: '{n} image(s) were missing from the ZIP and were skipped.',
     importFailed: 'Import failed. Is the file fully downloaded?',
     noProjectJson: 'This ZIP contains no project.json – is it really an export of this app?',
     notZip: 'Please select a .zip file.',
@@ -436,6 +437,7 @@ export default {
       'Save the build log as a ZIP, then delete build logs or individual detail photos you no longer need.',
     autosaveQuota: 'Browser storage full – changes could not be saved.',
     autosaveFailed: 'Autosave failed.',
+    bannerTitle: 'Not saved!',
   },
 
   skip: {
@@ -468,8 +470,6 @@ export default {
     installer: 'Installed by',
     documentationMode: 'Documentation',
     aboutProject: 'About this project',
-    openFindings: 'Open safety findings ({n}):',
-    allClear: 'All checked safety rules (fusing, cross-section, distances) are met.',
     createdWith: 'Created with the EMMA Build Log Creator v{version} · {date}',
     page: 'Page {current} of {total}',
     signal: 'Signal path',
@@ -539,14 +539,6 @@ export default {
     bonusElement: 'Element',
     bonusArea: 'Area',
     bonusReason: 'Reasoning',
-    matrixTitle: 'Installation self-assessment',
-    matrixLead:
-      'Self-assessment against the Installation Matrix of category {category} – prepared by the competitor, not a score.',
-    criterion: 'Criterion',
-    points: 'Points',
-    basis: 'Basis',
-    remark: 'Remark',
-    total: 'Total',
     detailSuffix: '{label} (detail {n})',
     customPartsPhotos: 'Custom parts in detail',
     measurementPhotos: 'Measurements in detail',

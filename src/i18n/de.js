@@ -8,6 +8,7 @@ export default {
     autosave: 'Autosave aktiv',
     saving: 'speichert …',
     savedAt: 'gespeichert {time}',
+    notSaved: '⚠ nicht gespeichert',
     progress: 'Install-Punkte (geschätzt)',
     photoProgress: 'Pflichtfotos',
     language: 'Sprache',
@@ -73,6 +74,7 @@ export default {
     newProject: 'Neue Mappe anlegen',
     untitled: 'Neue Mappe',
     copySuffix: '(Kopie)',
+    actionFailed: 'Aktion fehlgeschlagen. Bitte erneut versuchen.',
     chooseStart: 'Womit möchtest du starten?',
     startMode: 'Modus starten →',
     modeHint:
@@ -354,9 +356,6 @@ export default {
     bonusReason: 'Begründung für die Juroren',
     bonusReasonPlaceholder: 'Was ist die Idee, warum ist sie außergewöhnlich, wie wurde sie umgesetzt?',
     bonusMax: 'Maximum von {n} Anträgen erreicht.',
-    basisAuto: 'abgeleitet',
-    basisSelf: 'selbst',
-    basisOpen: 'offen',
   },
 
   review: {
@@ -412,6 +411,8 @@ export default {
     importButton: '📂 ZIP auswählen',
     importing: 'entpackt …',
     importDone: 'Mappe geladen – {restored} Bild(er) wiederhergestellt.',
+    exportMissing: '{n} Bild(er) waren nicht mehr im Speicher und fehlen im Archiv.',
+    importMissing: '{n} Bild(er) fehlten in der ZIP und wurden übersprungen.',
     importFailed: 'Import fehlgeschlagen. Ist die Datei vollständig heruntergeladen?',
     noProjectJson: 'In dieser ZIP steckt keine project.json – ist das wirklich ein Export dieser App?',
     notZip: 'Bitte eine .zip-Datei auswählen.',
@@ -439,6 +440,7 @@ export default {
       'Sichere die Mappe als ZIP, lösche danach nicht mehr benötigte Mappen oder einzelne Detailfotos.',
     autosaveQuota: 'Browser-Speicher voll – Änderungen konnten nicht gesichert werden.',
     autosaveFailed: 'Autosave fehlgeschlagen.',
+    bannerTitle: 'Nicht gespeichert!',
   },
 
   skip: {
@@ -471,8 +473,6 @@ export default {
     installer: 'Einbau durch',
     documentationMode: 'Dokumentation',
     aboutProject: 'Über dieses Projekt',
-    openFindings: 'Offene Sicherheitshinweise ({n}):',
-    allClear: 'Alle geprüften Sicherheitsregeln (Absicherung, Querschnitt, Abstände) sind eingehalten.',
     createdWith: 'Erstellt mit dem EMMA Build Log Creator v{version} · {date}',
     page: 'Seite {current} von {total}',
     signal: 'Signalweg',
@@ -544,14 +544,6 @@ export default {
     bonusElement: 'Element',
     bonusArea: 'Bereich',
     bonusReason: 'Begründung',
-    matrixTitle: 'Selbsteinschätzung Installation',
-    matrixLead:
-      'Selbsteinschätzung gegen die Installation Matrix der Kategorie {category} – erstellt vom Teilnehmer, keine Wertung.',
-    criterion: 'Kriterium',
-    points: 'Punkte',
-    basis: 'Basis',
-    remark: 'Anmerkung',
-    total: 'Summe',
     detailSuffix: '{label} (Detail {n})',
     customPartsPhotos: 'Eigenbau-Teile im Detail',
     measurementPhotos: 'Messungen im Detail',

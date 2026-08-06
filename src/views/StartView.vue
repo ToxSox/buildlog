@@ -42,12 +42,18 @@ const modes = computed(() => [
  * ungeduldiger Doppelklick die Mappe zweimal an.
  */
 const busy = ref(false)
+/** Anlegen und Öffnen melden jetzt einen fehlgeschlagenen Speicherversuch. */
+const actionError = ref('')
 
 async function guarded(action) {
   if (busy.value) return
   busy.value = true
+  actionError.value = ''
   try {
     await action()
+  } catch (err) {
+    console.error('[emma] Aktion fehlgeschlagen', err)
+    actionError.value = err?.userMessage ? err.message : t('start.actionFailed')
   } finally {
     busy.value = false
   }
@@ -96,6 +102,8 @@ const remove = (entry) => {
         <span class="rounded-full bg-white/10 px-3 py-1">{{ t('start.badgeZip') }}</span>
       </div>
     </section>
+
+    <p v-if="actionError" role="alert" class="text-sm font-semibold text-rose-600">{{ actionError }}</p>
 
     <section v-if="savedProjects.length">
       <h2 class="section-title mb-3">{{ t('start.yourProjects') }}</h2>

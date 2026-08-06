@@ -259,12 +259,15 @@ export const useProjectStore = defineStore('project', () => {
 
   // ------------------------------------------------------------- Lifecycle
   async function startProject(newMode) {
+    // Erst den ausstehenden Autosave der bisherigen Mappe schreiben: sonst
+    // feuert sein Timer nach dem Wechsel und speichert die NEUE Mappe.
+    await flush()
     const fresh = createEmptyProject()
     fresh.mode = newMode
     activeId.value = uid('prj')
     project.value = fresh
     touchIndexEntry()
-    await save()
+    await saveOrThrow()
   }
 
   function setMode(newMode) {
@@ -273,6 +276,7 @@ export const useProjectStore = defineStore('project', () => {
 
   async function switchTo(id) {
     if (id === activeId.value) return
+    await flush()
     const data = await stateDb.getItem(projectKey(id))
     if (!data) return
     activeId.value = id
@@ -309,6 +313,9 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   async function deleteProject(id) {
+    // Beim Löschen einer anderen Mappe darf der ausstehende Stand der aktiven
+    // nicht verlorengehen – beim Löschen der aktiven wäre er ohnehin hinfällig.
+    if (id !== activeId.value) await flush()
     const media = useMediaStore()
     const data = id === activeId.value ? plain(project.value) : await stateDb.getItem(projectKey(id))
     const stillUsed = await mediaIdsExcept(id)
@@ -346,10 +353,11 @@ export const useProjectStore = defineStore('project', () => {
 
   /** Legt eine importierte Mappe als eigenes Projekt an, statt die aktuelle zu überschreiben. */
   async function replaceProject(raw) {
+    await flush()
     activeId.value = uid('prj')
     project.value = migrateProject(raw)
     touchIndexEntry()
-    await save()
+    await saveOrThrow()
   }
 
   /**
@@ -399,21 +407,33 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
+  /** Schreibt den Stand und wirft im Fehlerfall weiter. */
+  async function persist() {
+    // Zeitstempel bewusst am Rohobjekt setzen: eine Zuweisung über den reaktiven
+    // Proxy meldet eine Änderung an den Deep-Watcher unten, der daraufhin den
+    // nächsten Autosave plant – der wiederum den Zeitstempel setzt. Diese
+    // Endlosschleife ließ die Statusanzeige im Header dauerhaft flackern.
+    toRaw(project.value).updatedAt = new Date().toISOString()
+    await stateDb.setItem(projectKey(activeId.value), plain(project.value))
+    touchIndexEntry()
+    await persistIndex()
+  }
+
+  /**
+   * Der Autosave-Pfad: meldet Fehler über `storageError`, wirft aber nie –
+   * sonst käme aus dem Watcher eine unbehandelte Promise-Rejection.
+   *
+   * @returns {Promise<boolean>} ob der Stand wirklich geschrieben wurde
+   */
   async function save() {
-    if (!activeId.value) return
+    if (!activeId.value) return false
     pending = false
     saving.value = true
     try {
-      // Zeitstempel bewusst am Rohobjekt setzen: eine Zuweisung über den reaktiven
-      // Proxy meldet eine Änderung an den Deep-Watcher unten, der daraufhin den
-      // nächsten Autosave plant – der wiederum den Zeitstempel setzt. Diese
-      // Endlosschleife ließ die Statusanzeige im Header dauerhaft flackern.
-      toRaw(project.value).updatedAt = new Date().toISOString()
-      await stateDb.setItem(projectKey(activeId.value), plain(project.value))
-      touchIndexEntry()
-      await persistIndex()
+      await persist()
       lastSavedAt.value = new Date()
       storageError.value = ''
+      return true
     } catch (err) {
       // Der Stand ist weiterhin ungesichert – der nächste Versuch soll ihn mitnehmen.
       pending = true
@@ -421,9 +441,22 @@ export const useProjectStore = defineStore('project', () => {
       storageError.value = isQuotaError(err)
         ? translate('storage.autosaveQuota')
         : translate('storage.autosaveFailed')
+      return false
     } finally {
       saving.value = false
     }
+  }
+
+  /**
+   * Für Aufrufer, die dem Nutzer Erfolg melden (ZIP-Import, neue Mappe): Ohne
+   * das Werfen hier meldete der Import „erfolgreich“, obwohl nichts in der
+   * IndexedDB gelandet war – nach dem Neuladen war die Mappe weg.
+   */
+  async function saveOrThrow() {
+    if (await save()) return
+    const err = new Error(storageError.value || translate('storage.autosaveFailed'))
+    err.userMessage = true
+    throw err
   }
 
   // Debounced Autosave: jede Änderung am State landet nach 400ms in IndexedDB.

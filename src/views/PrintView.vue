@@ -4,10 +4,10 @@ import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { SECTIONS, isSlotVisible } from '../data/sections.js'
 import { EMMA_CLASSES, MODES, COMPONENT_TYPES } from '../data/schema.js'
-import { evaluateRules, summarize, toNumber } from '../data/emmaRules.js'
+import { toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
-import { assessProject } from '../data/assessment.js'
-import { COLUMN_LABELS, columnForClass } from '../data/matrix.js'
+import { isPortrait, paginateFigures, layoutFor } from '../utils/photoPages.js'
+import { columnForClass } from '../data/matrix.js'
 import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
@@ -50,12 +50,11 @@ const modeLabel = computed(() => {
   return p.value.mode || '—'
 })
 
-/** Zeilen pro Matrix-Blatt, mit Reserve für umbrechende Bemerkungen. */
-const MATRIX_ROWS_PER_PAGE = 12
-
-const findings = computed(() => summarize(evaluateRules(p.value)))
+// Die Selbsteinschätzung und die Regel-Befunde bleiben bewusst aus dem
+// Ausdruck: Die Mappe geht an den Juror, und dort haben weder selbst vergebene
+// Punkte noch eine Liste eigener Mängel etwas verloren. In der App (Wizard und
+// Prüfansicht) sind beide unverändert vorhanden.
 const column = computed(() => columnForClass(p.value.meta.emmaClass))
-const assessment = computed(() => assessProject(p.value, column.value))
 const bonusRequests = computed(() => p.value.bonusRequests.filter((r) => r.title))
 
 const signalDef = computed(() => signalDefinition(p.value.system) || '')
@@ -213,7 +212,10 @@ const hardwarePages = computed(() => {
   }))
 })
 
-/** Foto-Seiten: pro Abschnitt in Blöcke à 6 Bildern. */
+/**
+ * Foto-Seiten. Wie viele Bilder auf ein Blatt passen, hängt an der Ausrichtung –
+ * siehe utils/photoPages.js.
+ */
 const photoPages = computed(() => {
   const pages = []
   SECTIONS.forEach((section) => {
@@ -226,19 +228,20 @@ const photoPages = computed(() => {
             id: item.id,
             title: i === 0 ? tx(slot.label) : t('print.detailSuffix', { label: tx(slot.label), n: i + 1 }),
             caption: item.caption || '',
+            portrait: isPortrait(item),
           })
         })
       })
-    for (let i = 0; i < figures.length; i += 6) {
-      const chunk = figures.slice(i, i + 6)
+    const chunks = paginateFigures(figures)
+    chunks.forEach((chunk, i) => {
       pages.push({
         kind: 'photos',
-        title: tx(section.title) + (figures.length > 6 ? ` (${Math.floor(i / 6) + 1})` : ''),
+        title: tx(section.title) + (chunks.length > 1 ? ` (${i + 1})` : ''),
         intro: i === 0 ? tx(section.intro) : '',
-        figures: chunk,
-        cols: chunk.length === 1 ? 1 : chunk.length <= 4 ? 2 : 3,
+        figures: chunk.figures,
+        layout: layoutFor(chunk),
       })
-    }
+    })
   })
 
   // Fotos, die direkt an einem Eintrag hängen (Custom-Parts, Messungen)
@@ -264,19 +267,21 @@ const photoPages = computed(() => {
           id: media.id,
           title: `${item[nameKey] || t('print.unnamed')}${i > 0 ? ` (${i + 1})` : ''}`,
           caption: media.caption || '',
+          portrait: isPortrait(media),
         })
       })
     })
-    for (let i = 0; i < figures.length; i += 6) {
-      const chunk = figures.slice(i, i + 6)
+    const chunks = paginateFigures(figures)
+    chunks.forEach((chunk, i) => {
       pages.push({
         kind: 'photos',
-        title,
+        // Bisher trugen mehrere Blätter denselben Titel – jetzt durchnummeriert.
+        title: title + (chunks.length > 1 ? ` (${i + 1})` : ''),
         intro: '',
-        figures: chunk,
-        cols: chunk.length === 1 ? 1 : chunk.length <= 4 ? 2 : 3,
+        figures: chunk.figures,
+        layout: layoutFor(chunk),
       })
-    }
+    })
   })
 
   return pages
@@ -320,21 +325,6 @@ const pages = computed(() => {
         title: t('print.bonusTitle'),
         items: bonusRequests.value.slice(i, i + 8),
         offset: i,
-      })
-    }
-  }
-
-  // X und X Unlimited bringen 19–20 Kriterien mit – die passen nicht auf ein Blatt.
-  if (column.value && assessment.value.max) {
-    const criteria = assessment.value.criteria
-    for (let i = 0; i < criteria.length; i += MATRIX_ROWS_PER_PAGE) {
-      const items = criteria.slice(i, i + MATRIX_ROWS_PER_PAGE)
-      list.push({
-        kind: 'matrix',
-        title: t('print.matrixTitle'),
-        items,
-        lead: i === 0,
-        sum: i + MATRIX_ROWS_PER_PAGE >= criteria.length,
       })
     }
   }
@@ -476,16 +466,6 @@ function print() {
               <p style="font-size: 9pt; white-space: pre-line">{{ p.meta.notes }}</p>
             </div>
 
-            <div v-if="findings.errors.length" class="print-note print-note--error">
-              <strong>{{ t('print.openFindings', { n: findings.errors.length }) }}</strong>
-              <ul style="margin: 1mm 0 0 4mm; list-style: disc">
-                <li v-for="f in findings.errors" :key="f.id">{{ t(`${f.key}.title`, f.params) }}</li>
-              </ul>
-            </div>
-            <div v-else class="print-note">
-              {{ t('print.allClear') }}
-            </div>
-
             <p style="margin-top: auto; font-size: 7.5pt; color: #64748b">
               {{
                 t('print.createdWith', {
@@ -554,18 +534,6 @@ function print() {
               </tbody>
             </table>
           </template>
-
-          <div v-if="findings.errors.length || findings.warnings.length" style="margin-top: 5mm">
-            <div
-              v-for="f in [...findings.errors, ...findings.warnings]"
-              :key="f.id"
-              class="print-note"
-              :class="f.severity === 'error' ? 'print-note--error' : 'print-note--warn'"
-              style="margin-bottom: 2mm"
-            >
-              <strong>{{ t(`${f.key}.title`, f.params) }}</strong> – {{ t(`${f.key}.message`, f.params) }}
-            </div>
-          </div>
         </template>
 
         <!-- ------------------------------------------------------- Hardware -->
@@ -767,51 +735,10 @@ function print() {
         </template>
 
         <!-- ------------------------------------------- Selbsteinschätzung -->
-        <template v-else-if="page.kind === 'matrix'">
-          <p v-if="page.lead" class="print-lead" style="margin-bottom: 3mm">
-            {{ t('print.matrixLead', { category: COLUMN_LABELS[column] }) }}
-          </p>
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th>{{ t('print.criterion') }}</th>
-                <th style="width: 22mm">{{ t('print.points') }}</th>
-                <th style="width: 20mm">{{ t('print.basis') }}</th>
-                <th>{{ t('print.remark') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="c in page.items" :key="c.id">
-                <td>{{ tx(c.label) }}</td>
-                <td>{{ c.earned }} / {{ c.max }}</td>
-                <td>
-                  {{
-                    c.basis === 'auto'
-                      ? t('matrix.basisAuto')
-                      : c.basis === 'self'
-                        ? t('matrix.basisSelf')
-                        : t('matrix.basisOpen')
-                  }}
-                </td>
-                <td>{{ c.note || c.detail }}</td>
-              </tr>
-              <tr v-if="page.sum">
-                <td>
-                  <strong>{{ t('print.total') }}</strong>
-                </td>
-                <td>
-                  <strong>{{ assessment.earned }} / {{ assessment.max }}</strong>
-                </td>
-                <td colspan="2"></td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-
         <!-- ------------------------------------------------------ Fotoseiten -->
         <template v-else-if="page.kind === 'photos'">
           <p v-if="page.intro" class="print-lead" style="margin-bottom: 3mm">{{ page.intro }}</p>
-          <div class="print-grid" :class="`print-grid--${page.cols}`">
+          <div class="print-grid" :class="`print-grid--${page.layout}`">
             <figure v-for="fig in page.figures" :key="fig.id" class="print-figure">
               <div class="print-figure__frame">
                 <img :src="media.url(fig.id)" :alt="fig.title" />

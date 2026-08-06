@@ -36,6 +36,9 @@ watch(
 onBeforeUnmount(() => clearTimeout(savingTimer))
 
 const savedLabel = computed(() => {
+  // Der Fehler hat Vorrang: Sonst stünde hier weiter „Gespeichert um 14:12“ mit
+  // dem Zeitstempel des letzten ERFOLGREICHEN Saves, während nichts mehr ankommt.
+  if (store.storageError) return t('app.notSaved')
   if (showSaving.value) return t('app.saving')
   if (!store.lastSavedAt) return t('app.autosave')
   return t('app.savedAt', {
@@ -81,10 +84,17 @@ function go(step) {
 
       <LanguageSwitch class="shrink-0" />
 
-      <!-- feste Breite: sonst schiebt der Textwechsel die Kopfzeile hin und her -->
+      <!-- feste Breite: sonst schiebt der Textwechsel die Kopfzeile hin und her.
+           Im Fehlerfall auch am Telefon sichtbar – dort ist der Speicher am
+           ehesten voll. -->
       <span
         data-testid="save-status"
-        class="hidden lg:inline-block w-32 shrink-0 text-right text-[11px] text-slate-400 tabular-nums whitespace-nowrap"
+        class="w-32 shrink-0 text-right text-[11px] tabular-nums whitespace-nowrap"
+        :class="
+          store.storageError
+            ? 'inline-block font-bold text-rose-600'
+            : 'hidden lg:inline-block text-slate-400'
+        "
         >{{ savedLabel }}</span
       >
     </div>

@@ -237,6 +237,17 @@ try {
   await page.waitForTimeout(600)
   check('Kamera-JPEG wieder entfernt', (await page.locator('figure img').count()) === 1)
 
+  // Ein Hochformatfoto (Handy-Regelfall) muss im Ausdruck eine eigene, hohe
+  // Rasterzelle bekommen – im alten flachen 3-Spalter blieb davon fast nichts.
+  const hochkant = makeTestPng(join(WORK, 'hochkant.png'), 480, 640)
+  await page.locator('input[type=file]').first().setInputFiles(hochkant)
+  await page.waitForTimeout(2000)
+  check('Hochformat-Foto hochgeladen', (await page.locator('figure img').count()) === 2)
+
+  // Alle Fotos der Mappe liegen in diesem einen Slot – der ZIP-Roundtrip weiter
+  // unten rechnet damit, statt die Zahl erneut fest zu verdrahten.
+  const photoCount = await page.locator('figure img').count()
+
   // ------------------------------------------------------------- Regel-Engine
   await page.goto(`${BASE}#/wizard/strom`)
   await page.waitForTimeout(600)
@@ -371,10 +382,7 @@ try {
     'Abgang übernimmt Sicherung aus dem Diagramm',
     (await batteryPanel.locator('input[type=number]').first().inputValue()) === '80',
   )
-  check(
-    'Panel zeigt die Plus-Kennzeichnung',
-    await batteryPanel.getByText('Plus-Verteiler').isVisible(),
-  )
+  check('Panel zeigt die Plus-Kennzeichnung', await batteryPanel.getByText('Plus-Verteiler').isVisible())
   // Änderung hier muss im Diagramm ankommen – es ist dasselbe Link-Objekt.
   await batteryPanel.locator('input[type=number]').first().fill('100')
   await page.waitForTimeout(600)
@@ -445,7 +453,7 @@ try {
     'Import stellt die Stammdaten wieder her',
     (await page2.inputValue('#participant')) === 'Max Mustermann',
   )
-  check('Import stellt die Fotos wieder her', (await page2.locator('figure img').count()) === 1)
+  check('Import stellt die Fotos wieder her', (await page2.locator('figure img').count()) === photoCount)
 
   // Zweiter Import derselben ZIP: Früher behielt der Import die alten Bild-IDs und
   // überschrieb damit die Fotos der bereits importierten Mappe.
@@ -487,10 +495,10 @@ try {
   const allIds = mediaIdSets.flat()
   check(
     'Import vergibt eigene Bild-IDs je Mappe',
-    mediaIdSets.length === 2 && allIds.length === 2 && new Set(allIds).size === 2,
+    mediaIdSets.length === 2 && allIds.length === photoCount * 2 && new Set(allIds).size === photoCount * 2,
     JSON.stringify(mediaIdSets),
   )
-  check('Zweiter Import zeigt sein eigenes Foto', (await page2.locator('figure img').count()) === 1)
+  check('Zweiter Import zeigt sein eigenes Foto', (await page2.locator('figure img').count()) === photoCount)
   await ctx2.close()
 
   // --------------------------------------------- Vortrag & leere Zahlenfelder
@@ -523,6 +531,35 @@ try {
     cover.includes('SQ Masterclass') && !cover.includes('SQMasterclass'),
     (cover.split('\n').find((l) => l.includes('Dokumentation')) || '').slice(0, 80),
   )
+
+  // Die Mappe geht an den Juror: weder die selbst vergebenen Punkte noch eine
+  // Liste eigener Mängel gehören hinein.
+  check(
+    'Selbsteinschätzung fehlt im Ausdruck',
+    !printTitles.some((tt) => tt.includes('Selbsteinschätzung')),
+    printTitles.join(' | ').slice(0, 160),
+  )
+  const printText = await page.locator('.print-doc').innerText()
+  check(
+    'keine Regel-Befunde im Ausdruck',
+    !/Offene Sicherheitshinweise|Alle geprüften Sicherheitsregeln/.test(printText),
+  )
+
+  const figuresPerPage = await page
+    .locator('.print-page')
+    .evaluateAll((els) => els.map((e) => e.querySelectorAll('.print-figure').length))
+  check(
+    'höchstens vier Fotos pro Blatt',
+    Math.max(0, ...figuresPerPage) <= 4,
+    figuresPerPage.filter(Boolean).join(','),
+  )
+
+  // Der Rahmen des Hochformatfotos muss ein Vielfaches der alten 52 mm hoch
+  // sein: 52 mm sind bei 96 dpi rund 197 px, ein volles Blatt rund 540 px.
+  const tallestFrame = await page
+    .locator('.print-figure__frame')
+    .evaluateAll((els) => Math.max(0, ...els.map((e) => e.getBoundingClientRect().height)))
+  check('Fotorahmen nutzt die Blatthöhe', tallestFrame > 400, `${Math.round(tallestFrame)} px`)
 
   const orphanUnits = await page
     .locator('.print-table td')

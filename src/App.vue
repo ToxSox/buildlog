@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from './stores/project.js'
+import { requestPersistence } from './utils/storage.js'
 import AppHeader from './components/AppHeader.vue'
 import { useI18n } from './i18n/index.js'
 
@@ -15,6 +16,10 @@ const version = __APP_VERSION__
 
 onMounted(() => {
   if (!store.ready) store.load()
+  // Gleich beim Start anfordern, nicht erst in der Prüfansicht: Fotos sammeln
+  // sich ab Schritt 1 an, und ohne persistenten Speicher räumt der Browser die
+  // Mappe bei Platzmangel weg.
+  requestPersistence()
 })
 </script>
 
@@ -25,6 +30,19 @@ onMounted(() => {
 
   <div v-else class="min-h-screen flex flex-col">
     <AppHeader class="wizard-ui" />
+
+    <!-- Auf jeder Seite und in jeder Breite sichtbar: Wenn der Autosave
+         scheitert, liegen die Eingaben nur noch im RAM. Bisher stand das
+         ausschließlich in der Prüfansicht. -->
+    <div
+      v-if="store.storageError"
+      role="alert"
+      data-testid="storage-banner"
+      class="wizard-ui border-b border-rose-200 bg-rose-50 px-4 py-2 text-center text-sm text-rose-800"
+    >
+      <strong class="font-bold">{{ t('storage.bannerTitle') }}</strong>
+      {{ store.storageError }}
+    </div>
 
     <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 pb-24">
       <router-view v-slot="{ Component }">

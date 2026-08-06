@@ -27,6 +27,8 @@ async function doExport() {
   try {
     const res = await exportArchive()
     message.value = t('archive.exportDone', { images: res.images, size: formatBytes(res.size) })
+    // Ein unvollständiges Backup darf nicht wie ein vollständiges aussehen.
+    if (res.missing) error.value = t('archive.exportMissing', { n: res.missing })
   } catch (err) {
     console.error(err)
     error.value = t('archive.exportFailed')
@@ -47,6 +49,7 @@ async function doImport(file) {
   try {
     const res = await importArchive(file)
     message.value = t('archive.importDone', { restored: res.restored })
+    if (res.missing) error.value = t('archive.importMissing', { n: res.missing })
     if (props.variant === 'import') router.push('/wizard/fahrzeug')
   } catch (err) {
     console.error(err)
