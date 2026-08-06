@@ -40,8 +40,7 @@ const componentName = (id) => {
 }
 
 /** Absicherung lebt an der Stromverbindung – hier wird dasselbe Link-Objekt editiert. */
-const incomingPower = (item) =>
-  store.project.system.powerLinks.filter((l) => l.to === item.id && !l.oem)
+const incomingPower = (item) => store.project.system.powerLinks.filter((l) => l.to === item.id && !l.oem)
 
 function add() {
   store.addComponent(props.type)

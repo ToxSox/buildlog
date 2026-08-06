@@ -113,7 +113,10 @@ check('gelöschte target-ID bleibt offen', br3?.to === '')
 const byId = (id) => m.system.powerLinks.find((l) => l.id === id)
 check('Batterie-Abgang wird Plus', byId('lnk_plus')?.polarity === 'plus')
 check('Verbindung zum Massepunkt wird Minus', byId('lnk_gnd')?.polarity === 'minus')
-check('migrierte Abgänge bleiben ohne Polarität', branches.every((l) => l.polarity === null))
+check(
+  'migrierte Abgänge bleiben ohne Polarität',
+  branches.every((l) => l.polarity === null),
+)
 
 // ---- Jede Komponente trägt den vollständigen install-Bag
 const installKeys = Object.keys(INSTALL_DEFAULTS)

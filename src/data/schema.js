@@ -60,7 +60,11 @@ export const COMPONENT_TYPES = [
   { id: 'speaker', label: { de: 'Lautsprecher', en: 'Speaker' }, icon: '🔊' },
   { id: 'sub', label: { de: 'Subwoofer', en: 'Subwoofer' }, icon: '🥁' },
   { id: 'battery', label: { de: 'Batterie / Stromquelle', en: 'Battery / power source' }, icon: '🔋' },
-  { id: 'distributor', label: { de: 'Verteiler / Sicherungsblock', en: 'Distributor / fuse block' }, icon: '🔌' },
+  {
+    id: 'distributor',
+    label: { de: 'Verteiler / Sicherungsblock', en: 'Distributor / fuse block' },
+    icon: '🔌',
+  },
   { id: 'fuse', label: { de: 'Sicherung (inline)', en: 'Fuse (inline)' }, icon: '🛡️' },
   { id: 'ground', label: { de: 'Massepunkt (Karosserie)', en: 'Ground point (chassis)' }, icon: '🔩' },
 ]

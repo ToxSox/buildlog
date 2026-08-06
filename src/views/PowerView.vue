@@ -84,9 +84,21 @@ function setLinkOem(link, on) {
 }
 
 const POLARITY_OPTIONS = [
-  { value: 'plus', labelKey: 'power.polarityPlus', active: 'border-red-600 bg-red-600 font-semibold text-white' },
-  { value: 'minus', labelKey: 'power.polarityMinus', active: 'border-slate-700 bg-slate-700 font-semibold text-white' },
-  { value: null, labelKey: 'power.polarityUnset', active: 'border-sky-600 bg-sky-600 font-semibold text-white' },
+  {
+    value: 'plus',
+    labelKey: 'power.polarityPlus',
+    active: 'border-red-600 bg-red-600 font-semibold text-white',
+  },
+  {
+    value: 'minus',
+    labelKey: 'power.polarityMinus',
+    active: 'border-slate-700 bg-slate-700 font-semibold text-white',
+  },
+  {
+    value: null,
+    labelKey: 'power.polarityUnset',
+    active: 'border-sky-600 bg-sky-600 font-semibold text-white',
+  },
 ]
 
 /** „Plus-Verteiler“/„Masse-Verteiler“, wenn alle Abgänge dieselbe Polarität haben. */
@@ -101,9 +113,7 @@ function panelPolarity(sourceId) {
 /** Prefill-Hinweis: Querschnitt des Batterie-Abgangs aus dem Blockdiagramm übernehmen. */
 const diagramMainSection = computed(() => {
   if (toNumber(power.value.mainCableSection) !== null) return null
-  const batteries = new Set(
-    system.value.components.filter((c) => c.type === 'battery').map((c) => c.id),
-  )
+  const batteries = new Set(system.value.components.filter((c) => c.type === 'battery').map((c) => c.id))
   const link = system.value.powerLinks.find(
     (l) => batteries.has(l.from) && l.polarity !== 'minus' && toNumber(l.section) !== null,
   )
@@ -355,11 +365,7 @@ function adoptMainSection() {
           </button>
         </div>
 
-        <div
-          v-for="source in branchSources"
-          :key="source.id"
-          class="rounded-lg border border-slate-200 p-3"
-        >
+        <div v-for="source in branchSources" :key="source.id" class="rounded-lg border border-slate-200 p-3">
           <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <span class="text-xl">{{ typeIcon(source.type) }}</span>

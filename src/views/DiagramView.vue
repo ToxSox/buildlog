@@ -46,9 +46,21 @@ function setLinkOem(link, on) {
 }
 
 const POLARITY_OPTIONS = [
-  { value: 'plus', labelKey: 'power.polarityPlus', active: 'border-red-600 bg-red-600 font-semibold text-white' },
-  { value: 'minus', labelKey: 'power.polarityMinus', active: 'border-slate-700 bg-slate-700 font-semibold text-white' },
-  { value: null, labelKey: 'power.polarityUnset', active: 'border-sky-600 bg-sky-600 font-semibold text-white' },
+  {
+    value: 'plus',
+    labelKey: 'power.polarityPlus',
+    active: 'border-red-600 bg-red-600 font-semibold text-white',
+  },
+  {
+    value: 'minus',
+    labelKey: 'power.polarityMinus',
+    active: 'border-slate-700 bg-slate-700 font-semibold text-white',
+  },
+  {
+    value: null,
+    labelKey: 'power.polarityUnset',
+    active: 'border-sky-600 bg-sky-600 font-semibold text-white',
+  },
 ]
 
 function removeLink(kind, id) {
