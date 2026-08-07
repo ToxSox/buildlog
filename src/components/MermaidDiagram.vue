@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from '../i18n/index.js'
+import { declutterEdgeLabels } from '../utils/edgeLabels.js'
 
 const { t } = useI18n()
 
@@ -11,6 +12,7 @@ const props = defineProps({
 
 const svg = ref('')
 const error = ref('')
+const host = ref(null)
 let mermaidLib = null
 let counter = 0
 /** Zählt die Renderläufe: Ein langsamer Lauf darf ein neueres Diagramm nicht überschreiben. */
@@ -48,6 +50,16 @@ async function render() {
     const { svg: out } = await mermaid.render(`${props.idPrefix}-${counter}`, props.definition)
     if (run !== runId) return
     svg.value = out
+    await nextTick()
+    if (run !== runId) return
+    // Läuft nach dem Einhängen, weil die Beschriftungen erst im Dokument
+    // vermessen werden können. Ein Fehler darf höchstens die Feinarbeit
+    // kosten, nie das ganze Diagramm.
+    try {
+      declutterEdgeLabels(host.value?.querySelector('svg'))
+    } catch (err) {
+      console.warn('[emma] Kanten-Beschriftungen konnten nicht entzerrt werden', err)
+    }
   } catch (err) {
     if (run !== runId) return
     console.error('[emma] Diagramm konnte nicht gerendert werden', err)
@@ -73,7 +85,7 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <!-- eslint-disable-next-line vue/no-v-html -- von mermaid erzeugtes SVG, mermaid laeuft mit securityLevel "strict" -->
-    <div v-if="svg" class="mermaid-host overflow-x-auto" v-html="svg" />
+    <div v-if="svg" ref="host" class="mermaid-host overflow-x-auto" v-html="svg" />
     <p v-else-if="error" class="text-sm text-rose-600">{{ error }}</p>
     <p
       v-else

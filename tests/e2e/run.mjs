@@ -94,6 +94,45 @@ const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--host'
   detached: false,
 })
 
+/**
+ * Kanten-Beschriftungen dürfen weder unter einem Knoten verschwinden noch aus
+ * dem Diagramm herausragen: Im Stromlaufplan wäre ein halb verdeckter
+ * Querschnitt eine unlesbare Angabe. Gemessen wird am fertigen SVG, also nach
+ * dem Entzerren beim Rendern. `seen` zählt die geprüften Beschriftungen mit –
+ * eine Messung an unsichtbaren Diagrammen liefert lauter Nullkästen und wäre
+ * sonst ein stiller Blindgänger.
+ */
+async function labelFlaws(page) {
+  return page.evaluate(() => {
+    const flaws = []
+    let seen = 0
+    for (const svg of globalThis.document.querySelectorAll('.mermaid-host svg')) {
+      const canvas = svg.getBoundingClientRect()
+      const nodes = [...svg.querySelectorAll('g.node')].map((n) =>
+        (n.querySelector('rect.label-container') || n).getBoundingClientRect(),
+      )
+      for (const group of svg.querySelectorAll('g.edgeLabels g.edgeLabel')) {
+        const text = group.textContent.trim()
+        const box = group.getBoundingClientRect()
+        if (!text || !box.width || !box.height) continue
+        seen += 1
+        for (const n of nodes) {
+          const dx = Math.min(box.right, n.right) - Math.max(box.left, n.left)
+          const dy = Math.min(box.bottom, n.bottom) - Math.max(box.top, n.top)
+          if (dx > 0.5 && dy > 0.5) flaws.push(`"${text}" verdeckt (${dx.toFixed(0)}x${dy.toFixed(0)}px)`)
+        }
+        if (box.left < canvas.left - 0.5 || box.right > canvas.right + 0.5) {
+          flaws.push(`"${text}" ragt seitlich heraus`)
+        }
+        if (box.top < canvas.top - 0.5 || box.bottom > canvas.bottom + 0.5) {
+          flaws.push(`"${text}" ragt oben/unten heraus`)
+        }
+      }
+    }
+    return { seen, flaws }
+  })
+}
+
 let browser
 try {
   await waitForServer(BASE)
@@ -417,6 +456,13 @@ try {
     signalDiagram2.replace(/\n/g, ' ').slice(0, 120),
   )
 
+  const editorLabels = await labelFlaws(page)
+  check(
+    'Beschriftungen im Editor bleiben lesbar',
+    editorLabels.seen > 0 && editorLabels.flaws.length === 0,
+    `${editorLabels.seen} geprüft ${editorLabels.flaws.join(' | ')}`,
+  )
+
   // ------------------------------------------------------------ Sprachwechsel
   await page.getByRole('button', { name: 'EN', exact: true }).click()
   await page.waitForTimeout(600)
@@ -517,6 +563,13 @@ try {
   await page.waitForTimeout(3000)
   const printPages = await page.locator('.print-page').count()
   check('Druckansicht baut Seiten auf', printPages >= 4, `${printPages} Seiten`)
+
+  const printLabels = await labelFlaws(page)
+  check(
+    'Beschriftungen im Ausdruck bleiben lesbar',
+    printLabels.seen > 0 && printLabels.flaws.length === 0,
+    `${printLabels.seen} geprüft ${printLabels.flaws.join(' | ')}`,
+  )
 
   const printTitles = await page.locator('.print-head__title').allInnerTexts()
   check(

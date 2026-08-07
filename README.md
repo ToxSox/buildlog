@@ -224,17 +224,22 @@ weiterschreiben.
 
 ## Tests
 
-- `npm test` – vier Prüfungen ohne Browser:
+- `npm test` – Prüfungen ohne Browser:
   - `tests/emmaRules.test.mjs` – Regel-Engine gegen die Fuse Size Matrix, dazu
     die Bewertung der Hauptsicherung (ein geleertes Feld darf keine Punkte geben).
+  - `tests/migration.test.mjs` – Altdaten wachsen sauber ins aktuelle Schema.
   - `tests/matrix.test.mjs` – Matrix-Summen gegen die Sollwerte des Rulebooks.
   - `tests/sections.test.mjs` – Zusammenhalt der Datenbasis: eindeutige
     Schlüssel, bekannte Kriterien und Beispielbilder, kein Pflichtfoto ohne
     sichtbares Feld.
   - `tests/i18n.test.mjs` – beide Sprachkataloge deckungsgleich, gleiche
     Platzhalter, jeder im Code benutzte Schlüssel übersetzt.
+  - `tests/photoPages.test.mjs` – Aufteilung der Fotoseiten und ihre Grenzen.
+  - `tests/edgeLabels.test.mjs` – Platzwahl für Kanten-Beschriftungen: eine
+    verdeckte Angabe weicht auf der eigenen Linie aus, eine freie bleibt stehen.
 - `npm run test:e2e` – fährt den Produktions-Build in Chromium durch: Kategorie-
-  Steuerung, Regelverstöße, Bild-Pipeline inklusive Drehen, mermaid,
+  Steuerung, Regelverstöße, Bild-Pipeline inklusive Drehen, mermaid samt
+  lesbarer Kanten-Beschriftungen in Editor und Ausdruck,
   Sprachwechsel, ZIP-Roundtrip (auch zweimal derselbe Import), Autosave ohne
   Endlosschleife, Seitenumbruch und Inhalt des Ausdrucks, die PDF-Seitengröße
   (297 × 210 mm), das Layout im Telefonformat und die Beschriftung aller
