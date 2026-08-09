@@ -56,6 +56,40 @@ export function useScore() {
     return missingRequired.value.filter((s) => s.section.step === step)
   }
 
+  /**
+   * Pflichtangaben, die kein Foto sind.
+   *
+   * Das „*“ hinter drei Feldern der Fahrzeugseite war bisher ein an den
+   * Labeltext gehängtes Zeichen: für assistive Technik unsichtbar und durch
+   * nichts hinterlegt. Der Teilnehmername konnte auf dem gedruckten Deckblatt
+   * fehlen, ohne dass die App je gewarnt hätte.
+   *
+   * Die Einträge sind bewusst wie Foto-Slots geformt (`key`, `label`, `tip`),
+   * damit sie ohne Sonderbehandlung im SkipDialog neben den fehlenden Fotos
+   * stehen können. `meta: true` unterscheidet sie dort, wo es darauf ankommt:
+   * Ein übersprungenes Textfeld darf keinen Skip-Eintrag ins Projekt schreiben.
+   */
+  const REQUIRED_META = [
+    { field: 'participantName', labelKey: 'vehicle.participantName', tipKey: 'vehicle.whyParticipant' },
+    { field: 'vehicleMake', labelKey: 'vehicle.make', tipKey: 'vehicle.whyVehicle' },
+    { field: 'vehicleModel', labelKey: 'vehicle.model', tipKey: 'vehicle.whyVehicle' },
+  ]
+
+  const missingMeta = computed(() =>
+    REQUIRED_META.filter(({ field }) => !String(store.project.meta[field] || '').trim()).map((entry) => ({
+      key: `meta.${entry.field}`,
+      label: translate(entry.labelKey),
+      tip: translate(entry.tipKey),
+      hint: '',
+      meta: true,
+    })),
+  )
+
+  /** Die Stammdaten hängen alle am ersten Schritt. */
+  function missingMetaForStep(step) {
+    return step === 'vehicle' ? missingMeta.value : []
+  }
+
   const visibleSlots = computed(() => allSlots(column.value, store.mode))
 
   return {
@@ -69,6 +103,8 @@ export function useScore() {
     level,
     missingRequired,
     missingForStep,
+    missingMeta,
+    missingMetaForStep,
     visibleSlots,
   }
 }

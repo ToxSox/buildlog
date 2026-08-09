@@ -13,7 +13,7 @@ import { useI18n } from '../i18n/index.js'
 const { t, tx } = useI18n()
 
 const store = useProjectStore()
-const { level, missingRequired, assessment, column, columnLabel, photos } = useScore()
+const { level, missingRequired, missingMeta, assessment, column, columnLabel, photos } = useScore()
 
 const findings = computed(() => summarize(evaluateRules(store.project)))
 
@@ -80,6 +80,20 @@ const grouped = computed(() => {
           {{ t('review.ofSlots', { n: checklist.filter((c) => c.required).length }) }}
         </p>
       </div>
+    </div>
+
+    <!-- Fehlende Stammdaten fielen bisher nirgends auf: Der Teilnehmername
+         konnte auf dem Deckblatt fehlen, ohne dass die App je gewarnt haette. -->
+    <div v-if="missingMeta.length" class="card card-body border-amber-300 bg-amber-50">
+      <p class="text-sm font-bold text-amber-900">
+        {{ t('review.missingMeta', { n: missingMeta.length }) }}
+      </p>
+      <p class="mt-0.5 text-sm text-amber-800">
+        {{ missingMeta.map((m) => m.label).join(' · ') }}
+      </p>
+      <router-link to="/wizard/fahrzeug" class="btn-primary btn-xs mt-3 self-start">
+        {{ t('review.toVehicle') }}
+      </router-link>
     </div>
 
     <div class="card border-sky-200">

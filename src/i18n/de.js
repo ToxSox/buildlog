@@ -136,6 +136,9 @@ export default {
     notes: 'Kurzbeschreibung des Projekts',
     notesPlaceholder: 'Worum geht es bei diesem Ausbau? Ziel, Besonderheiten, Bauzeit …',
     notesHint: 'Landet als Einleitungstext auf der ersten Seite des Ausdrucks.',
+    requiredMark: 'Pflichtangabe',
+    whyParticipant: 'Ohne deinen Namen bleibt das Deckblatt der Mappe leer.',
+    whyVehicle: 'Marke und Modell stehen in der Kopfzeile jeder gedruckten Seite.',
     classSection: 'EMMA-Klasse',
     classHint:
       'Bestimmt, welche Kriterien bei dir bewertet werden, welche Fotos Pflicht sind und wie viele Punkte insgesamt zu holen sind.',
@@ -387,6 +390,8 @@ export default {
     installPoints: 'Installationspunkte',
     requiredPhotos: 'Pflichtfotos',
     criticalFindings: 'Kritische Befunde',
+    missingMeta: 'Es fehlen noch {n} Pflichtangaben zum Fahrzeug.',
+    toVehicle: 'Zu Fahrzeug & Klasse',
     criticalHint: 'Punktverlust droht',
     missingPhotos: 'Fehlende Pflichtfotos',
     ofSlots: 'von {n} Pflicht-Slots',

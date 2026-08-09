@@ -15,11 +15,18 @@ const props = defineProps({
 
 const router = useRouter()
 const store = useProjectStore()
-const { missingForStep } = useScore()
+const { missingForStep, missingMetaForStep } = useScore()
 const { t } = useI18n()
 
 const nav = computed(() => neighbours(store.column, props.stepKey))
-const missing = computed(() => missingForStep(props.stepKey))
+/*
+ * Fehlende Stammdaten stehen bewusst in derselben Liste wie fehlende Fotos.
+ * Die App lebt vom „überspringen und später ergänzen“ – ein eigener
+ * Pflichtfeld-Alarm wäre eine zweite Unterbrechung an einer Stelle, an der es
+ * schon eine gibt. Der Nutzer entscheidet einmal, informiert, und sieht es auf
+ * diesem Schritt nie wieder.
+ */
+const missing = computed(() => [...missingMetaForStep(props.stepKey), ...missingForStep(props.stepKey)])
 const dialogOpen = ref(false)
 
 function goNext() {
@@ -36,7 +43,9 @@ function proceed() {
 }
 
 function skipAll() {
-  missing.value.forEach((slot) => store.skip(slot.key))
+  // Nur echte Foto-Slots bekommen einen Skip-Eintrag: Ein Textfeld hat keinen
+  // Slot, ein Vermerk darauf landete als Geisteintrag in der Mappe.
+  missing.value.filter((slot) => !slot.meta).forEach((slot) => store.skip(slot.key))
   proceed()
 }
 
@@ -68,8 +77,14 @@ function goPrev() {
           ← <span class="hidden sm:inline">{{ nav.prev ? t(nav.prev.labelKey) : t('common.back') }}</span>
         </button>
 
-        <p v-if="missing.length" class="hidden text-xs text-amber-700 sm:block">
-          {{ t('skip.stillMissing', { n: missing.length }) }}
+        <!-- Der Hinweis war `hidden sm:block`, also unsichtbar genau auf dem
+             Telefon, wo man am Auto arbeitet. Am Handy nur die Zahl, damit die
+             Zeile zwischen den beiden Knöpfen nicht seitlich aufreißt. -->
+        <p v-if="missing.length" class="min-w-0 truncate text-xs font-semibold text-amber-700">
+          <span class="hidden sm:inline">{{ t('skip.stillMissing', { n: missing.length }) }}</span>
+          <span class="sm:hidden" :aria-label="t('skip.stillMissing', { n: missing.length })"
+            >⚠ {{ missing.length }}</span
+          >
         </p>
 
         <button v-if="nav.next" type="button" class="btn-primary" @click="goNext">

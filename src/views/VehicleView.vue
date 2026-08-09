@@ -43,20 +43,45 @@ function switchMode(mode) {
       </div>
       <div class="card-body grid gap-4 sm:grid-cols-2">
         <div>
-          <label class="field" for="participant">{{ t('vehicle.participantName') }} *</label>
-          <input id="participant" v-model="meta.participantName" class="input" placeholder="Max Mustermann" />
+          <!-- Das „*“ hing bisher als Zeichen am Labeltext: fuer assistive
+               Technik unsichtbar und durch keine Pruefung hinterlegt. Jetzt
+               sagt `aria-required` es der Technik und `title` dem Auge; geprueft
+               wird beim Weitergehen ueber den vorhandenen Skip-Dialog. -->
+          <label class="field" for="participant"
+            >{{ t('vehicle.participantName') }}
+            <span class="text-rose-600" :title="t('vehicle.requiredMark')" aria-hidden="true">*</span></label
+          >
+          <input
+            id="participant"
+            v-model="meta.participantName"
+            class="input"
+            aria-required="true"
+            placeholder="Max Mustermann"
+          />
         </div>
         <div>
           <label class="field" for="team">{{ t('vehicle.team') }}</label>
           <input id="team" v-model="meta.teamName" class="input" placeholder="optional" />
         </div>
         <div>
-          <label class="field" for="make">{{ t('vehicle.make') }} *</label>
-          <input id="make" v-model="meta.vehicleMake" class="input" placeholder="Audi" />
+          <label class="field" for="make"
+            >{{ t('vehicle.make') }}
+            <span class="text-rose-600" :title="t('vehicle.requiredMark')" aria-hidden="true">*</span></label
+          >
+          <input id="make" v-model="meta.vehicleMake" class="input" aria-required="true" placeholder="Audi" />
         </div>
         <div>
-          <label class="field" for="model">{{ t('vehicle.model') }} *</label>
-          <input id="model" v-model="meta.vehicleModel" class="input" placeholder="A3 8P Sportback" />
+          <label class="field" for="model"
+            >{{ t('vehicle.model') }}
+            <span class="text-rose-600" :title="t('vehicle.requiredMark')" aria-hidden="true">*</span></label
+          >
+          <input
+            id="model"
+            v-model="meta.vehicleModel"
+            class="input"
+            aria-required="true"
+            placeholder="A3 8P Sportback"
+          />
         </div>
         <div>
           <label class="field" for="year">{{ t('vehicle.year') }}</label>

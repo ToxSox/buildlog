@@ -132,6 +132,9 @@ export default {
     notes: 'Short project description',
     notesPlaceholder: 'What is this build about? Goal, special features, build time …',
     notesHint: 'Becomes the introduction on the first page of the printout.',
+    requiredMark: 'Required',
+    whyParticipant: 'Without your name the cover page of the build log stays empty.',
+    whyVehicle: 'Make and model appear in the header of every printed page.',
     classSection: 'EMMA class',
     classHint:
       'Determines which criteria are judged, which photos are mandatory and how many points are available in total.',
@@ -384,6 +387,8 @@ export default {
     installPoints: 'Installation points',
     requiredPhotos: 'Required photos',
     criticalFindings: 'Critical findings',
+    missingMeta: '{n} required vehicle details are still missing.',
+    toVehicle: 'To vehicle & class',
     criticalHint: 'point loss likely',
     missingPhotos: 'Missing required photos',
     ofSlots: 'of {n} required slots',
