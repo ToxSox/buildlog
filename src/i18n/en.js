@@ -45,7 +45,7 @@ export default {
 
   nav: {
     label: 'Wizard steps',
-    missingPhotos: '{n} required photo(s) still open',
+    missingItems: '{n} required item(s) still open',
   },
 
   confirm: {

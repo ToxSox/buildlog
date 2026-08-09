@@ -45,7 +45,7 @@ export default {
 
   nav: {
     label: 'Schritte des Assistenten',
-    missingPhotos: 'noch {n} Pflichtfoto(s) offen',
+    missingItems: 'noch {n} Pflichtangabe(n) offen',
   },
 
   confirm: {
