@@ -18,8 +18,10 @@ const props = defineProps({
 const store = useProjectStore()
 const media = useMediaStore()
 const rotating = ref(false)
+const rotateError = ref('')
 const zoom = ref(false)
 const zoomPanel = ref(null)
+const zoomTitleId = `zoom-${props.item.id}`
 
 useModal(zoom, zoomPanel, () => {
   zoom.value = false
@@ -29,6 +31,7 @@ const src = computed(() => media.url(props.item.id))
 
 async function rotate() {
   rotating.value = true
+  rotateError.value = ''
   try {
     const blob = await media.get(props.item.id)
     if (!blob) return
@@ -40,7 +43,12 @@ async function rotate() {
       mime: result.blob.type || props.item.mime,
     })
   } catch (err) {
+    // Ohne sichtbare Meldung verschwand nur der Overlay und das Foto blieb, wie
+    // es war – man tippt dann wieder und wieder ins Leere. Das Drehen laeuft
+    // ueber ein Canvas und scheitert genau auf speicherknappen Telefonen mit
+    // grossen Bildern, also am Auto.
     console.error('[emma] Drehen fehlgeschlagen', err)
+    rotateError.value = t('uploader.rotateFailed', { reason: err?.message || err })
   } finally {
     rotating.value = false
   }
@@ -88,35 +96,43 @@ function remove() {
           type="button"
           class="btn-soft btn-xs"
           :disabled="index === 0"
-          :title="t('common.back')"
+          :title="t('uploader.moveEarlier')"
+          :aria-label="t('uploader.moveEarlier')"
           @click="store.moveMedia(slotKey, item.id, -1)"
         >
-          ←
+          <span aria-hidden="true">←</span>
         </button>
         <button
           type="button"
           class="btn-soft btn-xs"
           :disabled="index >= total - 1"
-          :title="t('common.next')"
+          :title="t('uploader.moveLater')"
+          :aria-label="t('uploader.moveLater')"
           @click="store.moveMedia(slotKey, item.id, 1)"
         >
-          →
+          <span aria-hidden="true">→</span>
         </button>
         <button type="button" class="btn-ghost btn-xs ml-auto !text-rose-600" @click="remove">
           {{ t('common.delete') }}
         </button>
       </div>
+      <p v-if="rotateError" role="alert" class="text-xs font-semibold text-rose-600">{{ rotateError }}</p>
     </figcaption>
 
     <teleport to="body">
+      <!-- `@click.self`, nicht `@click`: Das Bild ist direktes Kind, ein Klick
+           darauf schloss also genau das Fenster, das man zum Betrachten des
+           Details geoeffnet hatte. SkipDialog und ExampleHint machen es richtig. -->
       <div
         v-if="zoom"
         ref="zoomPanel"
         role="dialog"
         aria-modal="true"
+        :aria-labelledby="zoomTitleId"
         class="fixed inset-0 z-50 grid place-items-center bg-slate-900/80 p-4"
-        @click="zoom = false"
+        @click.self="zoom = false"
       >
+        <h2 :id="zoomTitleId" class="sr-only">{{ item.caption || t('uploader.photo') }}</h2>
         <img
           :src="src"
           :alt="item.caption || t('uploader.photo')"

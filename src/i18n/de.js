@@ -393,6 +393,10 @@ export default {
     caption: 'Bildunterschrift (erscheint im Ausdruck)',
     rotate: '↻ 90°',
     rotating: 'dreht …',
+    rotateFailed:
+      'Foto konnte nicht gedreht werden ({reason}). Bei sehr großen Bildern kann der Speicher knapp sein.',
+    moveEarlier: 'Foto nach vorne schieben',
+    moveLater: 'Foto nach hinten schieben',
     photo: 'Foto',
     loading: 'Bild wird geladen …',
     deleteConfirm: 'Dieses Foto aus der Mappe entfernen?',

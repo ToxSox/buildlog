@@ -391,6 +391,10 @@ export default {
     caption: 'Caption (appears in the printout)',
     rotate: '↻ 90°',
     rotating: 'rotating …',
+    rotateFailed:
+      'Could not rotate the photo ({reason}). Very large images can run the device out of memory.',
+    moveEarlier: 'Move photo earlier',
+    moveLater: 'Move photo later',
     photo: 'Photo',
     loading: 'Loading image …',
     deleteConfirm: 'Remove this photo from the build log?',
