@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
     <p v-else-if="error" class="text-sm text-rose-600">{{ error }}</p>
     <p
       v-else
-      class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400"
+      class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500"
     >
       {{ t('diagram.empty2') }}
     </p>

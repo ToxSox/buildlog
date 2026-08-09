@@ -44,7 +44,7 @@ const grouped = computed(() => {
   <WizardShell step-key="review" :title="t('steps.review')" :subtitle="t('review.subtitle')">
     <div class="grid gap-4 sm:grid-cols-3">
       <div class="card card-body">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-600">
           {{ column ? t('review.installPoints') : t('review.requiredPhotos') }}
         </p>
         <!-- ohne Kategorie gibt es keine Matrixpunkte: dann die echten Fotozahlen statt einer Prozentzahl -->
@@ -55,7 +55,7 @@ const grouped = computed(() => {
         <p class="text-xs text-slate-500">{{ columnLabel || level }}</p>
       </div>
       <div class="card card-body">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-600">
           {{ t('review.criticalFindings') }}
         </p>
         <p
@@ -67,7 +67,7 @@ const grouped = computed(() => {
         <p class="text-xs text-slate-500">{{ t('review.criticalHint') }}</p>
       </div>
       <div class="card card-body">
-        <p class="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <p class="text-xs font-bold uppercase tracking-wider text-slate-600">
           {{ t('review.missingPhotos') }}
         </p>
         <p
@@ -111,7 +111,7 @@ const grouped = computed(() => {
       </div>
       <div class="card-body space-y-4">
         <div v-for="[section, items] in grouped" :key="section">
-          <p class="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-400">{{ section }}</p>
+          <p class="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-600">{{ section }}</p>
           <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
             <li v-for="item in items" :key="item.key" class="flex items-center gap-3 px-3 py-2">
               <span class="text-base">

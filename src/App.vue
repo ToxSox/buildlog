@@ -69,7 +69,7 @@ onMounted(() => {
 
     <footer class="wizard-ui border-t border-slate-200 bg-white/70 py-3 text-center text-xs text-slate-500">
       <p>{{ t('app.footer') }} · v{{ version }}</p>
-      <p class="mt-1 px-4 text-[11px] text-slate-400">{{ t('app.disclaimer') }}</p>
+      <p class="mt-1 px-4 text-[11px] text-slate-500">{{ t('app.disclaimer') }}</p>
     </footer>
   </div>
 </template>

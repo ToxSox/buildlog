@@ -125,7 +125,7 @@ function onPick(event) {
             {{ t('uploader.takePhoto') }}
           </button>
         </div>
-        <p class="text-[11px] text-slate-400">{{ t('uploader.resizeHint') }}</p>
+        <p class="text-[11px] text-slate-500">{{ t('uploader.resizeHint') }}</p>
       </div>
 
       <input

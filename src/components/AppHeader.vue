@@ -93,7 +93,7 @@ function go(step) {
         :class="
           store.storageError
             ? 'inline-block font-bold text-rose-600'
-            : 'hidden lg:inline-block text-slate-400'
+            : 'hidden lg:inline-block text-slate-500'
         "
         >{{ savedLabel }}</span
       >

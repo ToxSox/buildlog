@@ -76,6 +76,57 @@ h1 {
   textarea {
     font-size: 16px !important;
   }
+
+  /*
+   * Dieselbe Überlegung für Knöpfe: `.btn-xs` ist rund 24 px hoch und trotzdem
+   * die Standardgröße fast jeder Aktion. Am schlimmsten in der Foto-Karte, wo
+   * Drehen, ←, → und ein unwiderrufliches Löschen nebeneinander stehen – auf
+   * einer halben Spaltenbreite, mit klammen Fingern am Auto.
+   *
+   * Nur `min-height`/`min-width`, bewusst NICHT `padding-inline`: Seitliches
+   * Polster verbreitert die Textknöpfe und schiebt enge Zeilen aus dem Bild.
+   * Die Höhe kostet nichts, die Mindestbreite hebt nur die Pfeil-Knöpfe.
+   */
+  .btn-xs {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/*
+ * Sichtbarer Fokus – bewusst global statt je Klasse.
+ *
+ * Die Knöpfe der App sind zur Hälfte `.btn-*`, zur Hälfte handgebaute
+ * Umschalter (Klassenwahl, Polarität, Ja/Teilweise/Nein, Sprache, Schritte).
+ * Alle definierten bisher nur `hover:` – wer mit der Tastatur bedient, sah
+ * überhaupt nicht, wo er steht. Eine Regel auf dem Element statt auf jeder
+ * Klasse erwischt auch jeden künftigen Knopf.
+ *
+ * `outline` statt `ring`, weil es keinen Platz einnimmt: In den engen Karten
+ * am Handy würde ein Schatten-Ring die Zeile umbrechen lassen.
+ */
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-sky-600);
+  outline-offset: 2px;
+}
+
+/*
+ * Der Fortschrittsbalken läuft bei JEDEM Autosave eine halbe Sekunde nach –
+ * im klebenden Kopf, also dauernd im Augenwinkel, während man tippt. Wer
+ * Bewegung reduziert hat, bekommt sie hier gar nicht erst.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ------------------------------------------------------------------ Buttons */
