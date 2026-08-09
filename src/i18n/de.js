@@ -43,6 +43,11 @@ export default {
     print: 'PDF generieren / Drucken',
   },
 
+  nav: {
+    label: 'Schritte des Assistenten',
+    missingPhotos: 'noch {n} Pflichtfoto(s) offen',
+  },
+
   confirm: {
     title: 'Wirklich löschen?',
     cancel: 'Abbrechen',

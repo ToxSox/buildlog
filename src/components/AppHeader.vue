@@ -11,7 +11,7 @@ import LanguageSwitch from './LanguageSwitch.vue'
 const route = useRoute()
 const router = useRouter()
 const store = useProjectStore()
-const { score, maxScore, percent, level, columnLabel, column } = useScore()
+const { score, maxScore, percent, level, columnLabel, column, missingForStep } = useScore()
 const { t, locale } = useI18n()
 
 const steps = computed(() => stepsForColumn(store.column))
@@ -48,6 +48,31 @@ const savedLabel = computed(() => {
 
 function go(step) {
   router.push(step.path)
+}
+
+/**
+ * Wie weit ein Schritt ist, stand bisher nirgends – man musste ihn aufsuchen,
+ * um zu sehen, ob noch Pflichtfotos fehlen. `missingForStep` gab es längst,
+ * benutzt hat es nur die Fußleiste des jeweils offenen Schritts.
+ *
+ * Der Zustand darf nicht allein an der Farbe hängen: erledigt zeigt ein Haken
+ * statt der Nummer, offen zeigt die Zahl der fehlenden Fotos. Beides steht
+ * zusätzlich im `aria-label`, das am Handy ohnehin gebraucht wird – dort
+ * rendert nur das Kurzlabel und ein Screenreader las sonst „1 Fahrz.“.
+ */
+function stepState(step) {
+  const missing = missingForStep(step.key).length
+  const label = t(step.labelKey)
+  const index = steps.value.findIndex((s) => s.key === step.key) + 1
+  const base = t('common.step', { index, total: steps.value.length })
+  return {
+    missing,
+    // Der Abschluss-Schritt sammelt selbst keine Fotos – dort wäre ein Haken gelogen.
+    done: missing === 0 && step.key !== 'review',
+    ariaLabel: missing
+      ? `${base}: ${label} – ${t('nav.missingPhotos', { n: missing })}`
+      : `${base}: ${label}`,
+  }
 }
 </script>
 
@@ -105,7 +130,7 @@ function go(step) {
       >
     </div>
 
-    <nav v-if="showWizard" class="border-t border-slate-100 bg-slate-50">
+    <nav v-if="showWizard" class="border-t border-slate-100 bg-slate-50" :aria-label="t('nav.label')">
       <ol class="max-w-6xl mx-auto flex gap-1 overflow-x-auto px-2 py-2">
         <li v-for="(step, i) in steps" :key="step.key" class="shrink-0">
           <button
@@ -113,16 +138,24 @@ function go(step) {
             class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition"
             :class="
               step.key === currentKey
-                ? 'bg-sky-600 text-white shadow'
+                ? 'bg-sky-600 text-white shadow ring-2 ring-sky-900/25'
                 : 'text-slate-600 hover:bg-white hover:text-slate-900'
             "
+            :aria-current="step.key === currentKey ? 'step' : undefined"
+            :aria-label="stepState(step).ariaLabel"
+            :title="stepState(step).ariaLabel"
             @click="go(step)"
           >
             <span
               class="grid h-5 w-5 place-items-center rounded-full text-[10px]"
-              :class="step.key === currentKey ? 'bg-white/25' : 'bg-slate-200 text-slate-700'"
+              :class="[
+                step.key === currentKey ? 'bg-white/25' : 'bg-slate-200 text-slate-700',
+                stepState(step).missing && step.key !== currentKey ? '!bg-amber-500 !text-white' : '',
+                stepState(step).done && step.key !== currentKey ? '!bg-emerald-500 !text-white' : '',
+              ]"
+              aria-hidden="true"
             >
-              {{ i + 1 }}
+              {{ stepState(step).missing || (stepState(step).done ? '✓' : i + 1) }}
             </span>
             <span class="hidden sm:inline">{{ t(step.labelKey) }}</span>
             <span class="sm:hidden">{{ t(step.shortKey) }}</span>

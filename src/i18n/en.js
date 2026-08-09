@@ -43,6 +43,11 @@ export default {
     print: 'Generate PDF / print',
   },
 
+  nav: {
+    label: 'Wizard steps',
+    missingPhotos: '{n} required photo(s) still open',
+  },
+
   confirm: {
     title: 'Delete for good?',
     cancel: 'Cancel',
