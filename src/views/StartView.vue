@@ -5,8 +5,10 @@ import { useProjectStore } from '../stores/project.js'
 import { MODES, EMMA_CLASSES } from '../data/schema.js'
 import ArchiveTools from '../components/ArchiveTools.vue'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t, locale } = useI18n()
+const { confirm } = useConfirm()
 
 const router = useRouter()
 const store = useProjectStore()
@@ -79,9 +81,10 @@ const duplicate = (id) =>
     router.push('/wizard/fahrzeug')
   })
 
-const remove = (entry) => {
+const remove = async (entry) => {
   const title = entry.title || t('start.untitled')
-  if (!window.confirm(t('start.deleteConfirm', { title, photos: entry.photos }))) return
+  const ok = await confirm({ message: t('start.deleteConfirm', { title, photos: entry.photos }) })
+  if (!ok) return
   return guarded(() => store.deleteProject(entry.id))
 }
 </script>

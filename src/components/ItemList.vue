@@ -3,8 +3,10 @@ import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import PhotoSlot from './PhotoSlot.vue'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
+const { confirm } = useConfirm()
 
 const props = defineProps({
   /** Pfad im Store, z. B. 'hardware.amps' */
@@ -50,7 +52,25 @@ function slotDefFor(item, index) {
 
 /** Mit dem Eintrag verschwinden auch seine Fotos – sonst bleiben sie unerreichbar im Speicher. */
 async function remove(item) {
-  if (props.photoSlotPrefix) await store.removeMediaSlot(`${props.photoSlotPrefix}.${item.id}`)
+  const slotKey = props.photoSlotPrefix ? `${props.photoSlotPrefix}.${item.id}` : ''
+  const photos = slotKey ? store.mediaFor(slotKey).length : 0
+  const filled = props.fields.some((f) => item[f.key] !== '' && item[f.key] !== null)
+
+  /*
+   * Nur nachfragen, wenn wirklich etwas verloren geht. Eine eben angelegte,
+   * noch leere Zeile wegzuklicken ist Aufräumen, kein Löschen – dort wäre der
+   * Dialog reine Reibung und man klickt ihn bald blind weg. Sind Fotos dabei,
+   * steht ihre Zahl in der Frage: Sie sind das Einzige, was sich nicht in
+   * zehn Sekunden neu eintippen lässt.
+   */
+  if (filled || photos) {
+    const message = photos
+      ? t('confirm.itemWithPhotos', { n: photos })
+      : t('confirm.item', { title: tx(props.title) })
+    if (!(await confirm({ message }))) return
+  }
+
+  if (slotKey) await store.removeMediaSlot(slotKey)
   store.removeItem(props.path, item.id)
 }
 

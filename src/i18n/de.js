@@ -40,6 +40,17 @@ export default {
     print: 'PDF generieren / Drucken',
   },
 
+  confirm: {
+    title: 'Wirklich löschen?',
+    cancel: 'Abbrechen',
+    item: '„{title}“: Diesen Eintrag mit allen Angaben löschen?',
+    itemWithPhotos:
+      'Diesen Eintrag löschen? Die {n} zugehörigen Fotos werden mit entfernt und lassen sich nicht wiederherstellen.',
+    component: 'Komponente „{name}“ aus dem System entfernen?',
+    componentWithLinks:
+      'Komponente „{name}“ entfernen? Ihre {n} Verbindungen im Signalweg und Stromlaufplan verschwinden mit.',
+  },
+
   steps: {
     vehicle: 'Fahrzeug & Klasse',
     diagram: 'Blockdiagramme',

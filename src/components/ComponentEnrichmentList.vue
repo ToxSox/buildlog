@@ -3,8 +3,10 @@ import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { COMPONENT_TYPES, INSTALL_DEFAULTS } from '../data/schema.js'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
+const { confirm } = useConfirm()
 
 const props = defineProps({
   /** Komponententyp aus COMPONENT_TYPES, z. B. 'amp' */
@@ -46,8 +48,8 @@ function add() {
   store.addComponent(props.type)
 }
 
-function remove(item) {
-  if (window.confirm(t('hardware.removeConfirm'))) store.removeComponent(item.id)
+async function remove(item) {
+  if (await confirm({ message: t('hardware.removeConfirm') })) store.removeComponent(item.id)
 }
 </script>
 

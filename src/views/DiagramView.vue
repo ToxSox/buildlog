@@ -6,8 +6,10 @@ import WizardShell from '../components/WizardShell.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
+const { confirm } = useConfirm()
 
 const store = useProjectStore()
 const system = computed(() => store.project.system)
@@ -16,7 +18,28 @@ const typeLabel = (type) => tx(COMPONENT_TYPES.find((x) => x.id === type)?.label
 const typeIcon = (type) => COMPONENT_TYPES.find((x) => x.id === type)?.icon || '•'
 
 const addComponent = (type) => store.addComponent(type)
-const removeComponent = (id) => store.removeComponent(id)
+
+/*
+ * `removeComponent` reisst die Komponente samt ihrer Signal- und Stromverbindungen
+ * aus dem Diagramm. Die Hardware-Liste fragt fuer denselben Store-Aufruf laengst
+ * nach – hier fehlte die Rueckfrage. Eine frisch angelegte, noch namenlose
+ * Komponente verschwindet weiterhin ohne Nachfrage.
+ */
+async function removeComponent(id) {
+  const c = system.value.components.find((x) => x.id === id)
+  const named = Boolean(c?.name || c?.detail || c?.channels)
+  const links = system.value.signalLinks
+    .concat(system.value.powerLinks)
+    .filter((l) => l.from === id || l.to === id).length
+
+  if (named || links) {
+    const message = links
+      ? t('confirm.componentWithLinks', { name: c?.name || typeLabel(c?.type), n: links })
+      : t('confirm.component', { name: c?.name || typeLabel(c?.type) })
+    if (!(await confirm({ message }))) return
+  }
+  store.removeComponent(id)
+}
 
 function addLink(kind) {
   if (kind === 'power') {

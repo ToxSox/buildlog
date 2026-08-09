@@ -272,9 +272,17 @@ try {
   await page.waitForTimeout(2500)
   check('Kamera-JPEG mit EXIF wird verarbeitet', (await page.locator('figure img').count()) === 2)
   // Wieder entfernen, damit die Folge-Checks denselben Stand sehen wie bisher.
+  // Seit der eigene Bestaetigungsdialog das `window.confirm` abgeloest hat,
+  // braucht das Loeschen zwei Klicks – der `page.on('dialog')`-Handler oben
+  // greift dafuer nicht mehr.
   await page.locator('figure').last().getByRole('button', { name: 'Löschen' }).click()
+  await page.locator('[data-testid=confirm-accept]').click()
   await page.waitForTimeout(600)
   check('Kamera-JPEG wieder entfernt', (await page.locator('figure img').count()) === 1)
+  check(
+    'Bestaetigungsdialog schliesst sich nach dem Loeschen',
+    (await page.locator('[data-testid=confirm-accept]').count()) === 0,
+  )
 
   // Ein Hochformatfoto (Handy-Regelfall) muss im Ausdruck eine eigene, hohe
   // Rasterzelle bekommen – im alten flachen 3-Spalter blieb davon fast nichts.

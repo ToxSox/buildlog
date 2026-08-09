@@ -5,8 +5,10 @@ import { useMediaStore } from '../stores/media.js'
 import { rotate90 } from '../utils/image.js'
 import { useI18n } from '../i18n/index.js'
 import { useModal } from '../composables/useModal.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t } = useI18n()
+const { confirm } = useConfirm()
 
 const props = defineProps({
   slotKey: { type: String, required: true },
@@ -54,8 +56,8 @@ async function rotate() {
   }
 }
 
-function remove() {
-  if (!window.confirm(t('uploader.deleteConfirm'))) return
+async function remove() {
+  if (!(await confirm({ message: t('uploader.deleteConfirm') }))) return
   store.removeMedia(props.slotKey, props.item.id)
 }
 </script>

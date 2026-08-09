@@ -5,6 +5,7 @@ import { useProjectStore } from './stores/project.js'
 import { requestPersistence } from './utils/storage.js'
 import { updateReady, applyUpdate } from './utils/appUpdate.js'
 import AppHeader from './components/AppHeader.vue'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 import { useI18n } from './i18n/index.js'
 
 const { t } = useI18n()
@@ -72,6 +73,11 @@ onMounted(() => {
       <p class="mt-1 px-4 text-[11px] text-slate-500">{{ t('app.disclaimer') }}</p>
     </footer>
   </div>
+
+  <!-- Ein einziger Dialog für die ganze App: Die Aufrufstellen sitzen in
+       Komponenten, die dutzendfach auf einer Seite stehen (Foto-Karten,
+       Listeneinträge). Siehe composables/useConfirm.js. -->
+  <ConfirmDialog />
 </template>
 
 <style scoped>

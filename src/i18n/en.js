@@ -40,6 +40,16 @@ export default {
     print: 'Generate PDF / print',
   },
 
+  confirm: {
+    title: 'Delete for good?',
+    cancel: 'Cancel',
+    item: '“{title}”: delete this entry with all its details?',
+    itemWithPhotos: 'Delete this entry? Its {n} photos are removed with it and cannot be restored.',
+    component: 'Remove component “{name}” from the system?',
+    componentWithLinks:
+      'Remove component “{name}”? Its {n} connections in the signal path and power diagram go with it.',
+  },
+
   steps: {
     vehicle: 'Vehicle & class',
     diagram: 'Block diagrams',
