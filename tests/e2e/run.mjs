@@ -169,6 +169,21 @@ try {
   await page.fill('#model', 'A3')
   await page.fill('#plate', 'M-AB 1234')
 
+  // ------------------------------------------------- Schrittleiste ohne Kategorie
+  // Regression: `missingForStep` war ohne gewählte Kategorie für JEDEN Schritt
+  // leer – `isSlotRequired` liefert ohne Spalte immer false. Die Leiste las das
+  // als „nichts offen“ und hakte eine frisch angelegte, komplett leere Mappe
+  // vollständig ab. Solange die Kategorie fehlt, weiß die App nicht, was Pflicht
+  // ist, und darf deshalb nichts abhaken.
+  const circles = () =>
+    page.$$eval('nav ol li button > span:first-child', (ss) => ss.map((s) => s.textContent.trim()))
+  const beforeClass = await circles()
+  check(
+    'ohne Kategorie hakt die Schrittleiste nichts ab',
+    beforeClass.length > 0 && beforeClass.every((c) => c === '·'),
+    beforeClass.join(' '),
+  )
+
   // ------------------------------------------------------ Autosave kommt zur Ruhe
   // Regression: save() schrieb updatedAt in den beobachteten State und stieß damit
   // den nächsten Autosave an – eine Endlosschleife, die die Statusanzeige oben
@@ -221,6 +236,29 @@ try {
   const maxE = (await page.locator('header .tabular-nums').first().innerText()).split('/')[1]
   check('Kategorie E: reduzierte Schrittzahl', stepsE === 6, `${stepsE} Schritte`)
   check('Kategorie E: Maximum 69 Punkte', maxE === '69', `Maximum ${maxE}`)
+
+  // Eine Ziffer im Kreis hiess frueher mal „so viele offen“, mal „Schritt Nummer“ –
+  // unterschieden hat das nur die Farbe, und am aktiven Schritt fiel selbst die weg.
+  // Jetzt ist eine Ziffer immer die Zahl der offenen Pflichtangaben; sie muss zur
+  // Beschriftung passen. Sonst steht „·“ (nichts verlangt) oder ein Haken.
+  const barMismatch = await page.$$eval('nav ol li button', (bs) =>
+    bs
+      .map((b) => ({
+        circle: b.querySelector('span').textContent.trim(),
+        label: b.getAttribute('aria-label') || '',
+      }))
+      .filter(({ circle, label }) => {
+        const open = label.match(/noch (\d+)/)
+        if (/^\d+$/.test(circle)) return !open || open[1] !== circle
+        return Boolean(open)
+      })
+      .map(({ circle, label }) => `"${circle}" ≠ "${label}"`),
+  )
+  check(
+    'Ziffer im Schrittkreis ist die Zahl der offenen Angaben',
+    barMismatch.length === 0,
+    barMismatch.join(' | '),
+  )
 
   await page.getByRole('button', { name: 'SQ X – Expert Unlimited', exact: true }).click()
   await page.waitForTimeout(400)

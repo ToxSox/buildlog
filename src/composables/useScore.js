@@ -90,6 +90,21 @@ export function useScore() {
     return step === 'vehicle' ? missingMeta.value : []
   }
 
+  /**
+   * Wie viele Pflichtangaben ein Schritt überhaupt hat.
+   *
+   * `missingForStep` allein kann einen Schritt nicht als erledigt ausweisen:
+   * Ohne gewählte Kategorie liefert `requiredSlots` eine leere Liste, weil
+   * `isSlotRequired` ohne Spalte immer false ist – dann fehlt nichts, obwohl
+   * noch nichts da ist. Dasselbe gilt für Schritte, die in der gewählten
+   * Kategorie gar kein Pflichtfoto führen. Ein Haken wäre dort eine Aussage
+   * über etwas, das die App nicht geprüft hat.
+   */
+  function requiredCountForStep(step) {
+    const photos = requiredSlots(column.value).filter((s) => s.section.step === step).length
+    return photos + (step === 'vehicle' ? REQUIRED_META.length : 0)
+  }
+
   const visibleSlots = computed(() => allSlots(column.value, store.mode))
 
   return {
@@ -105,6 +120,7 @@ export function useScore() {
     missingForStep,
     missingMeta,
     missingMetaForStep,
+    requiredCountForStep,
     visibleSlots,
   }
 }
