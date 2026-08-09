@@ -1,8 +1,8 @@
 export default {
   app: {
-    name: 'EMMA Build Log',
+    name: 'Build Log',
     sub: 'Creator',
-    footer: 'EMMA Build Log Creator · runs entirely offline in your browser · no data leaves your device',
+    footer: 'Build Log Creator · runs entirely offline in your browser · no data leaves your device',
     disclaimer:
       'Independent tool, not authorised or endorsed by EMMA. The official rulebook always takes precedence.',
     autosave: 'Autosave active',
@@ -15,7 +15,7 @@ export default {
     progressValue: '{score} of {max} points',
     photoProgress: 'Required photos',
     language: 'Language',
-    home: 'EMMA Build Log Creator – to the start page',
+    home: 'Build Log Creator – to the start page',
     skipToContent: 'Skip to content',
   },
 
@@ -78,7 +78,7 @@ export default {
   },
 
   start: {
-    kicker: 'EMMA Build Log Creator',
+    kicker: 'Build Log Creator',
     headline: 'Your installation documentation.',
     headline2: 'Guided, rule-compliant, ready to print.',
     lead: 'The assistant asks exactly what the judges want to see, checks your fusing live against the rulebook and produces an A4 landscape document at the end. Everything runs locally in your browser: no uploads, no account, no server.',
@@ -502,7 +502,7 @@ export default {
     installer: 'Installed by',
     documentationMode: 'Documentation',
     aboutProject: 'About this project',
-    createdWith: 'Created with the EMMA Build Log Creator v{version} · {date}',
+    createdWith: 'Created with the Build Log Creator v{version} · {date}',
     page: 'Page {current} of {total}',
     signal: 'Signal path',
     signalLead: 'Source → processing → amplification → transducers. Generated from the component list.',

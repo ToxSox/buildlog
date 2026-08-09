@@ -153,7 +153,7 @@ try {
 
   // ---------------------------------------------------------- Wizard-Grundlauf
   await page.goto(BASE, { waitUntil: 'networkidle' })
-  check('Startseite lädt', (await page.title()).includes('EMMA'))
+  check('Startseite lädt', (await page.title()).includes('Build Log'))
 
   const pkgVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version
   check(

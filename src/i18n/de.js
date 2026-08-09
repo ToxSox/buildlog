@@ -1,8 +1,8 @@
 export default {
   app: {
-    name: 'EMMA Build Log',
+    name: 'Build Log',
     sub: 'Creator',
-    footer: 'EMMA Build Log Creator · läuft komplett offline im Browser · keine Daten verlassen dein Gerät',
+    footer: 'Build Log Creator · läuft komplett offline im Browser · keine Daten verlassen dein Gerät',
     disclaimer:
       'Unabhängiges Hilfsmittel, nicht von EMMA autorisiert oder geprüft. Maßgeblich ist immer das offizielle Regelwerk.',
     autosave: 'Autosave aktiv',
@@ -15,7 +15,7 @@ export default {
     progressValue: '{score} von {max} Punkten',
     photoProgress: 'Pflichtfotos',
     language: 'Sprache',
-    home: 'EMMA Build Log Creator – zur Startseite',
+    home: 'Build Log Creator – zur Startseite',
     skipToContent: 'Zum Inhalt springen',
   },
 
@@ -79,7 +79,7 @@ export default {
   },
 
   start: {
-    kicker: 'EMMA Build Log Creator',
+    kicker: 'Build Log Creator',
     headline: 'Deine Einbaudokumentation.',
     headline2: 'Geführt, regelkonform, druckfertig.',
     lead: 'Der Assistent fragt genau das ab, was die Juroren sehen wollen – prüft deine Absicherung live gegen das Regelwerk und wirft am Ende ein DIN-A4-Querformat-Dokument aus. Alles läuft lokal in deinem Browser: keine Uploads, kein Konto, kein Server.',
@@ -506,7 +506,7 @@ export default {
     installer: 'Einbau durch',
     documentationMode: 'Dokumentation',
     aboutProject: 'Über dieses Projekt',
-    createdWith: 'Erstellt mit dem EMMA Build Log Creator v{version} · {date}',
+    createdWith: 'Erstellt mit dem Build Log Creator v{version} · {date}',
     page: 'Seite {current} von {total}',
     signal: 'Signalweg',
     signalLead:

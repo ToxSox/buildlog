@@ -36,7 +36,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: 'EMMA Build Log Creator',
+        name: 'Build Log Creator',
         short_name: 'Build Log',
         description:
           'Geführter Assistent für EMMA-konforme Car-HiFi-Einbaudokumentationen. Läuft komplett offline im Browser.',
