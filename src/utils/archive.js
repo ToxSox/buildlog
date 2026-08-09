@@ -24,7 +24,7 @@ export function archiveFileName(project) {
   const meta = project.meta || {}
   const name = slug([meta.vehicleMake, meta.vehicleModel].filter(Boolean).join('-') || meta.participantName)
   const date = new Date().toISOString().slice(0, 10)
-  return `emma-buildlog_${name}_${date}.zip`
+  return `buildlog_${name}_${date}.zip`
 }
 
 /** Packt State + alle Bilder in eine ZIP und startet den Download. */
@@ -60,7 +60,7 @@ export async function exportArchive() {
   zip.file(
     'LIESMICH.txt',
     [
-      'EMMA Build Log Creator – Projektarchiv',
+      'Build Log Creator – Projektarchiv',
       '',
       'project.json      : komplette Mappe als JSON',
       'bilder/           : alle komprimierten Fotos',

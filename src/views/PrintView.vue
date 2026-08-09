@@ -452,7 +452,7 @@ function print() {
                   font-weight: 700;
                 "
               >
-                EMMA Build Log
+                Build Log
               </p>
               <h1 class="print-h1" style="margin-top: 2mm">
                 {{ headMeta.vehicle || t('print.documentation') }}

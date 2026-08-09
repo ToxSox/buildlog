@@ -1,4 +1,4 @@
-# EMMA Build Log Creator
+# Build Log Creator
 
 Geführter Assistent zur Erstellung von Car-HiFi-Einbaudokumentationen („Build Logs“)
 nach EMMA-Regelwerk. Die App läuft **zu 100 % clientseitig**: kein Backend, kein Konto,
