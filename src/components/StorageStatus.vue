@@ -75,7 +75,9 @@ const barClass = computed(
 
     <ul class="mt-3 space-y-1 text-xs">
       <li class="flex gap-2">
-        <span>{{ persistence.persisted ? '🔒' : persistence.supported ? '⚠️' : 'ℹ️' }}</span>
+        <span aria-hidden="true">{{
+          persistence.persisted ? '🔒' : persistence.supported ? '⚠️' : 'ℹ️'
+        }}</span>
         <span :class="persistence.persisted ? 'text-emerald-800' : 'text-slate-600'">
           <template v-if="persistence.persisted">{{ t('storage.persisted') }}</template>
           <template v-else-if="persistence.supported">{{ t('storage.notPersisted') }}</template>
@@ -83,7 +85,7 @@ const barClass = computed(
         </span>
       </li>
       <li class="flex gap-2">
-        <span>{{ offlineReady ? '📴' : '🌐' }}</span>
+        <span aria-hidden="true">{{ offlineReady ? '📴' : '🌐' }}</span>
         <span :class="offlineReady ? 'text-emerald-800' : 'text-slate-600'">
           <template v-if="offlineReady">{{ t('storage.offlineReady') }}</template>
           <template v-else>{{ t('storage.offlinePending') }}</template>

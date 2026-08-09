@@ -12,6 +12,13 @@ const props = defineProps({
 
 const svg = ref('')
 const error = ref('')
+/**
+ * mermaid ist die mit Abstand schwerste Abhängigkeit und wird bewusst erst bei
+ * Bedarf geladen. Ohne eigenen Zustand stand währenddessen der LEER-Text da
+ * („Lege Komponenten an …“) – vor jemandem, der längst welche angelegt hat.
+ * Das ist keine fehlende Ladeanzeige, sondern eine falsche Aussage.
+ */
+const pending = ref(false)
 const host = ref(null)
 let mermaidLib = null
 let counter = 0
@@ -42,8 +49,10 @@ async function render() {
   error.value = ''
   if (!props.definition) {
     svg.value = ''
+    pending.value = false
     return
   }
+  pending.value = true
   try {
     const mermaid = await ensureMermaid()
     counter += 1
@@ -65,6 +74,10 @@ async function render() {
     console.error('[emma] Diagramm konnte nicht gerendert werden', err)
     error.value = t('diagram.renderError')
     svg.value = ''
+  } finally {
+    // Nur der jüngste Lauf darf abmelden: Ein überholter Lauf würde sonst die
+    // Anzeige des laufenden beenden.
+    if (run === runId) pending.value = false
   }
 }
 
@@ -87,6 +100,15 @@ onBeforeUnmount(() => {
     <!-- eslint-disable-next-line vue/no-v-html -- von mermaid erzeugtes SVG, mermaid laeuft mit securityLevel "strict" -->
     <div v-if="svg" ref="host" class="mermaid-host overflow-x-auto" v-html="svg" />
     <p v-else-if="error" class="text-sm text-rose-600">{{ error }}</p>
+    <!-- Bewusst OHNE `mermaid-host`: Der Platzhalter enthaelt kein SVG, und die
+         Kanten-Pruefung im E2E-Test sucht ueber genau diese Klasse. -->
+    <p
+      v-else-if="pending"
+      role="status"
+      class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500"
+    >
+      {{ t('diagram.rendering') }}
+    </p>
     <p
       v-else
       class="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500"

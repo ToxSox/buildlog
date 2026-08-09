@@ -12,8 +12,11 @@ export default {
     updateReady: 'A new version of the app is ready.',
     updateNow: 'Load now',
     progress: 'Install points (estimated)',
+    progressValue: '{score} of {max} points',
     photoProgress: 'Required photos',
     language: 'Language',
+    home: 'EMMA Build Log Creator – to the start page',
+    skipToContent: 'Skip to content',
   },
 
   common: {
@@ -173,6 +176,7 @@ export default {
     generated: 'Automatically generated diagrams',
     generatedHint: 'These exact graphics go into the printout – you do not have to draw anything.',
     empty2: 'Add components and connect them – the diagram appears automatically.',
+    rendering: 'Drawing the diagram …',
     renderError: 'The diagram could not be drawn. Check the component names.',
   },
 

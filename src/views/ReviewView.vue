@@ -114,7 +114,9 @@ const grouped = computed(() => {
           <p class="mb-1.5 text-xs font-bold uppercase tracking-wider text-slate-600">{{ section }}</p>
           <ul class="divide-y divide-slate-100 rounded-lg border border-slate-200">
             <li v-for="item in items" :key="item.key" class="flex items-center gap-3 px-3 py-2">
-              <span class="text-base">
+              <!-- Das Abzeichen rechts sagt dasselbe in Worten – ein Screenreader
+                   las hier sonst „Häkchen-Symbol“ bzw. „Auge“ dazwischen. -->
+              <span class="text-base" aria-hidden="true">
                 {{ item.count ? '✅' : item.visible ? '👁️' : item.required ? '⛔' : '○' }}
               </span>
               <span class="min-w-0 flex-1 truncate text-sm text-slate-700">{{ item.label }}</span>

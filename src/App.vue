@@ -16,6 +16,10 @@ const store = useProjectStore()
 const isPrintRoute = computed(() => Boolean(route.meta.print))
 const version = __APP_VERSION__
 
+function focusMain() {
+  document.getElementById('main')?.focus()
+}
+
 onMounted(() => {
   if (!store.ready) store.load()
   // Gleich beim Start anfordern, nicht erst in der Prüfansicht: Fotos sammeln
@@ -31,6 +35,22 @@ onMounted(() => {
   </div>
 
   <div v-else class="min-h-screen flex flex-col">
+    <!--
+      Der Kopf klebt oben und hat am Handy bis zu drei Zeilen: Ohne Sprungmarke
+      tabbt man auf JEDER Seite erst durch Logo, Sprachumschalter und acht
+      Schrittknoepfe, bevor der Inhalt kommt.
+
+      Bewusst mit `@click.prevent` statt eines echten `href="#main"`: Die App
+      laeuft auf einem Hash-Router, ein Sprungziel im Hash wuerde die Route
+      ueberschreiben und den Wachposten zurueck auf die Startseite schicken.
+    -->
+    <a
+      href="#main"
+      class="wizard-ui sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-sky-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+      @click.prevent="focusMain"
+      >{{ t('app.skipToContent') }}</a
+    >
+
     <AppHeader class="wizard-ui" />
 
     <!-- Neue Version bereit: Ohne diesen Hinweis merkte niemand, dass er auf
@@ -60,7 +80,7 @@ onMounted(() => {
       {{ store.storageError }}
     </div>
 
-    <main class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 pb-24">
+    <main id="main" tabindex="-1" class="flex-1 w-full max-w-6xl mx-auto px-4 py-6 pb-24">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />

@@ -322,6 +322,7 @@ const remoteMissing = computed(
                     ? opt.active
                     : 'border-slate-300 bg-white text-slate-600 hover:border-sky-400'
                 "
+                :aria-pressed="l.polarity === opt.value"
                 @click="l.polarity = opt.value"
               >
                 {{ t(opt.labelKey) }}

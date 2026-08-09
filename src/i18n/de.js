@@ -12,8 +12,11 @@ export default {
     updateReady: 'Eine neue Version der App steht bereit.',
     updateNow: 'Jetzt laden',
     progress: 'Install-Punkte (geschätzt)',
+    progressValue: '{score} von {max} Punkten',
     photoProgress: 'Pflichtfotos',
     language: 'Sprache',
+    home: 'EMMA Build Log Creator – zur Startseite',
+    skipToContent: 'Zum Inhalt springen',
   },
 
   common: {
@@ -176,6 +179,7 @@ export default {
     generated: 'Automatisch generierte Diagramme',
     generatedHint: 'Genau diese Grafiken landen später im Ausdruck – du musst nichts zeichnen.',
     empty2: 'Lege Komponenten an und verbinde sie – das Diagramm entsteht automatisch.',
+    rendering: 'Diagramm wird gezeichnet …',
     renderError: 'Diagramm konnte nicht gezeichnet werden. Prüfe die Bezeichnungen der Komponenten.',
   },
 

@@ -158,6 +158,7 @@ function stepFor(criterionId) {
                     ? s.klass
                     : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
                 "
+                :aria-pressed="c.state === s.value"
                 @click="store.setAssessment(c.id, { state: c.state === s.value ? null : s.value })"
               >
                 {{ s.label }}

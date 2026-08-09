@@ -51,7 +51,9 @@ const styles = {
       class="flex gap-3 rounded-lg border px-3 py-2.5"
       :class="styles[f.severity].box"
     >
-      <span class="text-lg leading-none">{{ styles[f.severity].icon }}</span>
+      <!-- Der Schweregrad steht als Wort im Titel darunter; das Zeichen ist
+           Verstaerkung, kein Traeger. -->
+      <span class="text-lg leading-none" aria-hidden="true">{{ styles[f.severity].icon }}</span>
       <div class="min-w-0">
         <p class="flex flex-wrap items-center gap-2 text-sm font-bold" :class="styles[f.severity].title">
           <span>{{ t(`${f.key}.title`, f.params) }}</span>

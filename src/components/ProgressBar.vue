@@ -1,5 +1,8 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from '../i18n/index.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   percent: { type: Number, default: 0 },
@@ -24,7 +27,18 @@ const barClass = computed(() => {
       <span>{{ caption }}</span>
       <span class="tabular-nums">{{ score }}/{{ max }}</span>
     </div>
-    <div class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200">
+    <!-- Die Farbstufe allein sagt einem Screenreader nichts; erst Rolle und Werte
+         machen aus dem Balken eine Angabe. `aria-valuetext` nennt die echten
+         Punkte statt der Prozentzahl – danach fragt der Juror. -->
+    <div
+      class="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-200"
+      role="progressbar"
+      :aria-label="caption"
+      :aria-valuenow="percent"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      :aria-valuetext="t('app.progressValue', { score, max })"
+    >
       <div
         class="h-full rounded-full transition-all duration-500"
         :class="barClass"
