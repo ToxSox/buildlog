@@ -427,6 +427,30 @@ try {
     signalDiagram.slice(0, 80),
   )
 
+  // Ein Punkt in der Beschriftung beendete früher den gestrichelten Pfeil
+  // (`-. Litze 1.5mm2 .->`) und riss mit einem Lexer-Fehler das ganze
+  // Diagramm mit – nicht nur diese eine Kante.
+  await page
+    .getByLabel(/Kabel \/ Kanal/)
+    .last()
+    .fill('Litze 1.5mm2')
+  await page.waitForTimeout(2500)
+  const dottedDiagram = await page.locator('.mermaid-host').first().innerText()
+  check(
+    'Punkt in der Remote-Beschriftung kippt das Diagramm nicht',
+    dottedDiagram.includes('Litze 1.5mm2'),
+    dottedDiagram.slice(0, 120),
+  )
+  check(
+    'kein Render-Fehler nach der Beschriftung',
+    (await page.getByText(/Diagramm konnte nicht gezeichnet werden/).count()) === 0,
+  )
+  await page
+    .getByLabel(/Kabel \/ Kanal/)
+    .last()
+    .fill('')
+  await page.waitForTimeout(2500)
+
   // --------------------------- Zentrale Komponenten: einmal eingeben, überall
   // Batterie + Verteiler im Blockdiagramm anlegen, verbinden, Polarität setzen –
   // dieselben Daten müssen auf „Strom & Sicherheit“ editierbar wieder auftauchen.

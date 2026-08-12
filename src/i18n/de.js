@@ -205,6 +205,8 @@ export default {
     mainSectionHint: 'Querschnitt und Sicherungswert müssen zusammenpassen.',
     cableSection: 'Querschnitt Pluskabel (mm²)',
     maxFuse: '{awg} · maximal zulässige Absicherung: {max} A (Fuse Size Matrix)',
+    maxFuseUnlisted:
+      'Nicht in der Fuse Size Matrix – konservativ gerechnet höchstens {max} A (Wert des nächstkleineren gelisteten Querschnitts). Für mehr braucht es eine eigene Berechnung nach dem Judge Book.',
     mainFuse: 'Hauptsicherung (A)',
     fuseType: 'Sicherungstyp',
     fuseDistance: 'Abstand zum Batterie-Pluspol (cm)',

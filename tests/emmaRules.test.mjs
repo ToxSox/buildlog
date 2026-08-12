@@ -1,5 +1,5 @@
 import { FUSE_LIMITS, maxAmpsFor, minSectionFor, evaluateRules, toNumber } from '../src/data/emmaRules.js'
-import { createEmptyProject } from '../src/data/schema.js'
+import { createEmptyProject, CABLE_SECTIONS } from '../src/data/schema.js'
 import { assessProject } from '../src/data/assessment.js'
 
 // Offizielle Fuse Size Matrix, abgetippt aus dem Rulebook 2026 (Seite 25/28)
@@ -40,6 +40,12 @@ check('minSectionFor(300) == 70', minSectionFor(300) === 70)
 check('minSectionFor(400) == null', minSectionFor(400) === null)
 check('maxAmpsFor(20) faellt auf 16mm² zurueck', maxAmpsFor(20) === 100)
 
+// 20mm² ist handelsueblich, steht aber nicht in der Matrix: waehlbar ja,
+// Matrix-Zeile nein. Wer es zur Zeile machen wuerde, haette abgetippte Zahlen
+// erfunden, die kein Rulebook deckt.
+check('20mm² ist waehlbar', CABLE_SECTIONS.includes(20))
+check('20mm² bekommt keine Matrix-Zeile', !FUSE_LIMITS.some((e) => e.mm2 === 20))
+
 const ids = (f) => f.map((x) => x.id)
 
 // Fall 1: 50mm² / 300A -> zu gross (Matrix erlaubt 250A)
@@ -62,6 +68,17 @@ p.power.mainCableSection = 10
 p.power.mainFuseAmps = 80
 f = evaluateRules(p)
 check('10mm²/80A wird jetzt beanstandet', ids(f).includes('fuse.oversized'))
+
+// Fall 3b: 20mm² ist nicht gelistet – der Hinweis darauf muss kommen, und
+// gerechnet wird konservativ mit den 100A des naechstkleineren Eintrags.
+p.power.mainCableSection = 20
+p.power.mainFuseAmps = 100
+f = evaluateRules(p)
+check('20mm² meldet den fehlenden Matrix-Eintrag', ids(f).includes('fuse.sectionNotListed'))
+check('20mm²/100A gilt konservativ als ok', ids(f).includes('fuse.ok'))
+p.power.mainFuseAmps = 125
+f = evaluateRules(p)
+check('20mm²/125A wird beanstandet', ids(f).includes('fuse.oversized'))
 
 // Fall 4: OEM-Masse nicht verstaerkt + 150A -> 100A-Deckel greift
 p = createEmptyProject()

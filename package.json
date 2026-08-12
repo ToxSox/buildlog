@@ -1,7 +1,7 @@
 {
   "name": "build-log-creator",
   "private": true,
-  "version": "0.7.2",
+  "version": "0.7.3",
   "license": "MIT",
   "type": "module",
   "description": "Clientseitiger Assistent zur Erstellung EMMA-konformer Car-HiFi Build Logs (DIN A4 quer).",
@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/emmaRules.test.mjs && node tests/migration.test.mjs && node tests/matrix.test.mjs && node tests/sections.test.mjs && node tests/i18n.test.mjs && node tests/photoPages.test.mjs && node tests/edgeLabels.test.mjs",
+    "test": "node tests/emmaRules.test.mjs && node tests/migration.test.mjs && node tests/matrix.test.mjs && node tests/sections.test.mjs && node tests/i18n.test.mjs && node tests/photoPages.test.mjs && node tests/edgeLabels.test.mjs && node tests/mermaid.test.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

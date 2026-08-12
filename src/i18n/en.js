@@ -202,6 +202,8 @@ export default {
     mainSectionHint: 'Cross-section and fuse rating have to match.',
     cableSection: 'Positive cable cross-section (mm²)',
     maxFuse: '{awg} · maximum permitted fuse: {max} A (Fuse Size Matrix)',
+    maxFuseUnlisted:
+      'Not in the Fuse Size Matrix – conservatively at most {max} A (the value of the next smaller listed cross-section). Anything above needs your own calculation from the Judge Book.',
     mainFuse: 'Main fuse (A)',
     fuseType: 'Fuse type',
     fuseDistance: 'Distance to the positive battery post (cm)',

@@ -70,11 +70,14 @@ export const COMPONENT_TYPES = [
 ]
 
 /**
- * Querschnitte exakt nach der Fuse Size Matrix des Rulebooks 2026.
- * Andere Querschnitte sind zwar verbaubar, das Regelwerk verlangt dann aber eine
- * eigene Berechnung nach der Formel aus dem Judge Book.
+ * Auswahlliste der Querschnitte. Sie deckt die Fuse Size Matrix des Rulebooks
+ * 2026 vollständig ab und enthält zusätzlich handelsübliche Größen, die dort
+ * nicht gelistet sind (20 mm²). Für die verlangt das Regelwerk eine eigene
+ * Berechnung nach der Formel aus dem Judge Book – die Regelprüfung weist
+ * darauf hin und rechnet bis dahin mit dem nächstkleineren gelisteten Wert.
+ * Maßgeblich für die Absicherung bleibt allein FUSE_LIMITS in emmaRules.js.
  */
-export const CABLE_SECTIONS = [0.5, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70]
+export const CABLE_SECTIONS = [0.5, 1, 1.5, 2.5, 4, 6, 10, 16, 20, 25, 35, 50, 70]
 
 /**
  * Montage-Details je Komponente – gepflegt auf „Hardware-Montage“, gespeichert

@@ -60,9 +60,12 @@ function buildFlowchart(components, links, edgeLabel, edgeStyle) {
       // Remote-Leitungen (Einschaltsignal) gestrichelt, damit sie sich vom
       // Audiosignal unterscheiden.
       if (l.remote) {
+        // Beschriftung immer in Pipes, nie in der Form `-. Text .->`: Dort
+        // beendet schon ein Punkt im Text den Pfeil, und „Litze 1.5mm2“ hat das
+        // ganze Diagramm mit einem Lexer-Fehler gekippt.
         lines.push(
           label
-            ? `  ${nodeId(l.from)} -. ${label} .-> ${nodeId(l.to)}`
+            ? `  ${nodeId(l.from)} -.->|${label}| ${nodeId(l.to)}`
             : `  ${nodeId(l.from)} -.-> ${nodeId(l.to)}`,
         )
       } else {

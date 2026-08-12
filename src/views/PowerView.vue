@@ -28,7 +28,10 @@ const sectionInfo = computed(() => {
   const mm2 = Number(power.value.mainCableSection)
   if (!mm2) return null
   const entry = FUSE_LIMITS.find((e) => e.mm2 === mm2)
-  return { mm2, max: maxAmpsFor(mm2), awg: entry?.awg || '' }
+  // Nicht jeder wählbare Querschnitt steht in der Matrix (20 mm²). Ohne
+  // eigenen Text stand dort ein führendes „ · “ ohne AWG-Angabe, und der
+  // konservativ hergeleitete Wert sah aus wie eine Vorgabe des Regelwerks.
+  return { mm2, max: maxAmpsFor(mm2), awg: entry?.awg || '', listed: Boolean(entry) }
 })
 
 function toggleProtection(option) {
@@ -179,7 +182,11 @@ function adoptMainSection() {
             <option v-for="s in CABLE_SECTIONS" :key="s" :value="s">{{ s }} mm²</option>
           </select>
           <p v-if="sectionInfo" class="hint">
-            {{ t('power.maxFuse', { awg: sectionInfo.awg, max: sectionInfo.max }) }}
+            {{
+              sectionInfo.listed
+                ? t('power.maxFuse', { awg: sectionInfo.awg, max: sectionInfo.max })
+                : t('power.maxFuseUnlisted', { max: sectionInfo.max })
+            }}
           </p>
           <p v-if="diagramMainSection" class="hint">
             {{ t('power.fromDiagram', { section: diagramMainSection }) }}
