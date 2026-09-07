@@ -59,6 +59,19 @@ check(
   ),
 )
 
+// „System-/Verkabelungsdiagramm" und „Systemdokumentation" leitet die App in
+// assessment.js allein aus dem Blockdiagramm und den Strom-Fotos ab. Ein
+// Foto-Slot, der auf eines der beiden zeigt, blendet unter dem Upload „zahlt
+// ein auf … (10 P.)" ein und verspricht damit Punkte, die dieser Upload nie
+// bewegen kann – so stand der Frequenzgang als Pflichtfoto auf
+// „Systemdokumentation", obwohl das Regelwerk dort Flowchart, Kabeldiagramm
+// und Foto-Log verlangt und keine Messung.
+const WITHOUT_PHOTO_SLOTS = ['diagram', 'sysDoc']
+check(
+  'kein Slot verspricht Punkte aus einem Kriterium ohne Foto-Herleitung',
+  slots.filter((s) => WITHOUT_PHOTO_SLOTS.includes(s.criterion)).map((s) => `${s.key} → ${s.criterion}`),
+)
+
 check(
   'jeder Slot ist zweisprachig beschriftet',
   slots.filter((s) => !s.label?.de || !s.label?.en).map((s) => s.key),
