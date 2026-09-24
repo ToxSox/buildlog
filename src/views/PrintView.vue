@@ -253,6 +253,84 @@ const hardwarePages = computed(() => {
 })
 
 /**
+ * Blätter von „Dämmung & Türaufbau“. Bisher fest ein Blatt: Viele Custom-Parts
+ * oder Messungen liefen über und landeten auf einem Zusatzblatt ohne Kopfzeile.
+ * Die Abstimmungs-Notiz steht am Ende, wie die Einbau-Notiz bei den Komponenten.
+ */
+const craftPages = computed(() => {
+  const c = p.value.craft
+  if (!(
+    c.dampingDoors ||
+    c.dampingFloor ||
+    c.dampingTrunk ||
+    c.customParts.length ||
+    c.measurements.length ||
+    c.tuningNotes
+  )) {
+    return []
+  }
+  const damping = [
+    ['doors', t('print.doors'), c.dampingDoors],
+    ['floor', t('print.floor'), c.dampingFloor],
+    ['trunk', t('print.trunk'), c.dampingTrunk],
+  ]
+    .filter(([, , value]) => value)
+    .map(([id, label, value]) => ({ id, label, value }))
+  const parts = c.customParts.map((part) => ({
+    id: part.id,
+    name: part.name || '—',
+    technique: optionLabel(FABRICATION_TECHNIQUES, part.technique),
+    material: part.material,
+    purpose: [part.purpose, part.notes].filter(Boolean).join(' – '),
+  }))
+  const measurements = c.measurements.map((m) => ({
+    id: m.id,
+    name: m.name || '—',
+    tool: m.tool,
+    position: m.position,
+    result: m.result,
+  }))
+  const cells = (row) => Object.values(row)
+  const sections = [
+    // Die Überschrift steht auch ohne Einträge – wie bisher.
+    { ...tableSection('damping', damping, { cells, charsPerLine: 120, head: false }), keepEmpty: true },
+    tableSection('parts', parts, { cells, charsPerLine: 50 }),
+    tableSection('measurements', measurements, { cells, charsPerLine: 50 }),
+  ]
+  const notes = c.tuningNotes || ''
+  const notesKey = `trailer|tuning|${notes}`
+  const trailer = notes ? heightOf(notesKey, BLOCK_GAP_MM + ESTIMATE.heading + estimateText(notes)) : 0
+  return flowTables(sections, flowOptions(trailer)).map((page) => ({
+    kind: 'craft',
+    title: t('print.craft'),
+    blocks: page.blocks,
+    notes: page.trailer ? notes : '',
+    notesKey,
+  }))
+})
+
+/**
+ * Blätter der Bonuspunkte. Bisher fest acht Einträge pro Blatt – mit langen
+ * Begründungen lief das Blatt über, mit kurzen blieb die Hälfte leer.
+ */
+const bonusPages = computed(() => {
+  const items = bonusRequests.value.map((req, i) => ({
+    id: req.id,
+    n: i + 1,
+    title: req.title,
+    area: req.area,
+    description: req.description,
+  }))
+  if (!items.length) return []
+  const section = tableSection('bonus', items, { cells: (r) => [r.description], charsPerLine: 100 })
+  return flowTables([section], flowOptions()).map((page) => ({
+    kind: 'bonus',
+    title: t('print.bonusTitle'),
+    items: page.blocks[0]?.rows || [],
+  }))
+})
+
+/**
  * Foto-Seiten. Wie viele Bilder auf ein Blatt passen, hängt an der Ausrichtung –
  * siehe utils/photoPages.js.
  */
@@ -342,17 +420,7 @@ const pages = computed(() => {
   list.push(...hardwarePages.value)
   list.push(...photosForStep('hardware'))
 
-  const c = p.value.craft
-  if (
-    c.dampingDoors ||
-    c.dampingFloor ||
-    c.dampingTrunk ||
-    c.customParts.length ||
-    c.measurements.length ||
-    c.tuningNotes
-  ) {
-    list.push({ kind: 'craft', title: t('print.craft') })
-  }
+  list.push(...craftPages.value)
   list.push(...photosForStep('craft'))
 
   // `story` zählt mit: sonst verschwindet ein nur dort gefüllter Vortrag aus dem Druck.
@@ -365,16 +433,7 @@ const pages = computed(() => {
     list.push({ kind: 'presentation', title: t('print.presentationTitle') })
   }
 
-  if (bonusRequests.value.length) {
-    for (let i = 0; i < bonusRequests.value.length; i += 8) {
-      list.push({
-        kind: 'bonus',
-        title: t('print.bonusTitle'),
-        items: bonusRequests.value.slice(i, i + 8),
-        offset: i,
-      })
-    }
-  }
+  list.push(...bonusPages.value)
 
   return list
 })
@@ -423,13 +482,12 @@ function measureHeights(nodes) {
   }
   for (const el of docEl.value.querySelectorAll('[data-mk]')) {
     const box = el.getBoundingClientRect()
-    if (el.tagName === 'H2') {
-      // Überschrift samt Abstand bis zur Tabelle darunter.
+    if (el.tagName === 'H2' || el.hasAttribute('data-mk-span')) {
+      // Überschrift (oder Einleitung) samt Abstand bis zur Tabelle darunter.
       put(el.dataset.mk, (el.nextElementSibling?.getBoundingClientRect().top ?? box.bottom) - box.top)
-    } else if (el.tagName === 'P') {
-      put(el.dataset.mk, box.height + parseFloat(getComputedStyle(el).marginTop || 0))
     } else {
-      put(el.dataset.mk, box.height)
+      // Zeilen haben keinen Außenabstand, Notizen tragen ihren Abstand nach oben mit.
+      put(el.dataset.mk, box.height + parseFloat(getComputedStyle(el).marginTop || 0))
     }
   }
   if (changed) measured.value = next
@@ -735,72 +793,76 @@ function print() {
 
         <!-- -------------------------------------------------------- Handwerk -->
         <template v-else-if="page.kind === 'craft'">
-          <h2 class="print-h2">{{ t('print.damping') }}</h2>
-          <table class="print-table">
-            <tbody>
-              <tr v-if="p.craft.dampingDoors">
-                <th style="width: 40mm">{{ t('print.doors') }}</th>
-                <td>{{ p.craft.dampingDoors }}</td>
-              </tr>
-              <tr v-if="p.craft.dampingFloor">
-                <th>{{ t('print.floor') }}</th>
-                <td>{{ p.craft.dampingFloor }}</td>
-              </tr>
-              <tr v-if="p.craft.dampingTrunk">
-                <th>{{ t('print.trunk') }}</th>
-                <td>{{ p.craft.dampingTrunk }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <template v-for="(block, bi) in page.blocks" :key="`${block.key}-${bi}`">
+            <template v-if="block.key === 'damping'">
+              <h2 class="print-h2" data-mk="heading|damping" :style="bi ? gapStyle : ''">
+                {{ t('print.damping') }}
+              </h2>
+              <table class="print-table">
+                <tbody>
+                  <tr v-for="row in block.rows" :key="row.id" :data-mk="row.mk">
+                    <th style="width: 40mm">{{ row.label }}</th>
+                    <td>{{ row.value }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
 
-          <template v-if="p.craft.customParts.length">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.customParts') }}</h2>
-            <table class="print-table">
-              <thead>
-                <tr>
-                  <th>{{ t('print.part') }}</th>
-                  <th>{{ t('print.technique') }}</th>
-                  <th>{{ t('print.material') }}</th>
-                  <th>{{ t('print.purpose') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="c in p.craft.customParts" :key="c.id">
-                  <td>{{ c.name || '—' }}</td>
-                  <td>{{ optionLabel(FABRICATION_TECHNIQUES, c.technique) }}</td>
-                  <td>{{ c.material }}</td>
-                  <td>{{ [c.purpose, c.notes].filter(Boolean).join(' – ') }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <template v-else-if="block.key === 'parts'">
+              <h2 class="print-h2" data-mk="heading|parts" :style="bi ? gapStyle : ''">
+                {{ t('print.customParts')
+                }}<template v-if="block.continued"> ({{ t('print.continued') }})</template>
+              </h2>
+              <table class="print-table">
+                <thead>
+                  <tr data-mk="head|parts">
+                    <th>{{ t('print.part') }}</th>
+                    <th>{{ t('print.technique') }}</th>
+                    <th>{{ t('print.material') }}</th>
+                    <th>{{ t('print.purpose') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in block.rows" :key="row.id" :data-mk="row.mk">
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.technique }}</td>
+                    <td>{{ row.material }}</td>
+                    <td>{{ row.purpose }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
+
+            <template v-else>
+              <h2 class="print-h2" data-mk="heading|measurements" :style="bi ? gapStyle : ''">
+                {{ t('print.measurements')
+                }}<template v-if="block.continued"> ({{ t('print.continued') }})</template>
+              </h2>
+              <table class="print-table">
+                <thead>
+                  <tr data-mk="head|measurements">
+                    <th>{{ t('print.measurement') }}</th>
+                    <th>{{ t('print.system') }}</th>
+                    <th>{{ t('print.position') }}</th>
+                    <th>{{ t('print.result') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in block.rows" :key="row.id" :data-mk="row.mk">
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.tool }}</td>
+                    <td>{{ row.position }}</td>
+                    <td>{{ row.result }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
           </template>
 
-          <template v-if="p.craft.measurements.length">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.measurements') }}</h2>
-            <table class="print-table">
-              <thead>
-                <tr>
-                  <th>{{ t('print.measurement') }}</th>
-                  <th>{{ t('print.system') }}</th>
-                  <th>{{ t('print.position') }}</th>
-                  <th>{{ t('print.result') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="m in p.craft.measurements" :key="m.id">
-                  <td>{{ m.name || '—' }}</td>
-                  <td>{{ m.tool }}</td>
-                  <td>{{ m.position }}</td>
-                  <td>{{ m.result }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-
-          <template v-if="p.craft.tuningNotes">
-            <h2 class="print-h2" style="margin-top: 4mm">{{ t('print.tuning') }}</h2>
-            <p style="font-size: 9pt; white-space: pre-line">{{ p.craft.tuningNotes }}</p>
-          </template>
+          <div v-if="page.notes" :data-mk="page.notesKey" :style="gapStyle">
+            <h2 class="print-h2">{{ t('print.tuning') }}</h2>
+            <p style="font-size: 9pt; white-space: pre-line">{{ page.notes }}</p>
+          </div>
         </template>
 
         <!-- --------------------------------------------- Vortragsleitfaden -->
@@ -830,12 +892,12 @@ function print() {
 
         <!-- --------------------------------------------------- Bonuspunkte -->
         <template v-else-if="page.kind === 'bonus'">
-          <p class="print-lead" style="margin-bottom: 3mm">
+          <p class="print-lead" style="margin-bottom: 3mm" data-mk="heading|bonus" data-mk-span>
             {{ t('print.bonusLead') }}
           </p>
           <table class="print-table">
             <thead>
-              <tr>
+              <tr data-mk="head|bonus">
                 <th style="width: 10mm">#</th>
                 <th style="width: 55mm">{{ t('print.bonusElement') }}</th>
                 <th style="width: 30mm">{{ t('print.bonusArea') }}</th>
@@ -843,8 +905,8 @@ function print() {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(req, idx) in page.items" :key="req.id">
-                <td>{{ page.offset + idx + 1 }}</td>
+              <tr v-for="req in page.items" :key="req.id" :data-mk="req.mk">
+                <td>{{ req.n }}</td>
                 <td>
                   <strong>{{ req.title }}</strong>
                 </td>
