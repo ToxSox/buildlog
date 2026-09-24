@@ -14,6 +14,8 @@ import { mkdtempSync, writeFileSync, readFileSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import zlib from 'node:zlib'
+import JSZip from 'jszip'
+import { createEmptyProject } from '../../src/data/schema.js'
 
 const PORT = Number(process.env.E2E_PORT || 4183)
 const BASE = `http://127.0.0.1:${PORT}/`
@@ -793,6 +795,113 @@ try {
     previewFigures > 0 && embeddedImages >= previewFigures + previewDiagrams,
     `${embeddedImages} Bildobjekte, erwartet ≥ ${previewFigures} Fotos + ${previewDiagrams} Diagramme`,
   )
+
+  // ------------------------------------------------- Strom & Sicherheit teilen
+  // Sieben Stammdaten und vierzehn Abgänge passten nicht mehr auf ein Blatt: Der
+  // Browser schob die letzten zwei Abgänge auf ein Zusatzblatt ohne Kopfzeile,
+  // das sonst leer blieb und im Fuß die Seitenzahl des Vorblatts trug. Passt die
+  // Tabelle allein auf ein Blatt, beginnt sie dort; sprengt sie auch das, beginnt
+  // sie unter den Stammdaten. In beiden Fällen: kein Überlauf, kein Zusatzblatt.
+  const powerCtx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const powerPage = await powerCtx.newPage()
+  powerPage.on('pageerror', (e) => consoleErrors.push(`strom: ${e.message}`))
+  powerPage.on('dialog', (d) => d.accept())
+  const powerLayout = async (branchCount) => {
+    const prj = createEmptyProject()
+    prj.mode = 'QuickRescue'
+    Object.assign(prj.power, {
+      batteryType: 'AGM 80 Ah',
+      batteryLocation: 'Motorraum',
+      batterySecured: 'Originalhalter',
+      mainCableSection: 35,
+      mainFuseAmps: 175,
+      mainFuseType: 'ANL',
+      mainFuseDistanceCm: 20,
+      groundCableSection: 35,
+      groundLengthCm: 50,
+      groundPoint: 'Karosserie',
+      cableProtection: ['Wellrohr'],
+    })
+    prj.system.components = [
+      { id: 'bat', type: 'battery', name: 'Hollywood DIN 80' },
+      { id: 'dist', type: 'distributor', name: 'ACV Verteiler' },
+      ...Array.from({ length: branchCount }, (_, i) => ({
+        id: `amp${i}`,
+        type: 'amp',
+        name: `Endstufe ${i + 1}`,
+      })),
+    ]
+    prj.system.powerLinks = Array.from({ length: branchCount }, (_, i) => ({
+      id: `lnk${i}`,
+      from: i % 2 ? 'bat' : 'dist',
+      to: `amp${i}`,
+      polarity: i % 3 ? 'plus' : 'minus',
+      section: 35,
+      fuseAmps: 150,
+      oem: false,
+    }))
+    const zip = new JSZip()
+    zip.file('project.json', JSON.stringify(prj))
+    const zipFile = join(WORK, `strom-${branchCount}.zip`)
+    writeFileSync(zipFile, await zip.generateAsync({ type: 'nodebuffer' }))
+    await powerPage.goto(BASE, { waitUntil: 'networkidle' })
+    await powerPage.locator('input[type=file][accept*="zip"]').setInputFiles(zipFile)
+    await powerPage.waitForTimeout(2000)
+    await powerPage.goto(`${BASE}#/druck`)
+    await powerPage.waitForTimeout(2500)
+    const sheets = await powerPage.locator('.print-page').evaluateAll((els) =>
+      els.map((e) => ({
+        title: e.querySelector('.print-head__title').textContent.trim(),
+        headings: [...e.querySelectorAll('.print-h2')].map((h) => h.textContent.trim()),
+        rows: e.querySelectorAll('tbody tr').length,
+      })),
+    )
+    const power = sheets.filter((sh) => sh.title === 'Strom & Sicherheit')
+    const overflow = await powerPage.locator('[data-testid=print-overflow]').count()
+    const pdfFile = join(WORK, `strom-${branchCount}.pdf`)
+    await powerPage.emulateMedia({ media: 'print' })
+    await powerPage.pdf({ path: pdfFile, preferCSSPageSize: true, printBackground: true })
+    await powerPage.emulateMedia({ media: 'screen' })
+    const pdfPages = (
+      readFileSync(pdfFile)
+        .toString('latin1')
+        .match(/\/Type\s*\/Page[^s]/g) || []
+    ).length
+    const shape = power.map((sh) => sh.headings.join(' + ')).join(' | ')
+    return { power, overflow, pdfPages, sheets: sheets.length, shape }
+  }
+
+  const fits = await powerLayout(14)
+  check(
+    'Abgangstabelle beginnt auf eigenem Blatt, wenn sie dort ganz passt',
+    fits.power.length === 2 &&
+      fits.power[0].headings.join() === 'Stromversorgung & Absicherung' &&
+      fits.power[1].headings.join() === 'Verteiler & Abgänge' &&
+      fits.power[1].rows === 14,
+    fits.shape,
+  )
+  check(
+    'eigenes Blatt für die Abgänge läuft nicht über',
+    fits.overflow === 0 && fits.pdfPages === fits.sheets,
+    `PDF ${fits.pdfPages}, Vorschau ${fits.sheets}, Warnungen ${fits.overflow}`,
+  )
+
+  const long = await powerLayout(30)
+  check(
+    'zu lange Abgangstabelle beginnt unter den Stammdaten',
+    long.power.length >= 2 &&
+      long.power[0].headings.join() === 'Stromversorgung & Absicherung,Verteiler & Abgänge' &&
+      long.power.slice(1).every((sh) => sh.headings.join() === 'Verteiler & Abgänge (Fortsetzung)'),
+    long.shape,
+  )
+  check(
+    'geteilte Abgangstabelle verliert keine Zeile und läuft nicht über',
+    long.power.reduce((sum, sh) => sum + sh.rows, 0) === 30 + 7 &&
+      long.overflow === 0 &&
+      long.pdfPages === long.sheets,
+    `PDF ${long.pdfPages}, Vorschau ${long.sheets}, Warnungen ${long.overflow}`,
+  )
+  await powerCtx.close()
 
   // ------------------------------------------------------------ Handy-Layout
   // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
