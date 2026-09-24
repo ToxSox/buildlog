@@ -7,7 +7,7 @@ import { EMMA_CLASSES, MODES, COMPONENT_TYPES } from '../data/schema.js'
 import { toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { paginateFigures, layoutFor, photosPerPage } from '../utils/photoPages.js'
-import { paginatePowerData } from '../utils/powerPages.js'
+import { flowTables, estimateRow, estimateText, ESTIMATE, BLOCK_GAP_MM } from '../utils/tableFlow.js'
 import { columnForClass } from '../data/matrix.js'
 import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
@@ -142,25 +142,65 @@ const branchRows = computed(() => {
 })
 
 /**
+ * Nachgemessene Höhen in mm, je Messschlüssel (`data-mk` im Template). Die
+ * Vorschau misst jede gedruckte Zeile, Überschrift und Notiz nach, die
+ * Aufteilung rechnet dann mit echten Höhen statt mit Schätzwerten – eine
+ * Schätzung mit Sicherheitsreserve schob sonst Tabellen auf ein neues Blatt,
+ * obwohl sie noch passten. Die Werte wachsen nur: Bricht eine Zeile auf dem
+ * einen Blatt minimal anders um als auf dem anderen, kommt die Aufteilung
+ * trotzdem nach ein, zwei Durchläufen zur Ruhe.
+ */
+const measured = ref({})
+/** Nachgemessene nutzbare Blatthöhe in mm; bis dahin gilt die Schätzung. */
+const measuredCapacity = ref(null)
+const heightOf = (key, estimate) => measured.value[key] ?? estimate
+const gapStyle = `margin-top: ${BLOCK_GAP_MM}mm`
+
+/** Eine Tabelle für flowTables(); jede Zeile bekommt ihren Messschlüssel `mk` mit. */
+function tableSection(key, rows, { cells, charsPerLine, head = true }) {
+  return {
+    key,
+    heading: heightOf(`heading|${key}`, ESTIMATE.heading),
+    head: head ? heightOf(`head|${key}`, ESTIMATE.row) : 0,
+    rows: rows.map((row) => {
+      const mk = `${key}|${JSON.stringify(row)}`
+      return { row: { ...row, mk }, height: heightOf(mk, estimateRow(cells(row), charsPerLine)) }
+    }),
+  }
+}
+
+const flowOptions = (trailer = 0) => ({ capacity: measuredCapacity.value ?? ESTIMATE.capacity, trailer })
+
+/**
  * Blätter von „Strom & Sicherheit“. Eine lange Abgangstabelle beginnt auf einem
  * eigenen Blatt, statt mit zwei Zeilen auf ein Zusatzblatt zu rutschen – siehe
- * utils/powerPages.js.
+ * utils/tableFlow.js.
  */
-const powerDataPages = computed(() =>
-  paginatePowerData(powerRows.value, branchRows.value).map((page) => ({
+const powerDataPages = computed(() => {
+  const supply = powerRows.value.map(([label, value]) => ({ id: label, label, value }))
+  const sections = [
+    {
+      ...tableSection('supply', supply, { cells: (r) => [r.value], charsPerLine: 120, head: false }),
+      // Die Überschrift steht auch ohne Einträge – wie bisher.
+      keepEmpty: true,
+    },
+    tableSection('branches', branchRows.value, {
+      cells: (r) => [r.source, r.target, r.polarity, r.section, r.fuse],
+      charsPerLine: 50,
+    }),
+  ]
+  return flowTables(sections, flowOptions()).map((page) => ({
     kind: 'powerData',
     title: t('print.powerData'),
-    ...page,
-  })),
-)
+    blocks: page.blocks,
+  }))
+})
 
 /**
  * Komponenten-Seiten. Eine große Anlage (Endstufen, DSPs, viele Lautsprecher)
- * sprengte bisher das eine Blatt. Eine Einheit entspricht einer Tabellenzeile,
- * jede Tabelle kostet zwei Einheiten für Überschrift und Spaltenkopf.
+ * sprengt ein Blatt; aufgeteilt wird nach denselben Regeln wie bei „Strom &
+ * Sicherheit“ – siehe utils/tableFlow.js.
  */
-const HARDWARE_UNITS_PER_PAGE = 16
-
 const hardwarePages = computed(() => {
   const system = p.value.system
   // Absicherung kommt aus den Stromverbindungen des Blockdiagramms.
@@ -183,46 +223,32 @@ const hardwarePages = computed(() => {
         fuse: fuseFor(c),
         ...(c.install || {}),
       }))
-  const tables = [
-    { key: 'amps', title: t('print.amps'), rows: rowsFor('amp') },
-    { key: 'dsp', title: t('print.dsp'), rows: rowsFor('dsp') },
-    { key: 'speakers', title: t('print.speakers'), rows: rowsFor('speaker') },
-    { key: 'subs', title: t('print.subs'), rows: rowsFor('sub') },
-  ].filter((table) => table.rows.length)
-  if (!tables.length) return []
-
-  const pages = []
-  let blocks = []
-  let used = 0
-  const flush = () => {
-    if (blocks.length) pages.push(blocks)
-    blocks = []
-    used = 0
+  const titles = {
+    amps: t('print.amps'),
+    dsp: t('print.dsp'),
+    speakers: t('print.speakers'),
+    subs: t('print.subs'),
   }
+  const cells = (row) => Object.values(row)
+  const sections = [
+    tableSection('amps', rowsFor('amp'), { cells, charsPerLine: 40 }),
+    tableSection('dsp', rowsFor('dsp'), { cells, charsPerLine: 40 }),
+    tableSection('speakers', rowsFor('speaker'), { cells, charsPerLine: 40 }),
+    tableSection('subs', rowsFor('sub'), { cells, charsPerLine: 40 }),
+  ].filter((section) => section.rows.length)
+  if (!sections.length) return []
 
-  for (const table of tables) {
-    const rest = [...table.rows]
-    let continued = false
-    while (rest.length) {
-      const free = HARDWARE_UNITS_PER_PAGE - used - 2
-      if (free < 2) {
-        flush()
-        continue
-      }
-      const chunk = rest.splice(0, free)
-      blocks.push({ ...table, rows: chunk, continued })
-      used += chunk.length + 2
-      continued = true
-    }
-  }
-  flush()
+  // Die Einbau-Notiz gehört ans Ende des letzten Komponentenblatts.
+  const notes = p.value.hardware.mountingNotes || ''
+  const notesKey = `trailer|${notes}`
+  const trailer = notes ? heightOf(notesKey, BLOCK_GAP_MM + estimateText(notes)) : 0
 
-  return pages.map((entries, i) => ({
+  return flowTables(sections, flowOptions(trailer)).map((page) => ({
     kind: 'hardware',
     title: t('print.components'),
-    blocks: entries,
-    // Die Einbau-Notiz gehört ans Ende des letzten Komponentenblatts.
-    notes: i === pages.length - 1 ? p.value.hardware.mountingNotes : '',
+    blocks: page.blocks.map((block) => ({ ...block, title: titles[block.key] })),
+    notes: page.trailer ? notes : '',
+    notesKey,
   }))
 })
 
@@ -379,6 +405,51 @@ function measurePages() {
   overflowPages.value = nodes
     .map((node, i) => (node.offsetHeight > SHEET_HEIGHT_PX + 2 ? i + 1 : 0))
     .filter(Boolean)
+  measureHeights(nodes)
+}
+
+/** Reserve gegen Rundung und Schriftglättung beim Drucken. */
+const CAPACITY_RESERVE_MM = 2
+
+/** Misst Zeilen, Überschriften und Notizen für die Aufteilung nach – siehe `measured`. */
+function measureHeights(nodes) {
+  const next = { ...measured.value }
+  let changed = false
+  const put = (key, px) => {
+    const mm = px / MM_TO_PX
+    if (!key || !(mm > 0) || (next[key] ?? 0) >= mm - 0.2) return
+    next[key] = mm
+    changed = true
+  }
+  for (const el of docEl.value.querySelectorAll('[data-mk]')) {
+    const box = el.getBoundingClientRect()
+    if (el.tagName === 'H2') {
+      // Überschrift samt Abstand bis zur Tabelle darunter.
+      put(el.dataset.mk, (el.nextElementSibling?.getBoundingClientRect().top ?? box.bottom) - box.top)
+    } else if (el.tagName === 'P') {
+      put(el.dataset.mk, box.height + parseFloat(getComputedStyle(el).marginTop || 0))
+    } else {
+      put(el.dataset.mk, box.height)
+    }
+  }
+  if (changed) measured.value = next
+
+  const heightPx = (node, selector) =>
+    Math.max(0, ...nodes.map((n) => n.querySelector(selector)?.getBoundingClientRect().height || 0))
+  const body = nodes[0].querySelector('.print-body')
+  if (!body) return
+  const style = getComputedStyle(body)
+  const capacity =
+    (SHEET_HEIGHT_PX -
+      heightPx(nodes, '.print-head') -
+      heightPx(nodes, '.print-foot') -
+      parseFloat(style.paddingTop) -
+      parseFloat(style.paddingBottom)) /
+      MM_TO_PX -
+    CAPACITY_RESERVE_MM
+  if (capacity > 0 && Math.abs(capacity - (measuredCapacity.value ?? 0)) > 0.3) {
+    measuredCapacity.value = capacity
+  }
 }
 
 /** Diagramme und Bilder kommen verzögert – deshalb messen wir bei jeder Größenänderung neu. */
@@ -540,55 +611,57 @@ function print() {
 
         <!-- --------------------------------------------------- Strom & Daten -->
         <template v-else-if="page.kind === 'powerData'">
-          <template v-if="page.supply">
-            <h2 class="print-h2">{{ t('print.powerSupply') }}</h2>
-            <table class="print-table">
-              <tbody>
-                <tr v-for="[key, value] in powerRows" :key="key">
-                  <th style="width: 55mm">{{ key }}</th>
-                  <td>{{ value }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
+          <template v-for="(block, bi) in page.blocks" :key="`${block.key}-${bi}`">
+            <template v-if="block.key === 'supply'">
+              <h2 class="print-h2" data-mk="heading|supply">{{ t('print.powerSupply') }}</h2>
+              <table class="print-table">
+                <tbody>
+                  <tr v-for="row in block.rows" :key="row.id" :data-mk="row.mk">
+                    <th style="width: 55mm">{{ row.label }}</th>
+                    <td>{{ row.value }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
 
-          <template v-if="page.branches.length">
-            <h2 class="print-h2" :style="page.supply ? 'margin-top: 5mm' : ''">
-              {{ t('print.distribution')
-              }}<template v-if="page.continued"> ({{ t('print.continued') }})</template>
-            </h2>
-            <table class="print-table">
-              <thead>
-                <tr>
-                  <th>{{ t('print.branchSource') }}</th>
-                  <th>{{ t('print.branch') }}</th>
-                  <th>{{ t('print.polarity') }}</th>
-                  <th>{{ t('print.section') }}</th>
-                  <th>{{ t('print.fuse') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="b in page.branches" :key="b.id">
-                  <td>{{ b.source }}</td>
-                  <td>{{ b.target }}</td>
-                  <td>{{ b.polarity }}</td>
-                  <td>{{ b.section }}</td>
-                  <td>{{ b.fuse }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <template v-else>
+              <h2 class="print-h2" data-mk="heading|branches" :style="bi ? gapStyle : ''">
+                {{ t('print.distribution')
+                }}<template v-if="block.continued"> ({{ t('print.continued') }})</template>
+              </h2>
+              <table class="print-table">
+                <thead>
+                  <tr data-mk="head|branches">
+                    <th>{{ t('print.branchSource') }}</th>
+                    <th>{{ t('print.branch') }}</th>
+                    <th>{{ t('print.polarity') }}</th>
+                    <th>{{ t('print.section') }}</th>
+                    <th>{{ t('print.fuse') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="b in block.rows" :key="b.id" :data-mk="b.mk">
+                    <td>{{ b.source }}</td>
+                    <td>{{ b.target }}</td>
+                    <td>{{ b.polarity }}</td>
+                    <td>{{ b.section }}</td>
+                    <td>{{ b.fuse }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
           </template>
         </template>
 
         <!-- ------------------------------------------------------- Hardware -->
         <template v-else-if="page.kind === 'hardware'">
           <template v-for="(block, bi) in page.blocks" :key="`${block.key}-${bi}`">
-            <h2 class="print-h2" :style="bi ? 'margin-top: 4mm' : ''">
+            <h2 class="print-h2" :data-mk="`heading|${block.key}`" :style="bi ? gapStyle : ''">
               {{ block.title }}<template v-if="block.continued"> ({{ t('print.continued') }})</template>
             </h2>
             <table class="print-table">
               <thead>
-                <tr v-if="block.key === 'amps'">
+                <tr v-if="block.key === 'amps'" :data-mk="`head|${block.key}`">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.channels') }}</th>
                   <th>{{ t('print.powerRms') }}</th>
@@ -596,21 +669,21 @@ function print() {
                   <th>{{ t('print.mounting') }}</th>
                   <th>{{ t('print.fuse') }}</th>
                 </tr>
-                <tr v-else-if="block.key === 'dsp'">
+                <tr v-else-if="block.key === 'dsp'" :data-mk="`head|${block.key}`">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.io') }}</th>
                   <th>{{ t('print.location') }}</th>
                   <th>{{ t('print.mounting') }}</th>
                   <th>{{ t('print.signalSource') }}</th>
                 </tr>
-                <tr v-else-if="block.key === 'speakers'">
+                <tr v-else-if="block.key === 'speakers'" :data-mk="`head|${block.key}`">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.position') }}</th>
                   <th>{{ t('print.size') }}</th>
                   <th>{{ t('print.mountingAdapter') }}</th>
                   <th>{{ t('print.cable') }}</th>
                 </tr>
-                <tr v-else>
+                <tr v-else :data-mk="`head|${block.key}`">
                   <th>{{ t('print.model') }}</th>
                   <th>{{ t('print.enclosure') }}</th>
                   <th>{{ t('print.volume') }}</th>
@@ -619,7 +692,7 @@ function print() {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in block.rows" :key="row.id">
+                <tr v-for="row in block.rows" :key="row.id" :data-mk="row.mk">
                   <td>{{ row.brand || '—' }}</td>
                   <template v-if="block.key === 'amps'">
                     <td>{{ row.channels }}</td>
@@ -651,7 +724,11 @@ function print() {
             </table>
           </template>
 
-          <p v-if="page.notes" style="margin-top: 4mm; font-size: 9pt; white-space: pre-line">
+          <p
+            v-if="page.notes"
+            :data-mk="page.notesKey"
+            :style="`${gapStyle}; font-size: 9pt; white-space: pre-line`"
+          >
             {{ page.notes }}
           </p>
         </template>
