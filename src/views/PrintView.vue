@@ -7,6 +7,7 @@ import { EMMA_CLASSES, MODES, COMPONENT_TYPES } from '../data/schema.js'
 import { toNumber } from '../data/emmaRules.js'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { paginateFigures, layoutFor, photosPerPage } from '../utils/photoPages.js'
+import { paginatePowerData } from '../utils/powerPages.js'
 import { columnForClass } from '../data/matrix.js'
 import { CABLE_PROTECTION, FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import PrintPage from '../components/PrintPage.vue'
@@ -139,6 +140,19 @@ const branchRows = computed(() => {
       }
     })
 })
+
+/**
+ * Blätter von „Strom & Sicherheit“. Eine lange Abgangstabelle beginnt auf einem
+ * eigenen Blatt, statt mit zwei Zeilen auf ein Zusatzblatt zu rutschen – siehe
+ * utils/powerPages.js.
+ */
+const powerDataPages = computed(() =>
+  paginatePowerData(powerRows.value, branchRows.value).map((page) => ({
+    kind: 'powerData',
+    title: t('print.powerData'),
+    ...page,
+  })),
+)
 
 /**
  * Komponenten-Seiten. Eine große Anlage (Endstufen, DSPs, viele Lautsprecher)
@@ -296,7 +310,7 @@ const pages = computed(() => {
 
   if (signalDef.value) list.push({ kind: 'signal', title: t('print.signal') })
   if (powerDef.value) list.push({ kind: 'powerDiagram', title: t('print.powerDiagram') })
-  list.push({ kind: 'powerData', title: t('print.powerData') })
+  list.push(...powerDataPages.value)
   list.push(...photosForStep('power'))
 
   list.push(...hardwarePages.value)
@@ -526,18 +540,23 @@ function print() {
 
         <!-- --------------------------------------------------- Strom & Daten -->
         <template v-else-if="page.kind === 'powerData'">
-          <h2 class="print-h2">{{ t('print.powerSupply') }}</h2>
-          <table class="print-table">
-            <tbody>
-              <tr v-for="[key, value] in powerRows" :key="key">
-                <th style="width: 55mm">{{ key }}</th>
-                <td>{{ value }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <template v-if="page.supply">
+            <h2 class="print-h2">{{ t('print.powerSupply') }}</h2>
+            <table class="print-table">
+              <tbody>
+                <tr v-for="[key, value] in powerRows" :key="key">
+                  <th style="width: 55mm">{{ key }}</th>
+                  <td>{{ value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
 
-          <template v-if="branchRows.length">
-            <h2 class="print-h2" style="margin-top: 5mm">{{ t('print.distribution') }}</h2>
+          <template v-if="page.branches.length">
+            <h2 class="print-h2" :style="page.supply ? 'margin-top: 5mm' : ''">
+              {{ t('print.distribution')
+              }}<template v-if="page.continued"> ({{ t('print.continued') }})</template>
+            </h2>
             <table class="print-table">
               <thead>
                 <tr>
@@ -549,7 +568,7 @@ function print() {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="b in branchRows" :key="b.id">
+                <tr v-for="b in page.branches" :key="b.id">
                   <td>{{ b.source }}</td>
                   <td>{{ b.target }}</td>
                   <td>{{ b.polarity }}</td>
