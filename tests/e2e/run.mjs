@@ -796,17 +796,61 @@ try {
     `${embeddedImages} Bildobjekte, erwartet ≥ ${previewFigures} Fotos + ${previewDiagrams} Diagramme`,
   )
 
-  // ------------------------------------------------- Strom & Sicherheit teilen
+  // ------------------------------------------------- Tabellen auf Blätter teilen
+  // Eigene Mappen per ZIP-Import, ausgewertet an Vorschau und PDF: Jedes Blatt
+  // muss auf ein Blatt passen, das PDF darf keine Zusatzblätter haben.
+  const layoutCtx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const layoutPage = await layoutCtx.newPage()
+  layoutPage.on('pageerror', (e) => consoleErrors.push(`aufteilung: ${e.message}`))
+  layoutPage.on('dialog', (d) => d.accept())
+  const printLayout = async (name, prj, title) => {
+    const zip = new JSZip()
+    zip.file('project.json', JSON.stringify(prj))
+    const zipFile = join(WORK, `${name}.zip`)
+    writeFileSync(zipFile, await zip.generateAsync({ type: 'nodebuffer' }))
+    await layoutPage.goto(BASE, { waitUntil: 'networkidle' })
+    await layoutPage.locator('input[type=file][accept*="zip"]').setInputFiles(zipFile)
+    await layoutPage.waitForTimeout(2000)
+    await layoutPage.goto(`${BASE}#/druck`)
+    await layoutPage.waitForTimeout(2500)
+    const sheets = await layoutPage.locator('.print-page').evaluateAll((els) =>
+      els.map((e) => ({
+        title: e.querySelector('.print-head__title').textContent.trim(),
+        headings: [...e.querySelectorAll('.print-h2')].map((h) => h.textContent.trim()),
+        rows: e.querySelectorAll('tbody tr').length,
+        text: e.querySelector('.print-body').innerText,
+      })),
+    )
+    const own = sheets.filter((sh) => sh.title === title)
+    const overflow = await layoutPage.locator('[data-testid=print-overflow]').count()
+    const pdfFile = join(WORK, `${name}.pdf`)
+    await layoutPage.emulateMedia({ media: 'print' })
+    await layoutPage.pdf({ path: pdfFile, preferCSSPageSize: true, printBackground: true })
+    await layoutPage.emulateMedia({ media: 'screen' })
+    const pdfPages = (
+      readFileSync(pdfFile)
+        .toString('latin1')
+        .match(/\/Type\s*\/Page[^s]/g) || []
+    ).length
+    const shape = own.map((sh) => sh.headings.join(' + ')).join(' | ')
+    const fits = `PDF ${pdfPages}, Vorschau ${sheets.length}, Warnungen ${overflow}`
+    return {
+      own,
+      overflow,
+      pdfPages,
+      sheets: sheets.length,
+      shape,
+      fits,
+      clean: !overflow && pdfPages === sheets.length,
+    }
+  }
+
   // Sieben Stammdaten und vierzehn Abgänge passten nicht mehr auf ein Blatt: Der
   // Browser schob die letzten zwei Abgänge auf ein Zusatzblatt ohne Kopfzeile,
   // das sonst leer blieb und im Fuß die Seitenzahl des Vorblatts trug. Passt die
   // Tabelle allein auf ein Blatt, beginnt sie dort; sprengt sie auch das, beginnt
-  // sie unter den Stammdaten. In beiden Fällen: kein Überlauf, kein Zusatzblatt.
-  const powerCtx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
-  const powerPage = await powerCtx.newPage()
-  powerPage.on('pageerror', (e) => consoleErrors.push(`strom: ${e.message}`))
-  powerPage.on('dialog', (d) => d.accept())
-  const powerLayout = async (branchCount) => {
+  // sie unter den Stammdaten.
+  const powerProject = (branchCount) => {
     const prj = createEmptyProject()
     prj.mode = 'QuickRescue'
     Object.assign(prj.power, {
@@ -840,68 +884,95 @@ try {
       fuseAmps: 150,
       oem: false,
     }))
-    const zip = new JSZip()
-    zip.file('project.json', JSON.stringify(prj))
-    const zipFile = join(WORK, `strom-${branchCount}.zip`)
-    writeFileSync(zipFile, await zip.generateAsync({ type: 'nodebuffer' }))
-    await powerPage.goto(BASE, { waitUntil: 'networkidle' })
-    await powerPage.locator('input[type=file][accept*="zip"]').setInputFiles(zipFile)
-    await powerPage.waitForTimeout(2000)
-    await powerPage.goto(`${BASE}#/druck`)
-    await powerPage.waitForTimeout(2500)
-    const sheets = await powerPage.locator('.print-page').evaluateAll((els) =>
-      els.map((e) => ({
-        title: e.querySelector('.print-head__title').textContent.trim(),
-        headings: [...e.querySelectorAll('.print-h2')].map((h) => h.textContent.trim()),
-        rows: e.querySelectorAll('tbody tr').length,
-      })),
-    )
-    const power = sheets.filter((sh) => sh.title === 'Strom & Sicherheit')
-    const overflow = await powerPage.locator('[data-testid=print-overflow]').count()
-    const pdfFile = join(WORK, `strom-${branchCount}.pdf`)
-    await powerPage.emulateMedia({ media: 'print' })
-    await powerPage.pdf({ path: pdfFile, preferCSSPageSize: true, printBackground: true })
-    await powerPage.emulateMedia({ media: 'screen' })
-    const pdfPages = (
-      readFileSync(pdfFile)
-        .toString('latin1')
-        .match(/\/Type\s*\/Page[^s]/g) || []
-    ).length
-    const shape = power.map((sh) => sh.headings.join(' + ')).join(' | ')
-    return { power, overflow, pdfPages, sheets: sheets.length, shape }
+    return prj
   }
 
-  const fits = await powerLayout(14)
+  const fits = await printLayout('strom-14', powerProject(14), 'Strom & Sicherheit')
   check(
     'Abgangstabelle beginnt auf eigenem Blatt, wenn sie dort ganz passt',
-    fits.power.length === 2 &&
-      fits.power[0].headings.join() === 'Stromversorgung & Absicherung' &&
-      fits.power[1].headings.join() === 'Verteiler & Abgänge' &&
-      fits.power[1].rows === 14,
+    fits.own.length === 2 &&
+      fits.own[0].headings.join() === 'Stromversorgung & Absicherung' &&
+      fits.own[1].headings.join() === 'Verteiler & Abgänge' &&
+      fits.own[1].rows === 14,
     fits.shape,
   )
-  check(
-    'eigenes Blatt für die Abgänge läuft nicht über',
-    fits.overflow === 0 && fits.pdfPages === fits.sheets,
-    `PDF ${fits.pdfPages}, Vorschau ${fits.sheets}, Warnungen ${fits.overflow}`,
-  )
+  check('eigenes Blatt für die Abgänge läuft nicht über', fits.clean, fits.fits)
 
-  const long = await powerLayout(30)
+  const long = await printLayout('strom-30', powerProject(30), 'Strom & Sicherheit')
   check(
     'zu lange Abgangstabelle beginnt unter den Stammdaten',
-    long.power.length >= 2 &&
-      long.power[0].headings.join() === 'Stromversorgung & Absicherung,Verteiler & Abgänge' &&
-      long.power.slice(1).every((sh) => sh.headings.join() === 'Verteiler & Abgänge (Fortsetzung)'),
+    long.own.length >= 2 &&
+      long.own[0].headings.join() === 'Stromversorgung & Absicherung,Verteiler & Abgänge' &&
+      long.own.slice(1).every((sh) => sh.headings.join() === 'Verteiler & Abgänge (Fortsetzung)'),
     long.shape,
   )
   check(
     'geteilte Abgangstabelle verliert keine Zeile und läuft nicht über',
-    long.power.reduce((sum, sh) => sum + sh.rows, 0) === 30 + 7 &&
-      long.overflow === 0 &&
-      long.pdfPages === long.sheets,
-    `PDF ${long.pdfPages}, Vorschau ${long.sheets}, Warnungen ${long.overflow}`,
+    long.own.reduce((sum, sh) => sum + sh.rows, 0) === 30 + 7 && long.clean,
+    long.fits,
   )
-  await powerCtx.close()
+
+  // Drei Endstufen, ein DSP, drei Lautsprecher, ein Subwoofer und eine
+  // zweizeilige Einbau-Notiz: Die grobe Einheitenrechnung schob den Subwoofer
+  // samt Notiz allein auf ein zweites Blatt, obwohl beides noch aufs erste passte.
+  const hardwareProject = (speakerCount) => {
+    const prj = createEmptyProject()
+    prj.mode = 'QuickRescue'
+    const part = (id, type, name, install) => ({ id, type, name, channels: 2, install })
+    prj.system.components = [
+      ...[1, 2, 3].map((n) =>
+        part(`amp${n}`, 'amp', `Mosconi ${n}/10 EVO`, {
+          power: '2x 360',
+          location: 'Kofferraum',
+          mounting: 'MPX / 3D Druck Keil, Metrisch M8 / M4',
+        }),
+      ),
+      part('dsp', 'dsp', 'Mosconi DSP 8TO12 Aerospace', {
+        location: 'Kofferraum',
+        mounting: 'Verschraubt auf MPX Platte',
+        input: 'Hochpegel ab HU',
+      }),
+      ...Array.from({ length: speakerCount }, (_, i) =>
+        part(`spk${i}`, 'speaker', `Andrian Audio ${i + 1}`, {
+          position: 'A-Säule vorne links',
+          size: '80 mm',
+          mounting: 'MDF Adapter Alubutyl verstärkt',
+          wiring: '1,5 qmm',
+        }),
+      ),
+      part('sub', 'sub', 'Gladen SIGMA SSWX 10"', {
+        enclosure: 'Geschlossen',
+        volume: '55 l',
+        location: 'Reserveradmulde',
+        securing: 'Verschraubt',
+      }),
+    ]
+    prj.hardware.mountingNotes =
+      'Stahlplatte mit M6 Innengewinde in der Reserveradmulde verschweißt.\nM6 Schraube zentral mittig mit großer Scheibe sichert das Gehäuse.'
+    return prj
+  }
+
+  const hw = await printLayout('komponenten-3', hardwareProject(3), 'Verbaute Komponenten')
+  check(
+    'Komponenten samt Notiz bleiben auf einem Blatt',
+    hw.own.length === 1 &&
+      hw.own[0].headings.join() === 'Endstufen,DSP / Prozessor,Lautsprecher,Subwoofer' &&
+      hw.own[0].text.includes('Stahlplatte'),
+    hw.shape,
+  )
+  check('Komponentenblatt läuft nicht über', hw.clean, hw.fits)
+
+  const hwLong = await printLayout('komponenten-30', hardwareProject(30), 'Verbaute Komponenten')
+  check(
+    'lange Lautsprechertabelle läuft ohne Zeilenverlust weiter',
+    hwLong.own.length >= 2 &&
+      hwLong.own.slice(1).some((sh) => sh.headings.includes('Lautsprecher (Fortsetzung)')) &&
+      hwLong.own.reduce((sum, sh) => sum + sh.rows, 0) === 3 + 1 + 30 + 1 &&
+      hwLong.own.at(-1).text.includes('Stahlplatte'),
+    hwLong.shape,
+  )
+  check('geteilte Komponentenblätter laufen nicht über', hwLong.clean, hwLong.fits)
+  await layoutCtx.close()
 
   // ------------------------------------------------------------ Handy-Layout
   // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
