@@ -972,6 +972,66 @@ try {
     hwLong.shape,
   )
   check('geteilte Komponentenblätter laufen nicht über', hwLong.clean, hwLong.fits)
+
+  // „Dämmung & Türaufbau“ war fest ein Blatt: Viele Custom-Parts und Messungen
+  // liefen über und landeten auf einem Zusatzblatt ohne Kopfzeile.
+  const craftProject = () => {
+    const prj = createEmptyProject()
+    prj.mode = 'QuickRescue'
+    prj.craft.dampingDoors = 'Alubutyl vollflächig, Schaum auf der Innenverkleidung'
+    prj.craft.customParts = Array.from({ length: 20 }, (_, i) => ({
+      id: `part${i}`,
+      name: `Adapterring ${i + 1}`,
+      technique: '',
+      material: 'MDF 19 mm',
+      purpose: 'Hochtöner in der A-Säule',
+      notes: '',
+    }))
+    prj.craft.measurements = Array.from({ length: 12 }, (_, i) => ({
+      id: `mess${i}`,
+      name: `Frequenzgang ${i + 1}`,
+      tool: 'REW + UMIK-1',
+      position: 'Fahrerkopf',
+      result: '±3 dB 80 Hz – 16 kHz',
+    }))
+    prj.craft.tuningNotes = 'Laufzeit auf den Fahrerplatz.\nSubwoofer 2 dB über Neutral.'
+    return prj
+  }
+  const craft = await printLayout('handwerk', craftProject(), 'Handwerk, Akustik & Abstimmung')
+  check(
+    'lange Handwerk-Tabellen laufen weiter statt über',
+    craft.own.length >= 2 &&
+      craft.own.reduce((sum, sh) => sum + sh.rows, 0) === 1 + 20 + 12 &&
+      craft.own.at(-1).text.includes('Subwoofer 2 dB'),
+    craft.shape,
+  )
+  check('Handwerk-Blätter laufen nicht über', craft.clean, craft.fits)
+
+  // Bonuspunkte standen fest zu acht auf einem Blatt: Zwölf kurze Einträge
+  // verteilten sich auf zwei halb leere Blätter, lange Begründungen liefen über.
+  const bonusProject = (count, description) => {
+    const prj = createEmptyProject()
+    prj.mode = 'QuickRescue'
+    prj.bonusRequests = Array.from({ length: count }, (_, i) => ({
+      id: `bonus${i}`,
+      title: `Element ${i + 1}`,
+      area: 'Kofferraum',
+      description,
+    }))
+    return prj
+  }
+  const bonusShort = await printLayout('bonus-kurz', bonusProject(12, 'Eigenbau'), 'Bonuspunkte-Anträge')
+  check('zwölf kurze Bonuspunkte stehen auf einem Blatt', bonusShort.own.length === 1, bonusShort.shape)
+  const bonusLong = await printLayout(
+    'bonus-lang',
+    bonusProject(8, 'Aufwendig gefertigt, von Hand laminiert und lackiert. '.repeat(6)),
+    'Bonuspunkte-Anträge',
+  )
+  check(
+    'lange Bonus-Begründungen laufen nicht über',
+    bonusLong.clean && bonusLong.own.reduce((sum, sh) => sum + sh.rows, 0) === 8,
+    bonusLong.fits,
+  )
   await layoutCtx.close()
 
   // ------------------------------------------------------------ Handy-Layout
