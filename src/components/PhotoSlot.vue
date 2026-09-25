@@ -25,7 +25,9 @@ const isMissing = computed(() => isRequired.value && items.value.length === 0 &&
 
 /** Weitere Detailfotos werden erst nach Klick eingeblendet, damit die Liste ruhig bleibt. */
 const addMore = ref(false)
-const showUploader = computed(() => items.value.length === 0 || addMore.value)
+/** Der Uploader arbeitet noch oder zeigt einen Fehler – siehe ImageUploader. */
+const held = ref(false)
+const showUploader = computed(() => items.value.length === 0 || addMore.value || held.value)
 </script>
 
 <template>
@@ -86,6 +88,7 @@ const showUploader = computed(() => items.value.length === 0 || addMore.value)
       :slot-key="slotDef.key"
       :multiple="slotDef.multiple !== false"
       :compact="items.length > 0"
+      @hold="held = $event"
     />
 
     <button v-else-if="slotDef.multiple" type="button" class="btn-soft btn-xs w-full" @click="addMore = true">

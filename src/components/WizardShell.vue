@@ -1,3 +1,15 @@
+<script>
+import { reactive } from 'vue'
+
+/**
+ * Übersprungene Stammdaten dieser Sitzung. Ein Textfeld hat keinen Foto-Slot
+ * und damit keinen Skip-Eintrag im Projekt (siehe `skipAll`); ohne diese Liste
+ * blieb der Dialog für ein fehlendes Stammdatum trotz „Trotzdem weiter“ auf
+ * jedem Klick stehen. Modulweit, weil die Komponente je Schritt neu entsteht.
+ */
+const skippedMeta = reactive(new Set())
+</script>
+
 <script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -26,7 +38,17 @@ const nav = computed(() => neighbours(store.column, props.stepKey))
  * schon eine gibt. Der Nutzer entscheidet einmal, informiert, und sieht es auf
  * diesem Schritt nie wieder.
  */
-const missing = computed(() => [...missingMetaForStep(props.stepKey), ...missingForStep(props.stepKey)])
+/*
+ * Übersprungenes zählt hier nicht mehr mit. Vorher schrieb „Trotzdem weiter“
+ * zwar den Skip-Eintrag, gelesen wurde er aber nur in der Prüfansicht: Fußzeile
+ * und Dialog meldeten dieselben Fotos bei jedem weiteren Klick erneut. Die
+ * Schrittleiste und die Prüfansicht führen sie weiter – dort gehören sie hin.
+ */
+const metaKey = (slot) => `${store.activeId}:${slot.key}`
+const missing = computed(() => [
+  ...missingMetaForStep(props.stepKey).filter((slot) => !skippedMeta.has(metaKey(slot))),
+  ...missingForStep(props.stepKey).filter((slot) => !store.isSkipped(slot.key)),
+])
 const dialogOpen = ref(false)
 
 function goNext() {
@@ -45,7 +67,7 @@ function proceed() {
 function skipAll() {
   // Nur echte Foto-Slots bekommen einen Skip-Eintrag: Ein Textfeld hat keinen
   // Slot, ein Vermerk darauf landete als Geisteintrag in der Mappe.
-  missing.value.filter((slot) => !slot.meta).forEach((slot) => store.skip(slot.key))
+  missing.value.forEach((slot) => (slot.meta ? skippedMeta.add(metaKey(slot)) : store.skip(slot.key)))
   proceed()
 }
 
