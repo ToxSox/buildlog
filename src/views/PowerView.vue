@@ -15,8 +15,10 @@ import WizardShell from '../components/WizardShell.vue'
 import SlotGrid from '../components/SlotGrid.vue'
 import RuleReport from '../components/RuleReport.vue'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm, linkHasContent } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
+const { confirm } = useConfirm()
 
 const store = useProjectStore()
 const power = computed(() => store.project.power)
@@ -67,8 +69,10 @@ function addBranch(sourceId) {
   store.addPowerLink({ from: sourceId })
 }
 
-function removeBranch(id) {
+async function removeBranch(id) {
   const list = system.value.powerLinks
+  const link = list.find((l) => l.id === id)
+  if (link && linkHasContent(link) && !(await confirm({ message: t('confirm.link') }))) return
   const idx = list.findIndex((l) => l.id === id)
   if (idx >= 0) list.splice(idx, 1)
 }
@@ -147,7 +151,7 @@ function adoptMainSection() {
             id="batLoc"
             v-model="power.batteryLocation"
             class="input"
-            placeholder="Motorraum / Kofferraum"
+            :placeholder="t('placeholder.batteryLocation')"
           />
         </div>
         <div>
@@ -160,7 +164,7 @@ function adoptMainSection() {
             id="batSec"
             v-model="power.batterySecured"
             class="input"
-            placeholder="Original Niederhalter verschraubt / Edelstahlwinkel M8"
+            :placeholder="t('placeholder.batterySecured')"
           />
           <p class="hint">{{ t('power.securedHint') }}</p>
         </div>
@@ -311,7 +315,7 @@ function adoptMainSection() {
             id="gndPoint"
             v-model="power.groundPoint"
             class="input"
-            placeholder="Karosserieschraube Radmulde, blank"
+            :placeholder="t('placeholder.groundPoint')"
           />
         </div>
       </div>
@@ -543,6 +547,7 @@ function adoptMainSection() {
               ? 'border-emerald-500 bg-emerald-50 font-semibold text-emerald-800'
               : 'border-slate-300 bg-white text-slate-700 hover:border-emerald-400'
           "
+          :aria-pressed="power.cableProtection.includes(opt.de)"
           @click="toggleProtection(opt)"
         >
           {{ power.cableProtection.includes(opt.de) ? '✓ ' : '' }}{{ tx(opt) }}

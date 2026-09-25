@@ -38,7 +38,10 @@ async function doExport() {
 }
 
 async function doImport(file) {
-  if (!file) return
+  // Gesperrt war bisher nur der Knopf. Eine zweite, per Drag & Drop
+  // hineingezogene ZIP startete einen parallelen Import, und beide Mappen
+  // stritten sich um die aktive Stelle.
+  if (!file || busy.value) return
   if (!/\.zip$/i.test(file.name)) {
     error.value = t('archive.notZip')
     return

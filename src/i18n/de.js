@@ -57,6 +57,8 @@ export default {
     component: 'Komponente „{name}“ aus dem System entfernen?',
     componentWithLinks:
       'Komponente „{name}“ entfernen? Ihre {n} Verbindungen im Signalweg und Stromlaufplan verschwinden mit.',
+    link: 'Diese Verbindung mit Querschnitt, Sicherung und Beschriftung löschen?',
+    bonus: '„{title}“: Diesen Bonusantrag mit seiner Begründung löschen?',
   },
 
   steps: {
@@ -255,6 +257,10 @@ export default {
   },
 
   hardware: {
+    addAmp: '+ Endstufe',
+    addDsp: '+ DSP',
+    addSpeaker: '+ Lautsprecher',
+    addSub: '+ Subwoofer',
     subtitle:
       'Was ist verbaut, wo sitzt es und wie ist es befestigt? Jede Komponente muss sicher montiert sein.',
     sharedHint:
@@ -279,6 +285,8 @@ export default {
   },
 
   craft: {
+    addPart: '+ Bauteil',
+    addMeasurement: '+ Messung',
     subtitle:
       'Alles, was im fertigen Zustand nicht mehr sichtbar ist – und genau deshalb dokumentiert werden muss.',
     damping: 'Dämmung',
@@ -425,6 +433,7 @@ export default {
     moveEarlier: 'Foto nach vorne schieben',
     moveLater: 'Foto nach hinten schieben',
     photo: 'Foto',
+    zoom: 'Foto vergrößern',
     loading: 'Bild wird geladen …',
     deleteConfirm: 'Dieses Foto aus der Mappe entfernen?',
     paysInto: 'zahlt ein auf „{criterion}“ ({points} P.)',
@@ -761,5 +770,21 @@ export default {
     solid: 'Solide Mappe',
     foundation: 'Grundgerüst steht',
     shell: 'Rohbau',
+  },
+
+  /** Beispieleingaben in leeren Feldern. */
+  placeholder: {
+    participant: 'Max Mustermann',
+    event: 'EMMA Sommerfinale',
+    installer: 'Eigenbau / Fachbetrieb',
+    batteryLocation: 'Motorraum / Kofferraum',
+    batterySecured: 'Original Niederhalter verschraubt / Edelstahlwinkel M8',
+    groundPoint: 'Karosserieschraube Radmulde, blank',
+    doorLayers: 'Außenblech Alubutyl 2 mm, Innenblech geschlossen, TVK entdröhnt',
+    carpetDamping: 'Alubutyl + Schaumauflage',
+    otherAreas: 'Radhäuser und Heckklappe',
+    bonusTitle: 'Beleuchteter Sicherungsverteiler',
+    bonusArea: 'Kofferraum',
+    signalLink: 'Cinch Ch 1-2',
   },
 }

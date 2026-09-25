@@ -2,13 +2,16 @@
 import { computed } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useScore } from '../composables/useScore.js'
-import { uid } from '../data/schema.js'
+import { uid, COMPONENT_TYPES } from '../data/schema.js'
 import { toNumber } from '../data/emmaRules.js'
 import { FABRICATION_TECHNIQUES, optionLabel } from '../data/options.js'
 import WizardShell from '../components/WizardShell.vue'
 import { useI18n } from '../i18n/index.js'
 
-const { t } = useI18n()
+const { t, tx } = useI18n()
+
+/** Unbenannte Komponenten tragen ihren Typ – übersetzt, nicht als interne ID („amp“, „dsp“). */
+const componentLabel = (c) => c.name || tx(COMPONENT_TYPES.find((x) => x.id === c.type)?.label) || c.type
 
 const store = useProjectStore()
 const { assessment, column } = useScore()
@@ -48,9 +51,7 @@ const outline = computed(() => {
   blocks.push({
     minutes: 1,
     title: t('presentation.block.chain'),
-    points: sig.length
-      ? [sig.map((c) => c.name || c.type).join(' → ')]
-      : [t('presentation.block.chainFallback')],
+    points: sig.length ? [sig.map(componentLabel).join(' → ')] : [t('presentation.block.chainFallback')],
   })
 
   const powerBits = []
@@ -72,8 +73,11 @@ const outline = computed(() => {
   })
 
   const custom = p.craft.customParts.filter((c) => c.name)
+  const bonus = p.bonusRequests.filter((r) => r.title)
   blocks.push({
-    minutes: 2,
+    // Der Bonus-Block braucht im 7-Minuten-Rahmen seine Minute von hier: Sonst
+    // plante die Gliederung acht Minuten und stand ohne jeden Ausweg auf Rot.
+    minutes: minutes.value === 7 && bonus.length ? 1 : 2,
     title: t('presentation.block.craft'),
     points: custom.length
       ? custom.map((c) => {
@@ -97,7 +101,6 @@ const outline = computed(() => {
     points: challengeBits.length ? challengeBits : [t('presentation.block.challengeFallback')],
   })
 
-  const bonus = p.bonusRequests.filter((r) => r.title)
   if (bonus.length) {
     blocks.push({
       minutes: 1,
@@ -206,7 +209,15 @@ function removeHighlight(id) {
             :aria-label="t('presentation.highlights')"
             :placeholder="t('presentation.highlightPlaceholder')"
           />
-          <button type="button" class="btn-ghost btn-xs" @click="removeHighlight(h.id)">✕</button>
+          <button
+            type="button"
+            class="btn-ghost btn-xs"
+            :aria-label="t('common.remove')"
+            :title="t('common.remove')"
+            @click="removeHighlight(h.id)"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
 
         <button type="button" class="btn-soft btn-xs w-full" @click="addHighlight">

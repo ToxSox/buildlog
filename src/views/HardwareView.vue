@@ -34,13 +34,13 @@ const AMP_FIELDS = [
     key: 'location',
     source: 'install',
     label: { de: 'Einbauort', en: 'Location' },
-    placeholder: 'Unter dem Beifahrersitz',
+    placeholder: { de: 'Unter dem Beifahrersitz', en: 'Under the passenger seat' },
   },
   {
     key: 'mounting',
     source: 'install',
     label: { de: 'Befestigung', en: 'Mounting' },
-    placeholder: 'MDF-Platte, M6 verschraubt',
+    placeholder: { de: 'MDF-Platte, M6 verschraubt', en: 'MDF board, bolted with M6' },
   },
 ]
 
@@ -62,19 +62,19 @@ const DSP_FIELDS = [
     key: 'location',
     source: 'install',
     label: { de: 'Einbauort', en: 'Location' },
-    placeholder: 'Hinter Handschuhfach',
+    placeholder: { de: 'Hinter Handschuhfach', en: 'Behind the glovebox' },
   },
   {
     key: 'mounting',
     source: 'install',
     label: { de: 'Befestigung', en: 'Mounting' },
-    placeholder: 'Alu-Halter, verschraubt',
+    placeholder: { de: 'Alu-Halter, verschraubt', en: 'Aluminium bracket, bolted' },
   },
   {
     key: 'input',
     source: 'install',
     label: { de: 'Signalquelle', en: 'Signal source' },
-    placeholder: 'Hochpegel ab Werksradio',
+    placeholder: { de: 'Hochpegel ab Werksradio', en: 'High-level from factory head unit' },
   },
 ]
 
@@ -90,20 +90,20 @@ const SPEAKER_FIELDS = [
     key: 'position',
     source: 'install',
     label: { de: 'Position', en: 'Position' },
-    placeholder: 'Tür vorne links',
+    placeholder: { de: 'Tür vorne links', en: 'Front left door' },
   },
   { key: 'size', source: 'install', label: { de: 'Größe', en: 'Size' }, placeholder: '165 mm' },
   {
     key: 'mounting',
     source: 'install',
     label: { de: 'Montage / Adapter', en: 'Mounting / adapter' },
-    placeholder: 'MDF-Ring, mit Karosserie verschraubt',
+    placeholder: { de: 'MDF-Ring, mit Karosserie verschraubt', en: 'MDF ring, bolted to the body' },
   },
   {
     key: 'wiring',
     source: 'install',
     label: { de: 'Kabel (mm²)', en: 'Cable (mm²)' },
-    placeholder: '2,5',
+    placeholder: { de: '2,5', en: '2.5' },
   },
 ]
 
@@ -119,25 +119,25 @@ const SUB_FIELDS = [
     key: 'enclosure',
     source: 'install',
     label: { de: 'Gehäuse', en: 'Enclosure' },
-    placeholder: 'Geschlossen 32 l',
+    placeholder: { de: 'Geschlossen 32 l', en: 'Sealed 32 l' },
   },
   {
     key: 'volume',
     source: 'install',
     label: { de: 'Volumen / Abstimmung', en: 'Volume / tuning' },
-    placeholder: '32 l / geschlossen',
+    placeholder: { de: '32 l / geschlossen', en: '32 l / sealed' },
   },
   {
     key: 'location',
     source: 'install',
     label: { de: 'Einbauort', en: 'Location' },
-    placeholder: 'Reserveradmulde',
+    placeholder: { de: 'Reserveradmulde', en: 'Spare wheel well' },
   },
   {
     key: 'securing',
     source: 'install',
     label: { de: 'Sicherung gegen Verrutschen', en: 'Secured against movement' },
-    placeholder: 'Verschraubt + Spanngurt',
+    placeholder: { de: 'Verschraubt + Spanngurt', en: 'Bolted + ratchet strap' },
   },
 ]
 </script>
@@ -150,7 +150,7 @@ const SUB_FIELDS = [
       type="amp"
       :title="t('hardware.amps')"
       :intro="t('hardware.ampsIntro')"
-      add-label="+ Endstufe"
+      :add-label="t('hardware.addAmp')"
       :empty-label="t('hardware.ampsEmpty')"
       :fields="AMP_FIELDS"
       show-fuse
@@ -159,7 +159,7 @@ const SUB_FIELDS = [
     <ComponentEnrichmentList
       type="dsp"
       :title="t('hardware.dsp')"
-      add-label="+ DSP"
+      :add-label="t('hardware.addDsp')"
       :empty-label="t('hardware.dspEmpty')"
       :fields="DSP_FIELDS"
       show-fuse
@@ -169,7 +169,7 @@ const SUB_FIELDS = [
       type="speaker"
       :title="t('hardware.speakers')"
       :intro="t('hardware.speakersIntro')"
-      add-label="+ Lautsprecher"
+      :add-label="t('hardware.addSpeaker')"
       :empty-label="t('hardware.speakersEmpty')"
       :fields="SPEAKER_FIELDS"
     />
@@ -177,7 +177,7 @@ const SUB_FIELDS = [
     <ComponentEnrichmentList
       type="sub"
       :title="t('hardware.subs')"
-      add-label="+ Subwoofer"
+      :add-label="t('hardware.addSub')"
       :empty-label="t('hardware.subsEmpty')"
       :fields="SUB_FIELDS"
     />

@@ -7,8 +7,17 @@ import { MAX_BONUS_REQUESTS, BONUS_POINTS_PER_REQUEST } from '../data/matrix.js'
 import { STEPS } from '../data/steps.js'
 import WizardShell from '../components/WizardShell.vue'
 import { useI18n } from '../i18n/index.js'
+import { useConfirm } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
+const { confirm } = useConfirm()
+
+/** Eine ausgeschriebene Begründung verschwand bisher mit einem Klick, ohne Rückfrage. */
+async function removeBonus(req) {
+  const filled = [req.title, req.description, req.area].some((v) => String(v || '').trim())
+  if (filled && !(await confirm({ message: t('confirm.bonus', { title: req.title || '–' }) }))) return
+  store.removeBonusRequest(req.id)
+}
 
 const store = useProjectStore()
 const { assessment, column, columnLabel } = useScore()
@@ -210,14 +219,19 @@ function stepFor(criterionId) {
                 :id="`${req.id}-title`"
                 v-model="req.title"
                 class="input"
-                placeholder="Beleuchteter Sicherungsverteiler"
+                :placeholder="t('placeholder.bonusTitle')"
               />
             </div>
             <div>
               <label class="field" :for="`${req.id}-area`">{{ t('matrix.bonusArea') }}</label>
-              <input :id="`${req.id}-area`" v-model="req.area" class="input" placeholder="Kofferraum" />
+              <input
+                :id="`${req.id}-area`"
+                v-model="req.area"
+                class="input"
+                :placeholder="t('placeholder.bonusArea')"
+              />
             </div>
-            <button type="button" class="btn-ghost btn-xs self-end" @click="store.removeBonusRequest(req.id)">
+            <button type="button" class="btn-ghost btn-xs self-end" @click="removeBonus(req)">
               {{ t('common.remove') }}
             </button>
             <div class="sm:col-span-4">
