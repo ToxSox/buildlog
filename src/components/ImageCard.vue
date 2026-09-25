@@ -65,14 +65,22 @@ async function remove() {
 <template>
   <figure class="overflow-hidden rounded-lg border border-slate-200 bg-white">
     <div class="relative bg-slate-900/5">
-      <img
+      <!-- Ein Knopf statt eines klickbaren Bildes: Die Lupe war per Tastatur
+           nicht zu erreichen. -->
+      <button
         v-if="src"
-        :src="src"
-        :alt="item.caption || t('uploader.photo')"
-        class="block h-32 w-full cursor-zoom-in object-cover"
-        loading="lazy"
+        type="button"
+        class="block w-full cursor-zoom-in"
+        :aria-label="t('uploader.zoom')"
         @click="zoom = true"
-      />
+      >
+        <img
+          :src="src"
+          :alt="item.caption || t('uploader.photo')"
+          class="block h-32 w-full object-cover"
+          loading="lazy"
+        />
+      </button>
       <div v-else class="grid h-32 place-items-center text-xs text-slate-400">
         {{ t('uploader.loading') }}
       </div>

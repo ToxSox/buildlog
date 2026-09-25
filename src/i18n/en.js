@@ -56,6 +56,8 @@ export default {
     component: 'Remove component “{name}” from the system?',
     componentWithLinks:
       'Remove component “{name}”? Its {n} connections in the signal path and power diagram go with it.',
+    link: 'Delete this connection with its cable size, fuse and label?',
+    bonus: '“{title}”: delete this bonus request with its justification?',
   },
 
   steps: {
@@ -252,6 +254,10 @@ export default {
   },
 
   hardware: {
+    addAmp: '+ Amplifier',
+    addDsp: '+ DSP',
+    addSpeaker: '+ Speaker',
+    addSub: '+ Subwoofer',
     subtitle:
       'What is installed, where does it sit and how is it fixed? Every component must be mounted securely.',
     sharedHint:
@@ -276,6 +282,8 @@ export default {
   },
 
   craft: {
+    addPart: '+ Part',
+    addMeasurement: '+ Measurement',
     subtitle: 'Everything that is invisible once finished – and therefore has to be documented.',
     damping: 'Damping',
     dampingIntro: 'Describe build-up and material per area.',
@@ -422,6 +430,7 @@ export default {
     moveEarlier: 'Move photo earlier',
     moveLater: 'Move photo later',
     photo: 'Photo',
+    zoom: 'Enlarge photo',
     loading: 'Loading image …',
     deleteConfirm: 'Remove this photo from the build log?',
     paysInto: 'counts towards “{criterion}” ({points} pts)',
@@ -753,5 +762,21 @@ export default {
     solid: 'Solid build log',
     foundation: 'Foundation in place',
     shell: 'Bare shell',
+  },
+
+  /** Example entries shown in empty fields. */
+  placeholder: {
+    participant: 'Jane Doe',
+    event: 'EMMA Summer Finals',
+    installer: 'DIY / professional installer',
+    batteryLocation: 'Engine bay / boot',
+    batterySecured: 'Factory hold-down bolted / stainless bracket M8',
+    groundPoint: 'Body bolt in the spare wheel well, bare metal',
+    doorLayers: 'Outer skin butyl 2 mm, inner skin sealed, door card damped',
+    carpetDamping: 'Butyl + foam layer',
+    otherAreas: 'Wheel arches and tailgate',
+    bonusTitle: 'Illuminated fuse distribution block',
+    bonusArea: 'Boot',
+    signalLink: 'RCA ch 1-2',
   },
 }

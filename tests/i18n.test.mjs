@@ -94,5 +94,23 @@ for (const key of ruleKeys) {
 }
 check(`jeder Regel-Befund hat Titel und Text (${ruleKeys.size} Schlüssel)`, ruleMissing)
 
+// ---------------------------- 5. Keine fest eingetippten Texte an Feldern und Knöpfen
+// „+ Endstufe“, „Unter dem Beifahrersitz“ und ein Dutzend weiterer Beispiele
+// standen als festes Attribut im Template und damit auch in der englischen
+// Oberfläche auf Deutsch. Erlaubt bleibt, was keine Sprache hat: Markennamen,
+// Zahlen, Kürzel – also nichts mit einem kleingeschriebenen Wort ab vier
+// Buchstaben. Für Texte gibt es `t()` oder ein Objekt `{ de, en }`.
+const hardcoded = []
+for (const file of sources) {
+  const code = readFileSync(file, 'utf8')
+  for (const m of code.matchAll(/(?:\s(placeholder|add-label)="([^"]*)"|\b(placeholder): '([^']*)')/g)) {
+    const [attr, text] = m[1] ? [m[1], m[2]] : [m[3], m[4]]
+    if (attr === 'add-label' || /\b[a-zäöüß]{4,}/.test(text)) {
+      hardcoded.push(`${file.slice(SRC.length + 1)}: ${attr} "${text}"`)
+    }
+  }
+}
+check('Platzhalter und Knopftexte laufen über die Übersetzung', hardcoded)
+
 console.log(failures ? `\n${failures} i18n-Prüfung(en) fehlgeschlagen.` : 'i18n: alle Checks bestanden.')
 process.exit(failures ? 1 : 0)

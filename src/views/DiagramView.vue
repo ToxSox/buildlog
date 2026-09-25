@@ -6,7 +6,7 @@ import WizardShell from '../components/WizardShell.vue'
 import MermaidDiagram from '../components/MermaidDiagram.vue'
 import { signalDefinition, powerDefinition } from '../utils/mermaid.js'
 import { useI18n } from '../i18n/index.js'
-import { useConfirm } from '../composables/useConfirm.js'
+import { useConfirm, linkHasContent } from '../composables/useConfirm.js'
 
 const { t, tx } = useI18n()
 const { confirm } = useConfirm()
@@ -86,8 +86,12 @@ const POLARITY_OPTIONS = [
   },
 ]
 
-function removeLink(kind, id) {
+async function removeLink(kind, id) {
   const list = kind === 'signal' ? system.value.signalLinks : system.value.powerLinks
+  const link = list.find((l) => l.id === id)
+  // Querschnitt und Sicherung verschwanden bisher ohne Rückfrage – anders als
+  // jeder andere ausgefüllte Eintrag der App.
+  if (link && linkHasContent(link) && !(await confirm({ message: t('confirm.link') }))) return
   const idx = list.findIndex((l) => l.id === id)
   if (idx >= 0) list.splice(idx, 1)
 }
@@ -214,7 +218,9 @@ const remoteMissing = computed(
             <label class="field" :for="`${l.id}-to`">{{ t('diagram.to') }}</label>
             <select :id="`${l.id}-to`" v-model="l.to" class="select">
               <option value="">–</option>
-              <option v-for="c in system.components" :key="c.id" :value="c.id">
+              <!-- Eine Verbindung von einer Komponente zu sich selbst zeichnete
+                   eine Schleife ins Diagramm, die nichts bedeutet. -->
+              <option v-for="c in system.components" :key="c.id" :value="c.id" :disabled="c.id === l.from">
                 {{ c.name || typeLabel(c.type) }}
               </option>
             </select>
@@ -225,7 +231,7 @@ const remoteMissing = computed(
               :id="`${l.id}-label`"
               v-model="l.label"
               class="input"
-              :placeholder="l.remote ? 'REM' : 'Cinch Ch 1-2'"
+              :placeholder="l.remote ? 'REM' : t('placeholder.signalLink')"
             />
           </div>
           <button type="button" class="btn-ghost btn-xs" @click="removeLink('signal', l.id)">
@@ -281,7 +287,9 @@ const remoteMissing = computed(
             <label class="field" :for="`${l.id}-to`">{{ t('diagram.to') }}</label>
             <select :id="`${l.id}-to`" v-model="l.to" class="select">
               <option value="">–</option>
-              <option v-for="c in system.components" :key="c.id" :value="c.id">
+              <!-- Eine Verbindung von einer Komponente zu sich selbst zeichnete
+                   eine Schleife ins Diagramm, die nichts bedeutet. -->
+              <option v-for="c in system.components" :key="c.id" :value="c.id" :disabled="c.id === l.from">
                 {{ c.name || typeLabel(c.type) }}
               </option>
             </select>

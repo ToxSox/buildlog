@@ -56,12 +56,12 @@ function switchMode(mode) {
             v-model="meta.participantName"
             class="input"
             aria-required="true"
-            placeholder="Max Mustermann"
+            :placeholder="t('placeholder.participant')"
           />
         </div>
         <div>
           <label class="field" for="team">{{ t('vehicle.team') }}</label>
-          <input id="team" v-model="meta.teamName" class="input" placeholder="optional" />
+          <input id="team" v-model="meta.teamName" class="input" :placeholder="t('common.optional')" />
         </div>
         <div>
           <label class="field" for="make"
@@ -94,7 +94,7 @@ function switchMode(mode) {
         </div>
         <div>
           <label class="field" for="event">{{ t('vehicle.event') }}</label>
-          <input id="event" v-model="meta.eventName" class="input" placeholder="EMMA Sommerfinale" />
+          <input id="event" v-model="meta.eventName" class="input" :placeholder="t('placeholder.event')" />
         </div>
         <div>
           <label class="field" for="installer">{{ t('vehicle.installer') }}</label>
@@ -102,7 +102,7 @@ function switchMode(mode) {
             id="installer"
             v-model="meta.installerName"
             class="input"
-            placeholder="Eigenbau / Fachbetrieb"
+            :placeholder="t('placeholder.installer')"
           />
         </div>
         <div class="sm:col-span-2">

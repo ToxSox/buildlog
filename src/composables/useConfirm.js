@@ -38,6 +38,15 @@ export function confirmAction(options) {
   })
 }
 
+/**
+ * Ob eine Verbindung schon Angaben trägt. Eine eben angelegte, leere Zeile
+ * wegzuklicken ist Aufräumen und braucht keine Rückfrage (wie in ItemList).
+ */
+export function linkHasContent(link) {
+  const present = (value) => value !== null && value !== undefined && value !== ''
+  return [link.to, link.label, link.section, link.fuseAmps].some(present)
+}
+
 export function useConfirm() {
   return { confirm: confirmAction }
 }

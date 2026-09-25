@@ -13,18 +13,30 @@ const store = useProjectStore()
 const craft = computed(() => store.project.craft)
 
 const CUSTOM_FIELDS = [
-  { key: 'name', label: { de: 'Bauteil', en: 'Part' }, placeholder: 'Hochtöner-Podest A-Säule', span: 2 },
+  {
+    key: 'name',
+    label: { de: 'Bauteil', en: 'Part' },
+    placeholder: { de: 'Hochtöner-Podest A-Säule', en: 'Tweeter pod, A-pillar' },
+    span: 2,
+  },
   {
     key: 'technique',
     label: { de: 'Fertigung', en: 'Fabrication' },
     type: 'select',
     options: FABRICATION_TECHNIQUES,
   },
-  { key: 'material', label: { de: 'Material', en: 'Material' }, placeholder: 'ASA / PETG / Epoxid-Matte' },
+  {
+    key: 'material',
+    label: { de: 'Material', en: 'Material' },
+    placeholder: { de: 'ASA / PETG / Epoxid-Matte', en: 'ASA / PETG / epoxy mat' },
+  },
   {
     key: 'purpose',
     label: { de: 'Zweck', en: 'Purpose' },
-    placeholder: 'Winkelgenaue Ausrichtung auf den Hörplatz',
+    placeholder: {
+      de: 'Winkelgenaue Ausrichtung auf den Hörplatz',
+      en: 'Aimed precisely at the listening position',
+    },
     span: 2,
   },
   {
@@ -39,14 +51,17 @@ const MEASURE_FIELDS = [
   {
     key: 'name',
     label: { de: 'Messung', en: 'Measurement' },
-    placeholder: 'Frequenzgang Fahrerplatz nach Einmessung',
+    placeholder: {
+      de: 'Frequenzgang Fahrerplatz nach Einmessung',
+      en: "Frequency response at the driver's seat after tuning",
+    },
     span: 2,
   },
   { key: 'tool', label: { de: 'Messsystem', en: 'Measurement system' }, placeholder: 'REW + UMIK-1' },
   {
     key: 'position',
     label: { de: 'Mikrofonposition', en: 'Microphone position' },
-    placeholder: 'Kopfposition Fahrer',
+    placeholder: { de: 'Kopfposition Fahrer', en: "Driver's head position" },
   },
   {
     key: 'result',
@@ -73,7 +88,7 @@ const MEASURE_FIELDS = [
             id="dampDoors"
             v-model="craft.dampingDoors"
             class="textarea"
-            placeholder="Außenblech Alubutyl 2 mm, Innenblech geschlossen, TVK entdröhnt"
+            :placeholder="t('placeholder.doorLayers')"
           />
         </div>
         <div>
@@ -82,7 +97,7 @@ const MEASURE_FIELDS = [
             id="dampFloor"
             v-model="craft.dampingFloor"
             class="textarea"
-            placeholder="Alubutyl + Schaumauflage"
+            :placeholder="t('placeholder.carpetDamping')"
           />
         </div>
         <div>
@@ -91,7 +106,7 @@ const MEASURE_FIELDS = [
             id="dampTrunk"
             v-model="craft.dampingTrunk"
             class="textarea"
-            placeholder="Radhäuser und Heckklappe"
+            :placeholder="t('placeholder.otherAreas')"
           />
         </div>
       </div>
@@ -101,7 +116,7 @@ const MEASURE_FIELDS = [
       path="craft.customParts"
       :title="t('craft.customParts')"
       :intro="t('craft.customIntro')"
-      add-label="+ Bauteil"
+      :add-label="t('craft.addPart')"
       :empty-label="t('craft.customEmpty')"
       :fields="CUSTOM_FIELDS"
       photo-slot-prefix="craft.customParts"
@@ -113,7 +128,7 @@ const MEASURE_FIELDS = [
       path="craft.measurements"
       :title="t('craft.measurements')"
       :intro="t('craft.measurementsIntro')"
-      add-label="+ Messung"
+      :add-label="t('craft.addMeasurement')"
       :empty-label="t('craft.measurementsEmpty')"
       :fields="MEASURE_FIELDS"
       photo-slot-prefix="craft.measurements"
