@@ -745,7 +745,7 @@ export default {
     mainFuseOk: 'Regel erfüllt und fotografisch belegt',
     allFusedNoComponents: 'noch keine Komponenten erfasst',
     allFusedUnfused:
-      '{needed} abzusichernde Leitungen erwartet (Endstufen, DSP, Nicht-OEM-Quellen), aber nur {fuses} Abgänge unter „Strom & Sicherheit“ erfasst – {n} fehlt/fehlen',
+      '{n} von {needed} abzusichernden Komponenten ohne Abgang mit Sicherung unter „Strom & Sicherheit“: {list}',
     allFusedOk: '{n} Komponenten abgesichert',
     fuseValueBad: '{n} unpassende Absicherung(en)',
     fuseValueOk: 'alle erfassten Sicherungen passen zum Querschnitt',
