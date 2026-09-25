@@ -1,6 +1,7 @@
 import { CRITERIA, criteriaForColumn, BONUS_POINTS_PER_REQUEST } from './matrix.js'
 import { evaluateRules, toNumber, MAX_FUSE_DISTANCE_CM } from './emmaRules.js'
-import { translate } from '../i18n/index.js'
+import { COMPONENT_TYPES } from './schema.js'
+import { translate, translateInline } from '../i18n/index.js'
 
 const d = (key, params) => translate(`assessment.${key}`, params)
 
@@ -40,16 +41,16 @@ function hasHiddenPhotoLog(project) {
 }
 
 /**
- * Zählt Komponenten, die laut Regelwerk eine eigene Sicherung brauchen.
+ * Komponenten, die laut Regelwerk eine eigene Sicherung brauchen.
  * Werksseitig verbaute Signalquellen (OEM-Headunit) und Komponenten an
  * OEM-Verkabelung zählen nicht mit: Für Originalteile gilt die Dimensionierung
  * des Herstellers als akzeptiert, ein Nachweis wird nicht verlangt.
  */
-function fusedComponentCount(project) {
+function componentsNeedingFuse(project) {
   const oemPowered = new Set((project.system?.powerLinks || []).filter((l) => l.oem).map((l) => l.to))
   return (project.system?.components || []).filter(
     (c) => ['amp', 'dsp', 'source'].includes(c.type) && !c.oem && !oemPowered.has(c.id),
-  ).length
+  )
 }
 
 /**
@@ -93,15 +94,24 @@ function deriveAuto(criterion, project, column, findings) {
     }
 
     case 'allFused': {
-      const needed = fusedComponentCount(project)
-      const fuses = (project.system?.powerLinks || []).filter(
-        (l) => !l.oem && toNumber(l.fuseAmps) !== null,
-      ).length
-      if (!needed) return ok(0, d('allFusedNoComponents'))
-      const unfused = Math.max(0, needed - fuses)
+      // Je Komponente gezählt, nicht Sicherungen gegen Komponenten: Die
+      // Hauptsicherung an der Batterie zählte sonst als Absicherung einer
+      // Endstufe mit, und eine Endstufe ganz ohne Sicherung bekam volle Punkte.
+      const needing = componentsNeedingFuse(project)
+      if (!needing.length) return ok(0, d('allFusedNoComponents'))
+      const fused = new Set(
+        (project.system?.powerLinks || [])
+          .filter((l) => !l.oem && toNumber(l.fuseAmps) !== null)
+          .map((l) => l.to),
+      )
+      const unfused = needing.filter((c) => !fused.has(c.id))
+      const typeLabel = (type) => translateInline(COMPONENT_TYPES.find((x) => x.id === type)?.label) || type
+      const names = unfused.map((c) => c.name || typeLabel(c.type)).join(', ')
       return ok(
-        max - unfused * 2,
-        unfused ? d('allFusedUnfused', { n: unfused, needed, fuses }) : d('allFusedOk', { n: needed }),
+        max - unfused.length * 2,
+        unfused.length
+          ? d('allFusedUnfused', { n: unfused.length, needed: needing.length, list: names })
+          : d('allFusedOk', { n: needing.length }),
       )
     }
 

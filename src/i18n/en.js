@@ -737,7 +737,7 @@ export default {
     mainFuseOk: 'rule met and documented photographically',
     allFusedNoComponents: 'no components recorded yet',
     allFusedUnfused:
-      '{needed} fused feeds expected (amplifiers, DSP, non-OEM sources) but only {fuses} branches recorded under “Power & safety” – {n} missing',
+      '{n} of {needed} components that need a fuse have no fused feed under “Power & safety”: {list}',
     allFusedOk: '{n} components fused',
     fuseValueBad: '{n} inappropriate fuse(s)',
     fuseValueOk: 'all recorded fuses match their cross-section',

@@ -176,6 +176,29 @@ p.system.powerLinks.push({ id: 'l2', from: 'bat', to: 'src', oem: true })
 allFused = allFusedFor(p)
 check('OEM-Verkabelung zur Quelle ersetzt den Nachweis', allFused && allFused.earned === allFused.max)
 
+// Fall 8a: Gezählt wurden Sicherungen gegen Komponenten. Die Hauptsicherung an
+// der Batterie zählte dabei als Absicherung einer Endstufe mit – eine Endstufe
+// ganz ohne Sicherung bekam so die vollen Punkte.
+p = createEmptyProject()
+p.meta.emmaClass = 'sq-m'
+p.system.components = [
+  { id: 'bat', type: 'battery' },
+  { id: 'dist', type: 'distributor' },
+  { id: 'amp1', type: 'amp', name: 'Front' },
+  { id: 'amp2', type: 'amp', name: 'Sub' },
+]
+p.system.powerLinks = [
+  { id: 'l1', from: 'bat', to: 'dist', section: 35, fuseAmps: 150 },
+  { id: 'l2', from: 'dist', to: 'amp1', section: 10, fuseAmps: 60 },
+  { id: 'l3', from: 'dist', to: 'amp2', section: 10 },
+]
+allFused = allFusedFor(p)
+check('Hauptsicherung ersetzt keine Endstufen-Sicherung', allFused && allFused.earned === allFused.max - 2)
+check('ungesicherte Endstufe wird beim Namen genannt', allFused && allFused.detail.includes('Sub'))
+p.system.powerLinks[2].fuseAmps = 60
+allFused = allFusedFor(p)
+check('jede Endstufe mit eigener Sicherung gibt volle Punkte', allFused && allFused.earned === allFused.max)
+
 // Fall 8b: Abgangs-Sicherung gegen die Fuse Size Matrix – direkt an der Verbindung.
 p = createEmptyProject()
 p.system.components = [
