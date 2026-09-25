@@ -21,7 +21,7 @@ npm run preview      # Build lokal testen
 
 npm run lint         # ESLint
 npm run format       # Prettier
-npm test             # Regeln, Matrix, Datenbasis und Sprachkataloge (ohne Browser)
+npm test             # Regeln, Matrix, Datenbasis, Sprachkataloge, Speicher (ohne Browser)
 npm run build && npm run test:e2e   # End-to-End gegen den echten Build
 ```
 
