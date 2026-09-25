@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node tests/emmaRules.test.mjs && node tests/migration.test.mjs && node tests/matrix.test.mjs && node tests/sections.test.mjs && node tests/i18n.test.mjs && node tests/photoPages.test.mjs && node tests/tableFlow.test.mjs && node tests/edgeLabels.test.mjs && node tests/mermaid.test.mjs",
+    "test": "node tests/emmaRules.test.mjs && node tests/migration.test.mjs && node tests/matrix.test.mjs && node tests/sections.test.mjs && node tests/i18n.test.mjs && node tests/photoPages.test.mjs && node tests/tableFlow.test.mjs && node tests/edgeLabels.test.mjs && node tests/mermaid.test.mjs && node --import ./tests/support/register.mjs tests/store.test.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

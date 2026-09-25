@@ -471,7 +471,10 @@ export default {
       'Save the build log as a ZIP, then delete build logs or individual detail photos you no longer need.',
     autosaveQuota: 'Browser storage full – changes could not be saved.',
     autosaveFailed: 'Autosave failed.',
+    loadFailed:
+      'Your saved build logs could not be read. Please reload the page – the data itself is not lost.',
     bannerTitle: 'Not saved!',
+    loadFailedTitle: 'Not loaded!',
   },
 
   skip: {

@@ -475,7 +475,10 @@ export default {
       'Sichere die Mappe als ZIP, lösche danach nicht mehr benötigte Mappen oder einzelne Detailfotos.',
     autosaveQuota: 'Browser-Speicher voll – Änderungen konnten nicht gesichert werden.',
     autosaveFailed: 'Autosave fehlgeschlagen.',
+    loadFailed:
+      'Die gespeicherten Mappen konnten nicht gelesen werden. Bitte die Seite neu laden – die Daten selbst sind nicht verloren.',
     bannerTitle: 'Nicht gespeichert!',
+    loadFailedTitle: 'Nicht geladen!',
   },
 
   skip: {

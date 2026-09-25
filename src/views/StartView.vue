@@ -6,6 +6,7 @@ import { MODES, EMMA_CLASSES } from '../data/schema.js'
 import ArchiveTools from '../components/ArchiveTools.vue'
 import { useI18n } from '../i18n/index.js'
 import { useConfirm } from '../composables/useConfirm.js'
+import { isQuotaError, quotaMessage, storageEstimate } from '../utils/storage.js'
 
 const { t, locale } = useI18n()
 const { confirm } = useConfirm()
@@ -55,7 +56,13 @@ async function guarded(action) {
     await action()
   } catch (err) {
     console.error('[emma] Aktion fehlgeschlagen', err)
-    actionError.value = err?.userMessage ? err.message : t('start.actionFailed')
+    // Volles Speicherkontingent beim Duplizieren (alle Fotos werden kopiert)
+    // endete bisher als nichtssagendes „fehlgeschlagen“.
+    actionError.value = isQuotaError(err)
+      ? quotaMessage(await storageEstimate())
+      : err?.userMessage
+        ? err.message
+        : t('start.actionFailed')
   } finally {
     busy.value = false
   }
