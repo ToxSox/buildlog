@@ -21,8 +21,14 @@ export const useProjectStore = defineStore('project', () => {
   const ready = ref(false)
   const saving = ref(false)
   const lastSavedAt = ref(null)
-  /** Gesetzt, wenn der Autosave am vollen Browser-Speicher gescheitert ist. */
-  const storageError = ref('')
+  /**
+   * Gesetzt, wenn Laden oder Autosave gescheitert ist. Gehalten wird der
+   * Schlüssel, nicht der Text: Ein übersetzter Text fror die Sprache ein, in
+   * der der Fehler zufällig auftrat – nach dem Umschalten stand das Banner
+   * weiter auf Deutsch.
+   */
+  const storageErrorKey = ref('')
+  const storageError = computed(() => (storageErrorKey.value ? translate(storageErrorKey.value) : ''))
 
   // ---------------------------------------------------------------- Getter
   const mode = computed(() => project.value.mode)
@@ -258,16 +264,49 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   // ------------------------------------------------------------- Lifecycle
-  async function startProject(newMode) {
+  /**
+   * Macht eine neue Mappe zur aktiven und schreibt sie sofort.
+   *
+   * Scheitert das Schreiben, wird der vorherige Stand zurückgeholt. Vorher
+   * blieb die neue Mappe aktiv und im Index stehen, und ihr Autosave war
+   * weiter geplant: Der ZIP-Import meldete „Speicher voll“ und räumte die
+   * eben geschriebenen Fotos wieder ab – der nächste Autosave gelang dann,
+   * weil genau das Platz gemacht hatte, und hinterließ eine Mappe, deren
+   * Fotos es nicht mehr gab.
+   */
+  async function activateNew(data) {
     // Erst den ausstehenden Autosave der bisherigen Mappe schreiben: sonst
     // feuert sein Timer nach dem Wechsel und speichert die NEUE Mappe.
     await flush()
+    const before = {
+      id: activeId.value,
+      project: project.value,
+      projects: [...projects.value],
+      errorKey: storageErrorKey.value,
+    }
+    const id = uid('prj')
+    activeId.value = id
+    project.value = data
+    touchIndexEntry()
+    try {
+      await saveOrThrow()
+    } catch (err) {
+      clearTimeout(timer)
+      pending = false
+      activeId.value = before.id
+      project.value = before.project
+      projects.value = before.projects
+      storageErrorKey.value = before.errorKey
+      // Der Datensatz kann schon stehen, wenn erst der Index gescheitert ist.
+      await stateDb.removeItem(projectKey(id)).catch(() => {})
+      throw err
+    }
+  }
+
+  async function startProject(newMode) {
     const fresh = createEmptyProject()
     fresh.mode = newMode
-    activeId.value = uid('prj')
-    project.value = fresh
-    touchIndexEntry()
-    await saveOrThrow()
+    await activateNew(fresh)
   }
 
   function setMode(newMode) {
@@ -281,7 +320,12 @@ export const useProjectStore = defineStore('project', () => {
     if (!data) return
     activeId.value = id
     project.value = migrateProject(data)
-    await useMediaStore().hydrate(allMediaIds.value)
+    const media = useMediaStore()
+    // Die Fotos der bisherigen Mappe freigeben: Sonst hielt jede einmal
+    // geöffnete Mappe all ihre Bilder bis zum Neuladen im Speicher – am
+    // Telefon mit Dutzenden Fotos je Mappe ein echtes Problem.
+    media.retain(allMediaIds.value)
+    await media.hydrate(allMediaIds.value)
     await persistIndex()
   }
 
@@ -294,19 +338,29 @@ export const useProjectStore = defineStore('project', () => {
     copy.meta.vehicleModel = `${copy.meta.vehicleModel} ${suffix}`.trim()
 
     // Bilder physisch kopieren, damit das Löschen der einen Mappe die andere nicht trifft.
-    for (const [slot, list] of Object.entries(copy.media)) {
-      copy.media[slot] = []
-      for (const item of list || []) {
-        const blob = await media.get(item.id)
-        if (!blob) continue
-        const newId = uid('img')
-        await media.put(newId, blob)
-        copy.media[slot].push({ ...item, id: newId })
+    // Geschriebene Kopien merken: Bricht das Kopieren ab (typisch: Speicher
+    // voll), blieben sie sonst als Waisen liegen, die keine Mappe mehr kennt –
+    // und hielten genau den Platz belegt, der beim nächsten Versuch fehlt.
+    const written = []
+    const newId = uid('prj')
+    try {
+      for (const [slot, list] of Object.entries(copy.media)) {
+        copy.media[slot] = []
+        for (const item of list || []) {
+          const blob = await media.get(item.id)
+          if (!blob) continue
+          const imageId = uid('img')
+          await media.put(imageId, blob)
+          written.push(imageId)
+          copy.media[slot].push({ ...item, id: imageId })
+        }
       }
+      await stateDb.setItem(projectKey(newId), plain(copy))
+    } catch (err) {
+      for (const id of written) await media.remove(id).catch(() => {})
+      throw err
     }
 
-    const newId = uid('prj')
-    await stateDb.setItem(projectKey(newId), plain(copy))
     projects.value.push(summarize(newId, copy))
     await persistIndex()
     return newId
@@ -353,11 +407,32 @@ export const useProjectStore = defineStore('project', () => {
 
   /** Legt eine importierte Mappe als eigenes Projekt an, statt die aktuelle zu überschreiben. */
   async function replaceProject(raw) {
-    await flush()
-    activeId.value = uid('prj')
-    project.value = migrateProject(raw)
-    touchIndexEntry()
-    await saveOrThrow()
+    await activateNew(migrateProject(raw))
+  }
+
+  /**
+   * Nimmt Mappen in die Liste auf, deren Datensatz existiert, die der Index
+   * aber nicht kennt.
+   *
+   * Der Index ist nur ein Verzeichnis, die Datensätze sind die Wahrheit. Er
+   * kann hinter ihnen zurückbleiben: Scheitert das Laden beim Start, ist die
+   * Liste leer, und die nächste neue Mappe schreibt einen Index nur mit sich
+   * selbst. Dasselbe passiert, wenn zwei Tabs offen sind und jeder seinen
+   * Index schreibt. Die übrigen Mappen standen weiter in der IndexedDB, waren
+   * aber von der Startseite aus nicht mehr zu erreichen.
+   */
+  async function recoverUnlisted(list) {
+    const known = new Set(list.map((p) => p.id))
+    const prefix = projectKey('')
+    const found = []
+    for (const key of await stateDb.keys()) {
+      if (!key.startsWith(prefix)) continue
+      const id = key.slice(prefix.length)
+      if (known.has(id)) continue
+      const data = await stateDb.getItem(key)
+      if (data) found.push(summarize(id, data))
+    }
+    return found
   }
 
   /**
@@ -374,19 +449,21 @@ export const useProjectStore = defineStore('project', () => {
   async function loadOnce() {
     try {
       const index = await stateDb.getItem(INDEX_KEY)
+      const listed = index?.projects || []
+      const recovered = await recoverUnlisted(listed)
+      const list = [...listed, ...recovered]
 
-      if (index?.projects?.length) {
-        projects.value = index.projects
+      if (list.length) {
+        projects.value = list
         const wanted =
-          index.activeId && index.projects.some((p) => p.id === index.activeId)
-            ? index.activeId
-            : index.projects[0].id
+          index?.activeId && list.some((p) => p.id === index.activeId) ? index.activeId : list[0].id
         const data = await stateDb.getItem(projectKey(wanted))
         if (data) {
           activeId.value = wanted
           project.value = migrateProject(data)
           await useMediaStore().hydrate(allMediaIds.value)
         }
+        if (recovered.length) await persistIndex()
       } else {
         // Migration: Einzelprojekt aus Schema <= 5 in die Mappenliste überführen.
         const legacy = await stateDb.getItem(STATE_KEY)
@@ -402,6 +479,8 @@ export const useProjectStore = defineStore('project', () => {
       }
     } catch (err) {
       console.error('[emma] Autosave konnte nicht geladen werden', err)
+      // Ohne Hinweis sah die Startseite aus, als gäbe es keine Mappen.
+      storageErrorKey.value = 'storage.loadFailed'
     } finally {
       ready.value = true
     }
@@ -432,15 +511,14 @@ export const useProjectStore = defineStore('project', () => {
     try {
       await persist()
       lastSavedAt.value = new Date()
-      storageError.value = ''
+      storageErrorKey.value = ''
       return true
     } catch (err) {
       // Der Stand ist weiterhin ungesichert – der nächste Versuch soll ihn mitnehmen.
       pending = true
       console.error('[emma] Autosave fehlgeschlagen', err)
-      storageError.value = isQuotaError(err)
-        ? translate('storage.autosaveQuota')
-        : translate('storage.autosaveFailed')
+      lastError = err
+      storageErrorKey.value = isQuotaError(err) ? 'storage.autosaveQuota' : 'storage.autosaveFailed'
       return false
     } finally {
       saving.value = false
@@ -456,11 +534,15 @@ export const useProjectStore = defineStore('project', () => {
     if (await save()) return
     const err = new Error(storageError.value || translate('storage.autosaveFailed'))
     err.userMessage = true
+    // Die Ursache mitgeben: Der ZIP-Import erkennt daran den vollen Speicher
+    // und nennt dann Belegung und Ausweg statt nur „fehlgeschlagen“.
+    err.cause = lastError
     throw err
   }
 
   // Debounced Autosave: jede Änderung am State landet nach 400ms in IndexedDB.
   let timer = null
+  let lastError = null
   /** Es liegt eine Änderung an, die noch nicht geschrieben wurde. */
   let pending = false
 
@@ -485,8 +567,14 @@ export const useProjectStore = defineStore('project', () => {
 
   watch(
     project,
-    () => {
+    (now, before) => {
       if (!ready.value) return
+      // Eine ausgetauschte Mappe (Öffnen, Löschen) ist keine Änderung. Sonst
+      // bekam schon das bloße Öffnen einen neuen Änderungszeitpunkt, und die
+      // Startseite sortierte die Mappe nach oben, als wäre sie bearbeitet.
+      // Wer eine neue Mappe einsetzt und sie gesichert haben will, schreibt
+      // sie selbst (`activateNew`).
+      if (now !== before) return
       pending = true
       clearTimeout(timer)
       timer = setTimeout(save, 400)
@@ -502,6 +590,7 @@ export const useProjectStore = defineStore('project', () => {
     saving,
     lastSavedAt,
     storageError,
+    storageErrorKey,
     flush,
     mode,
     isMasterclass,

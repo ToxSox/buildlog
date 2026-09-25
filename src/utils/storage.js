@@ -47,7 +47,11 @@ export function isQuotaError(err) {
     err.name === 'QuotaExceededError' ||
     err.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
     err.code === 22 ||
-    /quota|storage.*full|exceeded/i.test(err.message || '')
+    // Nicht mehr auf bloßes „exceeded“: Das traf auch „Maximum call stack size
+    // exceeded“ und meldete einen Programmfehler als vollen Speicher.
+    /quota|storage.*full/i.test(err.message || '') ||
+    // Der Store verpackt den Speicherfehler in eine eigene Meldung.
+    isQuotaError(err.cause)
   )
 }
 

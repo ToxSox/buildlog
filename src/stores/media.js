@@ -58,16 +58,23 @@ export const useMediaStore = defineStore('media', () => {
     await mediaDb.clear()
   }
 
-  /** Entfernt Blobs, die von keinem Slot mehr referenziert werden. */
-  async function pruneOrphans(referencedIds) {
-    const keep = new Set(referencedIds)
-    const keys = await mediaDb.keys()
-    await Promise.all(keys.filter((k) => !keep.has(k)).map((k) => remove(k)))
+  /**
+   * Gibt alle geladenen Bilder außer den genannten aus dem Speicher frei. Die
+   * IndexedDB bleibt unberührt – die Bilder anderer Mappen liegen dort weiter.
+   */
+  function retain(ids) {
+    const keep = new Set(ids)
+    for (const id of Object.keys(urls.value)) {
+      if (keep.has(id)) continue
+      URL.revokeObjectURL(urls.value[id])
+      delete urls.value[id]
+    }
+    for (const id of [...blobs.keys()]) if (!keep.has(id)) blobs.delete(id)
   }
 
   function url(id) {
     return urls.value[id] || ''
   }
 
-  return { urls, blobs, put, get, remove, hydrate, clearAll, pruneOrphans, url }
+  return { urls, blobs, put, get, remove, hydrate, clearAll, retain, url }
 })
