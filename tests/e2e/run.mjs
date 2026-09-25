@@ -818,9 +818,10 @@ try {
   const layoutPage = await layoutCtx.newPage()
   layoutPage.on('pageerror', (e) => consoleErrors.push(`aufteilung: ${e.message}`))
   layoutPage.on('dialog', (d) => d.accept())
-  const printLayout = async (name, prj, title) => {
+  const printLayout = async (name, prj, title, files = {}) => {
     const zip = new JSZip()
     zip.file('project.json', JSON.stringify(prj))
+    for (const [path, data] of Object.entries(files)) zip.file(path, data)
     const zipFile = join(WORK, `${name}.zip`)
     writeFileSync(zipFile, await zip.generateAsync({ type: 'nodebuffer' }))
     await layoutPage.goto(BASE, { waitUntil: 'networkidle' })
@@ -834,6 +835,7 @@ try {
         headings: [...e.querySelectorAll('.print-h2')].map((h) => h.textContent.trim()),
         rows: e.querySelectorAll('tbody tr').length,
         text: e.querySelector('.print-body').innerText,
+        wide: e.scrollWidth > e.clientWidth + 2,
       })),
     )
     const own = sheets.filter((sh) => sh.title === title)
@@ -1046,6 +1048,51 @@ try {
     'lange Bonus-Begründungen laufen nicht über',
     bonusLong.clean && bonusLong.own.reduce((sum, sh) => sum + sh.rows, 0) === 8,
     bonusLong.fits,
+  )
+
+  // Ein langes Wort ohne Umbruchstelle (Teilenummer, URL) machte die Spalte so
+  // breit wie das Wort. Die Tabelle ragte über den Blattrand, `overflow: hidden`
+  // schnitt den Rest ab – im PDF fehlte er, und die Vorschau warnte nicht.
+  const longWord = await printLayout(
+    'bonus-wort',
+    bonusProject(2, `Teilenummer_${'X'.repeat(200)}_ENDE`),
+    'Bonuspunkte-Anträge',
+  )
+  check(
+    'langes Wort bricht um statt über den Blattrand',
+    longWord.own.length > 0 && longWord.own.every((sh) => !sh.wide) && longWord.clean,
+    longWord.fits,
+  )
+
+  // Die Bildzelle hat eine feste Höhe, die Unterschrift nahm sich davon, was sie
+  // brauchte. Eine lange Unterschrift schrumpfte das Foto auf null und lief
+  // über den Seitenfuß.
+  const captionProject = createEmptyProject()
+  captionProject.mode = 'QuickRescue'
+  captionProject.media['vehicle.exterior'] = [
+    {
+      id: 'img_caption',
+      mime: 'image/png',
+      width: 640,
+      height: 480,
+      caption: 'Sehr lange Bildunterschrift mit allen Details. '.repeat(150),
+    },
+  ]
+  await printLayout('bildunterschrift', captionProject, '', {
+    'bilder/img_caption.png': readFileSync(img),
+  })
+  const figure = await layoutPage
+    .locator('.print-figure')
+    .first()
+    .evaluate((el) => {
+      const frame = el.querySelector('.print-figure__frame').getBoundingClientRect()
+      const body = el.closest('.print-body').getBoundingClientRect()
+      return { frame: frame.height, overshoot: el.getBoundingClientRect().bottom - body.bottom }
+    })
+  check(
+    'lange Bildunterschrift lässt dem Foto seinen Platz',
+    figure.frame > 300 && figure.overshoot <= 1,
+    JSON.stringify(figure),
   )
   await layoutCtx.close()
 

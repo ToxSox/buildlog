@@ -461,8 +461,12 @@ function measurePages() {
     overflowPages.value = []
     return
   }
+  // Auch in der Breite: Was seitlich übersteht, schneidet das Blatt ab, ohne
+  // dass es höher würde.
   overflowPages.value = nodes
-    .map((node, i) => (node.offsetHeight > SHEET_HEIGHT_PX + 2 ? i + 1 : 0))
+    .map((node, i) =>
+      node.offsetHeight > SHEET_HEIGHT_PX + 2 || node.scrollWidth > node.clientWidth + 2 ? i + 1 : 0,
+    )
     .filter(Boolean)
   measureHeights(nodes)
 }

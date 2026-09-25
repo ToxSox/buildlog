@@ -85,6 +85,7 @@ async function remove() {
     <figcaption class="space-y-2 p-2">
       <input
         :value="item.caption"
+        maxlength="240"
         class="input !py-1 !text-xs"
         :aria-label="t('uploader.caption')"
         :placeholder="t('uploader.caption')"

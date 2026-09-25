@@ -34,6 +34,17 @@
   overflow: hidden;
 }
 
+/* `anywhere` statt des globalen `break-word` aus style.css: Nur so zählt die
+   Umbruchstelle auch für die Mindestbreite. Mit `break-word` machte eine lange
+   Teilenummer oder URL die Tabellenspalte so breit wie das ganze Wort, die
+   Tabelle ragte über den Blattrand, und `overflow: hidden` schnitt den Rest
+   kommentarlos ab. Die globale Regel sitzt direkt auf den Elementen, erben
+   reicht deshalb nicht. */
+.print-page,
+.print-page :where(p, li, td, figcaption, label, div, span) {
+  overflow-wrap: anywhere;
+}
+
 /* Vorschau-Markierung: Dieser Abschnitt passt nicht auf ein Blatt. */
 @media screen {
   .print-page--overflow {
@@ -182,6 +193,14 @@
 .print-figure__caption {
   font-size: 7.5pt;
   color: #475569;
+  /* Die Zelle hat eine feste Höhe, jede Zeile Unterschrift geht dem Foto ab.
+     Ohne Deckel schrumpfte ein langer Text das Foto auf null und lief über den
+     Seitenfuß. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
 }
 
 .print-diagram {
