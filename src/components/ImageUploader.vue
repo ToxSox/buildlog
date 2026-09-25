@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useProjectStore } from '../stores/project.js'
 import { useMediaStore } from '../stores/media.js'
 import { uid } from '../data/schema.js'
@@ -15,6 +15,14 @@ const props = defineProps({
   compact: { type: Boolean, default: false },
 })
 
+/**
+ * `hold`: Der Uploader muss stehen bleiben, solange er arbeitet oder eine
+ * Fehlermeldung zeigt. Der Slot blendet ihn aus, sobald das erste Foto da ist –
+ * mitten in einem Stapel verschwand damit die Fortschrittsanzeige, und der
+ * Fehler zu einer späteren Datei wurde nie sichtbar.
+ */
+const emit = defineEmits(['hold'])
+
 const store = useProjectStore()
 const media = useMediaStore()
 
@@ -24,6 +32,11 @@ const dragOver = ref(false)
 const busy = ref(false)
 const progress = ref({ done: 0, total: 0 })
 const error = ref('')
+
+watch(
+  () => busy.value || Boolean(error.value),
+  (hold) => emit('hold', hold),
+)
 
 const hasCamera = computed(
   () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches,
@@ -64,8 +77,8 @@ async function handleFiles(fileList) {
       // Die Ursache gehört in die Meldung – ohne sie ist ein Fehler auf dem
       // Showplatz nicht diagnostizierbar. HEIC bekommt einen echten Ausweg.
       error.value = isHeic(file)
-        ? t('uploader.heicFailed', { name: file.name || 'Bild' })
-        : t('uploader.failed', { name: file.name || 'Bild', reason: err?.message || err })
+        ? t('uploader.heicFailed', { name: file.name || t('uploader.photo') })
+        : t('uploader.failed', { name: file.name || t('uploader.photo'), reason: err?.message || err })
     } finally {
       progress.value.done += 1
     }

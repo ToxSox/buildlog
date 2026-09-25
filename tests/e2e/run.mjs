@@ -1096,6 +1096,51 @@ try {
   )
   await layoutCtx.close()
 
+  // ------------------------------------------------- Mehrere Fotos auf einmal
+  // Der Uploader verschwand, sobald das erste Foto im Slot lag – mitten im
+  // Stapel. Die übrigen Fotos kamen ohne Fortschrittsanzeige an, und der Fehler
+  // zu einer kaputten Datei wurde nie sichtbar.
+  const flowCtx = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'de-DE' })
+  const flow = await flowCtx.newPage()
+  flow.on('pageerror', (e) => consoleErrors.push(`ablauf: ${e.message}`))
+  await flow.goto(BASE, { waitUntil: 'networkidle' })
+  await flow.getByRole('button', { name: /SQ Masterclass/ }).click()
+  await flow.waitForURL('**/#/wizard/fahrzeug')
+  await flow.getByRole('button', { name: 'SQ X – Expert Unlimited', exact: true }).click()
+  const brokenPng = join(WORK, 'kaputt.png')
+  writeFileSync(brokenPng, Buffer.from('kein Bild'))
+  const secondPng = makeTestPng(join(WORK, 'zweites.png'), 320, 240)
+  await flow.locator('input[type=file]').first().setInputFiles([img, secondPng, brokenPng])
+  await flow.waitForTimeout(4000)
+  check('Stapel-Upload legt alle gültigen Fotos ab', (await flow.locator('figure img').count()) === 2)
+  check(
+    'Stapel-Upload zeigt den Fehler zur kaputten Datei',
+    (await flow.getByText('„kaputt.png“ konnte nicht verarbeitet werden').count()) === 1,
+  )
+
+  // ------------------------------------------------------------ Überspringen
+  // „Trotzdem überspringen“ schrieb den Skip-Eintrag, gelesen wurde er aber nur
+  // in der Prüfansicht: Zurück auf dem Schritt stand derselbe Dialog wieder da.
+  const footer = flow.locator('div.wizard-ui.sticky')
+  await footer.locator('button.btn-primary').click()
+  await flow.getByRole('button', { name: 'Trotzdem überspringen' }).click()
+  await flow.waitForURL('**/#/wizard/diagramme')
+  // Die Überblendung hält kurz beide Schritte im DOM.
+  await flow.waitForTimeout(600)
+  await footer.locator('button.btn-ghost').click()
+  await flow.waitForURL('**/#/wizard/fahrzeug')
+  await flow.waitForTimeout(600)
+  check('Übersprungenes zählt in der Fußzeile nicht mehr', !(await footer.innerText()).includes('fehlt noch'))
+  await footer.locator('button.btn-primary').click()
+  await flow.waitForTimeout(400)
+  check(
+    'Übersprungenes öffnet den Dialog nicht erneut',
+    (await flow.getByRole('button', { name: 'Trotzdem überspringen' }).count()) === 0 &&
+      flow.url().includes('/wizard/diagramme'),
+    flow.url(),
+  )
+  await flowCtx.close()
+
   // ------------------------------------------------------------ Handy-Layout
   // Fotografiert wird am Auto, also auf dem Telefon. Lange deutsche Komposita
   // und lange Eingaben schoben die Seite dort seitlich aus dem Bild.
