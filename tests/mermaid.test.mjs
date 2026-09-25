@@ -31,22 +31,33 @@ const system = (links) => ({
 const dotted = signalDefinition(
   system([{ id: 'l1', from: 'src1', to: 'amp1', remote: true, label: 'Litze 1.5mm2' }]),
 )
-check('Punkt im Remote-Label bleibt in der Beschriftung', dotted.includes('-.->|Litze 1.5mm2|'), dotted)
+check('Punkt im Remote-Label bleibt in der Beschriftung', dotted.includes('-.->|"Litze 1.5mm2"|'), dotted)
 check('die Form `-. Text .->` wird nicht mehr erzeugt', !/-\.\s/.test(dotted), dotted)
 
 // Eine unbenannte Remote-Leitung heißt im Signalweg „REM“; ein leeres
 // Pipe-Paar darf dabei nie entstehen, das wäre wieder ein Syntaxfehler.
 const bare = signalDefinition(system([{ id: 'l1', from: 'src1', to: 'amp1', remote: true, label: '' }]))
-check('ohne Label steht REM am Pfeil', bare.includes('-.->|REM|'), bare)
+check('ohne Label steht REM am Pfeil', bare.includes('-.->|"REM"|'), bare)
 check('kein leeres Pipe-Paar', !bare.includes('||'), bare)
 
 // Pipes im Text würden die Beschriftung vorzeitig schließen.
 const piped = signalDefinition(system([{ id: 'l1', from: 'src1', to: 'amp1', remote: true, label: 'a|b' }]))
-check('Pipe im Label wird entfernt', piped.includes('-.->|ab|'), piped)
+check('Pipe im Label wird entfernt', piped.includes('-.->|"ab"|'), piped)
 
 // ------------------------------------------------------- Signal ohne Remote
 const plain = signalDefinition(system([{ id: 'l1', from: 'src1', to: 'amp1', label: 'Cinch 2.0 m' }]))
-check('Audiokante beschriftet in Pipes', plain.includes('-->|Cinch 2.0 m|'), plain)
+check('Audiokante beschriftet in Pipes', plain.includes('-->|"Cinch 2.0 m"|'), plain)
+
+// Ungeschützt las Mermaid Klammern in der Beschriftung als Knotenform und warf
+// einen Parse-Fehler für das ganze Diagramm. In Anführungszeichen sind sie Text.
+const bracketed = signalDefinition(
+  system([{ id: 'l1', from: 'src1', to: 'amp1', label: 'Cinch (2x) [A]; Kanal #1' }]),
+)
+check(
+  'Klammern im Label stehen geschützt in Anführungszeichen',
+  bracketed.includes('-->|"Cinch (2x) [A]; Kanal #35;1"|'),
+  bracketed,
+)
 
 // ------------------------------------------------------------- Stromlaufplan
 // Der Querschnitt trägt selbst einen Punkt (1.5 mm²) und darf die zweite
@@ -58,7 +69,7 @@ const power = powerDefinition({
   ],
   powerLinks: [{ id: 'p1', from: 'bat', to: 'amp1', section: 1.5, fuseAmps: 20, polarity: 'plus' }],
 })
-check('Querschnitt mit Punkt steht am Pfeil', power.includes('-->|1.5 mm² / 20 A|'), power)
+check('Querschnitt mit Punkt steht am Pfeil', power.includes('-->|"1.5 mm² / 20 A"|'), power)
 
 console.log(fail === 0 ? `\nAlle Checks bestanden.` : `\n${fail} Check(s) fehlgeschlagen.`)
 process.exit(fail ? 1 : 0)

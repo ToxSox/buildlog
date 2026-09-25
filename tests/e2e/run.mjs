@@ -447,6 +447,21 @@ try {
     'kein Render-Fehler nach der Beschriftung',
     (await page.getByText(/Diagramm konnte nicht gezeichnet werden/).count()) === 0,
   )
+
+  // Ungeschützte Klammern las Mermaid als Knotenform: „Cinch (2x)“ kippte mit
+  // einem Parse-Fehler das ganze Diagramm. `#1;` wurde als Zeichencode gelesen.
+  await page
+    .getByLabel(/Kabel \/ Kanal/)
+    .last()
+    .fill('REM (blau) [A]; Kanal #1;')
+  await page.waitForTimeout(2500)
+  const bracketDiagram = await page.locator('.mermaid-host').first().innerText()
+  check(
+    'Klammern in der Beschriftung kippen das Diagramm nicht',
+    (await page.getByText(/Diagramm konnte nicht gezeichnet werden/).count()) === 0 &&
+      bracketDiagram.includes('REM (blau) [A]; Kanal #1;'),
+    bracketDiagram.slice(0, 160),
+  )
   await page
     .getByLabel(/Kabel \/ Kanal/)
     .last()

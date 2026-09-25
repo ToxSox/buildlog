@@ -1,12 +1,18 @@
 import { COMPONENT_TYPES } from '../data/schema.js'
 import { translateInline, translate } from '../i18n/index.js'
 
-/** Mermaid-Labels vertragen keine Anführungszeichen und keine spitzen Klammern. */
+/**
+ * Mermaid-Labels vertragen keine Anführungszeichen und keine spitzen Klammern.
+ *
+ * `#` wird als Entity geschrieben: Mermaid liest `#…;` als Zeichencode, aus
+ * „Kanal #1; links“ wurde sonst ein Steuerzeichen statt „#1;“.
+ */
 function clean(text) {
   return String(text ?? '')
     .replace(/["`<>{}|]/g, '')
     .replace(/\r?\n/g, ' ')
     .trim()
+    .replace(/#/g, '#35;')
 }
 
 function nodeId(id) {
@@ -65,11 +71,14 @@ function buildFlowchart(components, links, edgeLabel, edgeStyle) {
         // ganze Diagramm mit einem Lexer-Fehler gekippt.
         lines.push(
           label
-            ? `  ${nodeId(l.from)} -.->|${label}| ${nodeId(l.to)}`
+            ? `  ${nodeId(l.from)} -.->|"${label}"| ${nodeId(l.to)}`
             : `  ${nodeId(l.from)} -.-> ${nodeId(l.to)}`,
         )
       } else {
-        const arrow = label ? `-->|${label}|` : '-->'
+        // In Anführungszeichen wie die Knoten: Ungeschützt las Mermaid Klammern
+        // als Knotenform, und „Cinch (2x)“ oder „Eingang [A]“ kippten mit einem
+        // Parse-Fehler das ganze Diagramm – am Bildschirm und im Ausdruck.
+        const arrow = label ? `-->|"${label}"|` : '-->'
         lines.push(`  ${nodeId(l.from)} ${arrow} ${nodeId(l.to)}`)
       }
       // linkStyle adressiert Kanten über ihren Ausgabe-Index.
